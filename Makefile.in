@@ -35,7 +35,7 @@
 
 
 
-SOURCES = $(lib_libvserver_a_SOURCES) $(src_capchroot_SOURCES) $(src_chbind_SOURCES) $(src_chcontext_SOURCES) $(src_fakerunlevel_SOURCES) $(src_filetime_SOURCES) $(src_ifspec_SOURCES) $(src_listdevip_SOURCES) $(src_parserpmdump_SOURCES) $(src_readlink_SOURCES) $(src_rebootmgr_SOURCES) $(src_reducecap_SOURCES) $(src_showattr_SOURCES) $(src_showperm_SOURCES) $(src_vbuild_SOURCES) $(src_vcheck_SOURCES) $(src_vdu_SOURCES) $(src_vfiles_SOURCES) $(src_vkill_SOURCES) $(src_vlimit_SOURCES) $(src_vreboot_SOURCES) $(src_vserver_stat_SOURCES) $(src_vunify_SOURCES) $(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) $(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) $(tests_testopenf_SOURCES)
+SOURCES = $(lib_libvserver_a_SOURCES) $(src_capchroot_SOURCES) $(src_chbind_SOURCES) $(src_chcontext_SOURCES) $(src_fakerunlevel_SOURCES) $(src_filetime_SOURCES) $(src_ifspec_SOURCES) $(src_listdevip_SOURCES) $(src_parserpmdump_SOURCES) $(src_readlink_SOURCES) $(src_rebootmgr_SOURCES) $(src_reducecap_SOURCES) $(src_showattr_SOURCES) $(src_showperm_SOURCES) $(src_vbuild_SOURCES) $(src_vcheck_SOURCES) $(src_vdu_SOURCES) $(src_vfiles_SOURCES) $(src_vkill_SOURCES) $(src_vreboot_SOURCES) $(src_vserver_stat_SOURCES) $(src_vsh_SOURCES) $(src_vunify_SOURCES) $(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) $(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) $(tests_testopenf_SOURCES)
 
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -120,9 +120,9 @@ am__EXEEXT_2 = src/capchroot$(EXEEXT) src/fakerunlevel$(EXEEXT) \
 	src/vreboot$(EXEEXT) src/vunify$(EXEEXT)
 pkglibPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 am__EXEEXT_3 = src/chbind$(EXEEXT) src/chcontext$(EXEEXT) \
-	src/rebootmgr$(EXEEXT) src/reducecap$(EXEEXT) \
-	src/vlimit$(EXEEXT) src/vdu$(EXEEXT) src/vfiles$(EXEEXT) \
-	src/vkill$(EXEEXT) src/vserver-stat$(EXEEXT)
+	src/rebootmgr$(EXEEXT) src/reducecap$(EXEEXT) src/vdu$(EXEEXT) \
+	src/vsh$(EXEEXT) src/vfiles$(EXEEXT) src/vkill$(EXEEXT) \
+	src/vserver-stat$(EXEEXT)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(noinst_PROGRAMS) $(pkglib_PROGRAMS) $(sbin_PROGRAMS)
 am_src_capchroot_OBJECTS = src/capchroot.$(OBJEXT)
@@ -179,15 +179,15 @@ src_vfiles_LDADD = $(LDADD)
 am_src_vkill_OBJECTS = src/src_vkill-vkill.$(OBJEXT)
 src_vkill_OBJECTS = $(am_src_vkill_OBJECTS)
 src_vkill_DEPENDENCIES = lib/libvserver.a
-am_src_vlimit_OBJECTS = src/vlimit.$(OBJEXT)
-src_vlimit_OBJECTS = $(am_src_vlimit_OBJECTS)
-src_vlimit_DEPENDENCIES = lib/libvserver.a
 am_src_vreboot_OBJECTS = src/vreboot.$(OBJEXT)
 src_vreboot_OBJECTS = $(am_src_vreboot_OBJECTS)
 src_vreboot_LDADD = $(LDADD)
 am_src_vserver_stat_OBJECTS = src/vserver-stat.$(OBJEXT)
 src_vserver_stat_OBJECTS = $(am_src_vserver_stat_OBJECTS)
 src_vserver_stat_DEPENDENCIES = lib/libvserver.a
+am_src_vsh_OBJECTS = src/vsh.$(OBJEXT) src/planetlab.$(OBJEXT)
+src_vsh_OBJECTS = $(am_src_vsh_OBJECTS)
+src_vsh_DEPENDENCIES = lib/libvserver.a
 am_src_vunify_OBJECTS = src/src_vunify-vunify.$(OBJEXT) \
 	src/src_vunify-vutil.$(OBJEXT)
 src_vunify_OBJECTS = $(am_src_vunify_OBJECTS)
@@ -230,6 +230,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	src/$(DEPDIR)/filetime.Po src/$(DEPDIR)/ifspec.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/listdevip.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/parserpmdump.Po \
+@AMDEP_TRUE@	src/$(DEPDIR)/planetlab.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/readlink.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/reducecap.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/showattr.Po \
@@ -240,8 +241,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	src/$(DEPDIR)/src_vunify-vutil.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/vbuild.Po src/$(DEPDIR)/vcheck.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/vdu.Po src/$(DEPDIR)/vfiles.Po \
-@AMDEP_TRUE@	src/$(DEPDIR)/vlimit.Po src/$(DEPDIR)/vreboot.Po \
-@AMDEP_TRUE@	src/$(DEPDIR)/vserver-stat.Po \
+@AMDEP_TRUE@	src/$(DEPDIR)/vreboot.Po \
+@AMDEP_TRUE@	src/$(DEPDIR)/vserver-stat.Po src/$(DEPDIR)/vsh.Po \
 @AMDEP_TRUE@	src/$(DEPDIR)/vutil.Po \
 @AMDEP_TRUE@	tests/$(DEPDIR)/escaperoot.Po \
 @AMDEP_TRUE@	tests/$(DEPDIR)/forkbomb.Po \
@@ -266,8 +267,8 @@ SOURCES = $(lib_libvserver_a_SOURCES) $(src_capchroot_SOURCES) \
 	$(src_showattr_SOURCES) $(src_showperm_SOURCES) \
 	$(src_vbuild_SOURCES) $(src_vcheck_SOURCES) $(src_vdu_SOURCES) \
 	$(src_vfiles_SOURCES) $(src_vkill_SOURCES) \
-	$(src_vlimit_SOURCES) $(src_vreboot_SOURCES) \
-	$(src_vserver_stat_SOURCES) $(src_vunify_SOURCES) \
+	$(src_vreboot_SOURCES) $(src_vserver_stat_SOURCES) \
+	$(src_vsh_SOURCES) $(src_vunify_SOURCES) \
 	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
 	$(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) \
 	$(tests_testopenf_SOURCES)
@@ -280,8 +281,8 @@ DIST_SOURCES = $(lib_libvserver_a_SOURCES) $(src_capchroot_SOURCES) \
 	$(src_showattr_SOURCES) $(src_showperm_SOURCES) \
 	$(src_vbuild_SOURCES) $(src_vcheck_SOURCES) $(src_vdu_SOURCES) \
 	$(src_vfiles_SOURCES) $(src_vkill_SOURCES) \
-	$(src_vlimit_SOURCES) $(src_vreboot_SOURCES) \
-	$(src_vserver_stat_SOURCES) $(src_vunify_SOURCES) \
+	$(src_vreboot_SOURCES) $(src_vserver_stat_SOURCES) \
+	$(src_vsh_SOURCES) $(src_vunify_SOURCES) \
 	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
 	$(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) \
 	$(tests_testopenf_SOURCES)
@@ -483,12 +484,13 @@ src_sbin_PRGS = src/chbind \
 			   src/chcontext \
 			   src/rebootmgr \
 			   src/reducecap \
-			   src/vlimit \
 			   src/vdu \
+			   src/vsh \
 			   src/vfiles \
 			   src/vkill \
 			   src/vserver-stat
 
+src_sbin_PRGS_broken = src/vlimit
 src_GENFILES = src/setattr
 src_capchroot_SOURCES = src/capchroot.c
 src_capchroot_LDADD = lib/libvserver.a
@@ -511,6 +513,8 @@ src_vlimit_LDADD = lib/libvserver.a
 src_vkill_SOURCES = src/vkill.c
 src_vkill_LDADD = lib/libvserver.a
 src_vkill_CPPFLAGS = $(AM_CPPFLAGS) -DLEGACYDIR=\"$(legacydir)\"
+src_vsh_SOURCES = src/vsh.c src/planetlab.c
+src_vsh_LDADD = lib/libvserver.a
 src_showattr_SOURCES = src/showattr.c
 src_showperm_SOURCES = src/showperm.c
 src_vbuild_SOURCES = src/vbuild.cc src/vutil.cc
@@ -896,11 +900,6 @@ src/src_vkill-vkill.$(OBJEXT): src/$(am__dirstamp) \
 src/vkill$(EXEEXT): $(src_vkill_OBJECTS) $(src_vkill_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vkill$(EXEEXT)
 	$(LINK) $(src_vkill_LDFLAGS) $(src_vkill_OBJECTS) $(src_vkill_LDADD) $(LIBS)
-src/vlimit.$(OBJEXT): src/$(am__dirstamp) \
-	src/$(DEPDIR)/$(am__dirstamp)
-src/vlimit$(EXEEXT): $(src_vlimit_OBJECTS) $(src_vlimit_DEPENDENCIES) src/$(am__dirstamp)
-	@rm -f src/vlimit$(EXEEXT)
-	$(LINK) $(src_vlimit_LDFLAGS) $(src_vlimit_OBJECTS) $(src_vlimit_LDADD) $(LIBS)
 src/vreboot.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vreboot$(EXEEXT): $(src_vreboot_OBJECTS) $(src_vreboot_DEPENDENCIES) src/$(am__dirstamp)
@@ -911,6 +910,12 @@ src/vserver-stat.$(OBJEXT): src/$(am__dirstamp) \
 src/vserver-stat$(EXEEXT): $(src_vserver_stat_OBJECTS) $(src_vserver_stat_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vserver-stat$(EXEEXT)
 	$(LINK) $(src_vserver_stat_LDFLAGS) $(src_vserver_stat_OBJECTS) $(src_vserver_stat_LDADD) $(LIBS)
+src/vsh.$(OBJEXT): src/$(am__dirstamp) src/$(DEPDIR)/$(am__dirstamp)
+src/planetlab.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vsh$(EXEEXT): $(src_vsh_OBJECTS) $(src_vsh_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vsh$(EXEEXT)
+	$(LINK) $(src_vsh_LDFLAGS) $(src_vsh_OBJECTS) $(src_vsh_LDADD) $(LIBS)
 src/src_vunify-vunify.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/src_vunify-vutil.$(OBJEXT): src/$(am__dirstamp) \
@@ -1043,6 +1048,7 @@ mostlyclean-compile:
 	-rm -f src/ifspec.$(OBJEXT)
 	-rm -f src/listdevip.$(OBJEXT)
 	-rm -f src/parserpmdump.$(OBJEXT)
+	-rm -f src/planetlab.$(OBJEXT)
 	-rm -f src/readlink.$(OBJEXT)
 	-rm -f src/reducecap.$(OBJEXT)
 	-rm -f src/showattr.$(OBJEXT)
@@ -1055,9 +1061,9 @@ mostlyclean-compile:
 	-rm -f src/vcheck.$(OBJEXT)
 	-rm -f src/vdu.$(OBJEXT)
 	-rm -f src/vfiles.$(OBJEXT)
-	-rm -f src/vlimit.$(OBJEXT)
 	-rm -f src/vreboot.$(OBJEXT)
 	-rm -f src/vserver-stat.$(OBJEXT)
+	-rm -f src/vsh.$(OBJEXT)
 	-rm -f src/vutil.$(OBJEXT)
 	-rm -f tests/escaperoot.$(OBJEXT)
 	-rm -f tests/forkbomb.$(OBJEXT)
@@ -1083,6 +1089,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/ifspec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/listdevip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/parserpmdump.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/planetlab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/readlink.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/reducecap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/showattr.Po@am__quote@
@@ -1095,9 +1102,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vcheck.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vfiles.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vreboot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vserver-stat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vsh.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vutil.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/escaperoot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/forkbomb.Po@am__quote@
@@ -1473,22 +1480,6 @@ src/src_vkill-vkill.obj: src/vkill.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_vkill_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/src_vkill-vkill.obj `if test -f 'src/vkill.c'; then $(CYGPATH_W) 'src/vkill.c'; else $(CYGPATH_W) '$(srcdir)/src/vkill.c'; fi`
 
-src/vlimit.o: src/vlimit.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/vlimit.o -MD -MP -MF "src/$(DEPDIR)/vlimit.Tpo" -c -o src/vlimit.o `test -f 'src/vlimit.c' || echo '$(srcdir)/'`src/vlimit.c; \
-@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/vlimit.Tpo" "src/$(DEPDIR)/vlimit.Po"; else rm -f "src/$(DEPDIR)/vlimit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vlimit.c' object='src/vlimit.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/vlimit.Po' tmpdepfile='src/$(DEPDIR)/vlimit.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/vlimit.o `test -f 'src/vlimit.c' || echo '$(srcdir)/'`src/vlimit.c
-
-src/vlimit.obj: src/vlimit.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/vlimit.obj -MD -MP -MF "src/$(DEPDIR)/vlimit.Tpo" -c -o src/vlimit.obj `if test -f 'src/vlimit.c'; then $(CYGPATH_W) 'src/vlimit.c'; else $(CYGPATH_W) '$(srcdir)/src/vlimit.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/vlimit.Tpo" "src/$(DEPDIR)/vlimit.Po"; else rm -f "src/$(DEPDIR)/vlimit.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vlimit.c' object='src/vlimit.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/vlimit.Po' tmpdepfile='src/$(DEPDIR)/vlimit.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/vlimit.obj `if test -f 'src/vlimit.c'; then $(CYGPATH_W) 'src/vlimit.c'; else $(CYGPATH_W) '$(srcdir)/src/vlimit.c'; fi`
-
 src/vreboot.o: src/vreboot.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/vreboot.o -MD -MP -MF "src/$(DEPDIR)/vreboot.Tpo" -c -o src/vreboot.o `test -f 'src/vreboot.c' || echo '$(srcdir)/'`src/vreboot.c; \
 @am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/vreboot.Tpo" "src/$(DEPDIR)/vreboot.Po"; else rm -f "src/$(DEPDIR)/vreboot.Tpo"; exit 1; fi
@@ -1520,6 +1511,38 @@ src/vserver-stat.obj: src/vserver-stat.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/vserver-stat.Po' tmpdepfile='src/$(DEPDIR)/vserver-stat.TPo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/vserver-stat.obj `if test -f 'src/vserver-stat.c'; then $(CYGPATH_W) 'src/vserver-stat.c'; else $(CYGPATH_W) '$(srcdir)/src/vserver-stat.c'; fi`
+
+src/vsh.o: src/vsh.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/vsh.o -MD -MP -MF "src/$(DEPDIR)/vsh.Tpo" -c -o src/vsh.o `test -f 'src/vsh.c' || echo '$(srcdir)/'`src/vsh.c; \
+@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/vsh.Tpo" "src/$(DEPDIR)/vsh.Po"; else rm -f "src/$(DEPDIR)/vsh.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vsh.c' object='src/vsh.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/vsh.Po' tmpdepfile='src/$(DEPDIR)/vsh.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/vsh.o `test -f 'src/vsh.c' || echo '$(srcdir)/'`src/vsh.c
+
+src/vsh.obj: src/vsh.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/vsh.obj -MD -MP -MF "src/$(DEPDIR)/vsh.Tpo" -c -o src/vsh.obj `if test -f 'src/vsh.c'; then $(CYGPATH_W) 'src/vsh.c'; else $(CYGPATH_W) '$(srcdir)/src/vsh.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/vsh.Tpo" "src/$(DEPDIR)/vsh.Po"; else rm -f "src/$(DEPDIR)/vsh.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vsh.c' object='src/vsh.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/vsh.Po' tmpdepfile='src/$(DEPDIR)/vsh.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/vsh.obj `if test -f 'src/vsh.c'; then $(CYGPATH_W) 'src/vsh.c'; else $(CYGPATH_W) '$(srcdir)/src/vsh.c'; fi`
+
+src/planetlab.o: src/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/planetlab.o -MD -MP -MF "src/$(DEPDIR)/planetlab.Tpo" -c -o src/planetlab.o `test -f 'src/planetlab.c' || echo '$(srcdir)/'`src/planetlab.c; \
+@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/planetlab.Tpo" "src/$(DEPDIR)/planetlab.Po"; else rm -f "src/$(DEPDIR)/planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/planetlab.c' object='src/planetlab.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/planetlab.Po' tmpdepfile='src/$(DEPDIR)/planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/planetlab.o `test -f 'src/planetlab.c' || echo '$(srcdir)/'`src/planetlab.c
+
+src/planetlab.obj: src/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/planetlab.obj -MD -MP -MF "src/$(DEPDIR)/planetlab.Tpo" -c -o src/planetlab.obj `if test -f 'src/planetlab.c'; then $(CYGPATH_W) 'src/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/src/planetlab.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "src/$(DEPDIR)/planetlab.Tpo" "src/$(DEPDIR)/planetlab.Po"; else rm -f "src/$(DEPDIR)/planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/planetlab.c' object='src/planetlab.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='src/$(DEPDIR)/planetlab.Po' tmpdepfile='src/$(DEPDIR)/planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/planetlab.obj `if test -f 'src/planetlab.c'; then $(CYGPATH_W) 'src/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/src/planetlab.c'; fi`
 
 .cc.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
