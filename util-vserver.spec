@@ -1,13 +1,21 @@
+%define name util-vserver
+%define version 0.30
+%define release 1.planetlab%{?date:.%{date}}
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab 3.0
+URL: http://www.planet-lab.org
+
 %define __chattr	/usr/bin/chattr
 
 Summary:	Linux virtual server utilities
-Name:		util-vserver
-Version:	0.30
-Release:	0
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
 Epoch:		0
 Copyright:	GPL
 Group:		System Environment/Base
-URL:		http://savannah.nongnu.org/projects/util-vserver/
 Source0:	http://savannah.nongnu.org/download/util-vserver/stable.pkg/%version/%name-%version.tar.bz2
 Provides:	%name-devel = %epoch:%version-%release
 BuildRoot:	%_tmppath/%name-%version-%release-root
@@ -46,7 +54,10 @@ linuxconf.
 
 
 %build
-%configure --enable-linuxconf
+# bootstrap to avoid BuildRequires of kernel-source
+for linux in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build ; do
+   [[ -d $linux/include ]] && %configure --with-kerneldir=$linux --enable-linuxconf && break
+done
 %__make %{?_smp_mflags}
 
 
@@ -65,30 +76,41 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 rm -rf $RPM_BUILD_ROOT
 
 
-%define v_services	httpd named portmap sendmail smb sshd xinetd
-%post
-/sbin/chkconfig --add vservers
-/sbin/chkconfig --add rebootmgr
+%define services vcached
 
-for i in %v_services; do
-	/sbin/chkconfig --add v_$i
+%pre
+# 1 = install, 2 = upgrade/reinstall
+if [ $1 -eq 2 ] ; then
+    for i in %v_services ; do
+	service $i stop
+    done
+fi
+
+
+%post
+# 1 = install, 2 = upgrade/reinstall
+if [ $1 -eq 1 ] ; then
+    for i in %services ; do
+	chkconfig --add $i
+	chkconfig $i on
+    done
+fi
+for i in %services ; do
+    service $i start
 done
 
 %__chattr +t /vservers || :
 
 
 %preun
-test "$1" != 0 || for i in %v_services; do
-	/sbin/chkconfig --del v_$i
-done
-
-test "$1" != 0 || %{_initrddir}/rebootmgr stop &>/dev/null || :
-test "$1" != 0 || /sbin/chkconfig --del rebootmgr
-test "$1" != 0 || /sbin/chkconfig --del vservers
-
-
-%postun
-test "$1" = 0  || %{_initrddir}/rebootmgr condrestart >/dev/null || :
+# 0 = erase, 1 = upgrade
+if [ $1 -eq 0 ] ; then
+    for i in %services ; do
+	service $i stop
+	chkconfig $i off
+	chkconfig --del $i
+    done
+fi
 
 
 %files
@@ -115,6 +137,9 @@ test "$1" = 0  || %{_initrddir}/rebootmgr condrestart >/dev/null || :
 
 
 %changelog
+* Wed Aug 11 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.29-1.planetlab
+- initial PlanetLab 3.0 build.
+
 * Thu Mar 18 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.29.3-0
 - removed '%%doc doc/FAQ.txt' since file does not exist anymore
 
