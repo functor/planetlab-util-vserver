@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# chkconfig: 2345 61 80
+# chkconfig: 2345 65 80
 # description: vcached startup script
 # pidfile: /var/run/vcached.pid
 #
