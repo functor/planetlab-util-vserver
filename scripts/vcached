@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.5 2004/10/12 21:27:15 mlhuang Exp $
+# $Id: vcached,v 1.6 2004/10/13 02:35:47 mlhuang Exp $
 #
 
 # get configuration
@@ -74,6 +74,13 @@ while : ; do
 	    RETVAL=$?
 	    # move it to .vcache when complete
 	    if [ $RETVAL -eq 0 ] ; then
+    	         # sanity check
+		vnewsize=$(du -s "$TMP" | awk "{ print \$1 }")
+		vrefsize=$(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }")
+		if [ $vnewsize -lt $vrefsize ] ; then
+		    echo "WARNING: Unexpected for 'du -s $VROOTDIR/$NAME'=$vnewsize to be less than 'du -s $VROOTDIR/vserver-reference'=$vrefsize"
+		fi
+
 		mv "$TMP" "$VROOTDIR/.vcache/v$i"
 		echo "$(date) v$i ready"
 	    else

@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.16 2004/11/12 18:44:09 mef Exp $
+# $Id: vuseradd,v 1.17 2004/11/17 19:35:47 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -65,11 +65,7 @@ if [ ! -d "$VROOTDIR/$NAME" ] ; then
 	    vnewsize=$(du -s "$TMP" | awk "{ print \$1 }")
 	    vrefsize=$(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }")
 	    if [ $vnewsize -lt $vrefsize ] ; then
-		echo "Error 'du -s $VROOTDIR/$NAME'=$vnewsize < 'du -s $VROOTDIR/vserver-reference'=$vrefsize"
-		chattr -R -i "$TMP"
-		rm -rf "$TMP"
-		userdel $NAME
-		exit 256
+		echo "WARNING: Unexpected for 'du -s $VROOTDIR/$NAME'=$vnewsize to be less than 'du -s $VROOTDIR/vserver-reference'=$vrefsize"
 	    fi
 
 	    mv "$TMP" "$VROOTDIR/$NAME"
