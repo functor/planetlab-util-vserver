@@ -82,7 +82,7 @@ rm -rf $RPM_BUILD_ROOT
 # 1 = install, 2 = upgrade/reinstall
 if [ $1 -eq 2 ] ; then
     for i in %{services} ; do
-	[ "`/sbin/runlevel`" != "unknown" ] && service $i stop
+	[ "`/sbin/runlevel`" = "unknown" ] || service $i stop
     done
 fi
 
@@ -96,7 +96,7 @@ if [ $1 -eq 1 ] ; then
     done
 fi
 for i in %{services} ; do
-    [ "`/sbin/runlevel`" != "unknown" ] && service $i start
+    [ "`/sbin/runlevel`" = "unknown" ] || service $i start
 done
 
 %__chattr +t /vservers || :
@@ -106,7 +106,7 @@ done
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
     for i in %{services} ; do
-	[ "`/sbin/runlevel`" != "unknown" ] && service $i stop
+	[ "`/sbin/runlevel`" = "unknown" ] || service $i stop
 	chkconfig $i off
 	chkconfig --del $i
     done
