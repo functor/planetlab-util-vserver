@@ -54,6 +54,9 @@ linuxconf.
 
 
 %build
+aclocal -I m4
+autoconf
+automake
 # bootstrap to avoid BuildRequires of kernel-source
 for linux in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build ; do
    [[ -d $linux/include ]] && %configure --with-kerneldir=$linux --enable-linuxconf && break
