@@ -52,10 +52,7 @@ int main(int argc, char **argv)
     else
       index = 0;
 
-    if ((uid = getuid()) < 0) {
-      perror("vsh: getuid error ");
-      exit(1);
-    }
+    uid = getuid();
     if ((pwd = getpwuid(uid)) == NULL) {
       fprintf(stderr,"vsh: getpwnam error failed for %d\n",uid); 
       exit(1);
