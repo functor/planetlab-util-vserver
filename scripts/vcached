@@ -17,7 +17,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.8 2004/11/19 20:27:24 mlhuang Exp $
+# $Id: vcached,v 1.9 2004/11/23 14:47:35 mlhuang Exp $
 #
 
 # get configuration
@@ -56,6 +56,9 @@ test -e "$UTIL_VSERVER_VARS" || {
     exit 1
 }
 . "$UTIL_VSERVER_VARS"
+
+# make sure barrier bit is set on /vservers to prevent chroot() escapes
+$PKGLIBDIR/setattr --barrier $VROOTDIR
 
 # take out the trash
 rm -rf "$VROOTDIR/.vtmp"
