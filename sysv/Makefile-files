@@ -43,7 +43,7 @@ sysv_GENSCRPTS		=  sysv/rebootmgr \
 
 sysv_SCRPTS		=  $(sysv_GENSCRPTS)
 
-sysv_CFG		=  sysv/vservers.conf
+sysv_CFG		=  sysv/vservers.conf sysv/vcached.conf
 
 
 sysv/%:			sysv/%.subst
