@@ -66,3 +66,7 @@ scripts/%:		scripts/%.subst
 			@-rm -f '$@'
 			mv '$@.tmp' '$@'
 			@chmod a-w '$@'
+
+install-exec-hook:
+	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
+	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
