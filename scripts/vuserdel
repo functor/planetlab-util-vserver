@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id$
+# $Id: vuserdel,v 1.1 2004/07/30 16:46:41 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -39,3 +39,6 @@ if [ -d $VROOTDIR/$NAME ] ; then
     chattr -R -i "$TMP"
     rm -rf "$TMP"
 fi
+
+# turn resource management off for vserver $NAME
+[ -x /usr/sbin/vs2ckrm ]  && /usr/sbin/vs2ckrm off $NAME
