@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.3 2004/10/20 19:00:52 mlhuang Exp $
+# $Id: vuserdel,v 1.4 2004/10/20 21:45:43 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -34,6 +34,9 @@ userdel -r $NAME
 
 # remove vserver configuration file
 rm -f /etc/vservers/$NAME.conf
+
+# remove vserver profile
+rm -f /var/run/vservers/$NAME.ctx
 
 # destroy vserver
 if [ -d $VROOTDIR/$NAME ] ; then
