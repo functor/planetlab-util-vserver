@@ -179,6 +179,10 @@ static int sandbox_chroot(uid_t uid)
 	return 0;
 }
 
+#ifndef CAP_CONTEXT
+#  define CAP_CONTEXT	29
+#endif
+
 static struct {
 	const char *option;
 	int bit;
@@ -218,9 +222,7 @@ static struct {
 	{"CAP_SYS_RESOURCE",CAP_SYS_RESOURCE},
 	{"CAP_SYS_TIME",	CAP_SYS_TIME},
 	{"CAP_MKNOD",		CAP_MKNOD},
-#ifdef CAP_QUOTACTL
-	{"CAP_QUOTACTL",        CAP_QUOTACTL},
-#endif
+	{"CAP_CONTEXT",		CAP_CONTEXT},
 	{NULL,0}
 };
 
@@ -248,12 +250,7 @@ static unsigned get_remove_cap(char *name) {
 		(1<<CAP_SYS_RESOURCE)|
 		(1<<CAP_SYS_TIME)|
 		(1<<CAP_MKNOD)|
-#ifdef CAP_QUOTACTL
-		(1<<CAP_QUOTACTL)|
-#endif
-#ifdef CAP_CONTEXT
 		(1<<CAP_CONTEXT)|
-#endif
 		0
 		;
 
