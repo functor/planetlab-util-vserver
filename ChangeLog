@@ -1,3 +1,144 @@
+2004-07-03 00:49  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.30
+
+2004-05-27 14:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/install-fc1: fixed DOS lineends (Arne Blankerts)
+
+2004-04-23 13:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.29.5
+
+2004-04-23 13:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: cleanups
+
+2004-04-20 20:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* sysv/: rebootmgr.subst, vservers.subst: made '--force-reload' an
+	  alias for 'restart' (Noèl Köthe,
+	  http://savannah.nongnu.org/patch/?func=detailitem&item_id=2633)
+
+2004-04-20 20:15  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/distrib-info: added patch from Matthew Lavy for Debian
+	  support
+
+2004-04-03 03:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/Makefile-files: added the fc* files
+
+2004-04-03 03:26  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.29.4
+
+2004-04-03 02:46  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: removed doc/FAQ.txt from %doc-list
+
+2004-04-03 02:02  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/: fc1-minimum, install-fc1: initial checkin (provided by
+	  Arne Blankerts)
+
+2004-04-03 01:59  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/rh9.0-minimum: replaced with list from 'vserver 0.29'
+	  package (reported by Arne Blankerts)
+
+2004-04-03 01:59  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/sample.conf: s!-H!-HS!  (reported by Arne Blankerts)
+
+2004-03-18 19:29  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* doc/: FAQ.txt[DEAD], Makefile-files, changelog.txt[DEAD]: removed
+	  FAQ.txt and changelog.txt; they are containing errormessages only
+
+2004-03-09 05:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_syscallnr.m4: stopped to confuse users with wrong error
+	  messages; the correct CPPFLAGS are '-D...' but not '-D=...'
+
+2004-03-05 06:00  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_syscallnr.m4: use $ensc_cv_path_kernelheaders instead of
+	  $kernelincludedir
+
+2004-03-05 05:59  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/reducecap.c: use strncasecmp() instead of strncmp() include
+	  <strings.h>
+
+2004-03-04 04:35  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.29.3
+
+2004-03-04 04:23  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/Makefile-files: do not use '-I $kernelincludedir' anymore
+
+2004-03-04 04:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_syscallnr.m4: require AC_PROG_CPP
+
+2004-03-04 04:12  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/: ensc_cflags.m4, ensc_kerneldir.m4, ensc_syscall.m4,
+	  ensc_syscallnr.m4, validate.am: merged with HEAD
+
+2004-03-04 01:33  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/reducecap.c: BUGFIX/ENHANCEMENTS: the CLI interface of
+	  'reducecap' was fixed significantly: now it is possible to remove
+	  capabilities like CHOWN'. Formerly, only privileged caps like
+	  SYS_* or *_ADMIN could be removed because of a coding error.
+	  Changes in the related code are making it possible that both
+	  '--CAP_XXX' and '--XXX' syntax will be recognized (based on
+	  patches and reports by Bodo Eggert).
+
+2004-02-20 20:47  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.29.2
+
+2004-02-20 20:43  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_rlimit-v11.hc: vc_get_rlimit_mask_v11(): use correct
+	  datastructure (backported from HEAD)
+
+2004-02-20 20:35  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/vlimit.c: * changed logic to skip entries without chance for
+	  success (backported	from HEAD) * fixed '--help' message * give
+	  vc_set_rlimit() the context instead of a static '-2' * require a
+	  ctx on the CLI
+
+2004-02-19 23:56  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall-compat.hc: vc_set_ipv4root_compat(): fixed off-by-one
+	  error while checking number of allowed IPs (backported from HEAD)
+
+2004-02-19 23:56  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_e2fscheck.m4: tell correct packagename for Debian's
+	  e2fsprogs-devel (backported from HEAD) tell packagename for
+	  Mandrake (backported from HEAD)
+
+2004-02-14 01:25  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.29.1 use new syscall# detection code
+	  (backported from HEAD)
+
+2004-02-14 01:25  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: use new syscall# detection code
+	  (backported from HEAD)
+
+2004-02-14 01:24  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_syscallnr.m4: initial checkin (backported from HEAD)
+
 2004-02-11 22:06  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 
 	* NEWS, configure.ac: version 0.29
@@ -610,7 +751,7 @@
 	* lib/checkversion.c: restored compatibility for case when old
 	  syscall interface uses the new syscall-number
 
-2003-10-14 18:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+2003-10-14 18:09  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 
 	* lib/vserver.h: fixed vc_X_getcctx()
 

@@ -1,10 +1,15 @@
 chkconfig-[0-9]*.i386.rpm
 glibc-[0-9]*.i386.rpm
 glibc-common-[0-9]*.i386.rpm
-filesystem-[0-9]*.i386.rpm
-tcp_wrappers-[0-9]*.i386.rpm
-elfutils-libelf-[0-9]*.i386.rpm
 coreutils-[0-9]*.i386.rpm
+termcap-*.noarch.rpm
+libtermcap-[0-9]*.i386.rpm
+ethtool-[0-9]*.i386.rpm
+tzdata-2003d-1.noarch.rpm
+beecrypt-3.0.1-0.20030630.1.i386.rpm
+elfutils-libelf-0.89-2.i386.rpm
+tcp_wrappers-7.6-34.as21.1.i386.rpm
+gpm-[0-9]*.i386.rpm
 4Suite-[0-9]*.i386.rpm
 MAKEDEV-[0-9]*.i386.rpm
 PyXML-[0-9]*.i386.rpm
@@ -34,6 +39,7 @@ e2fsprogs-[0-9]*.i386.rpm
 ed-[0-9]*.i386.rpm
 fam-[0-9]*.i386.rpm
 file-[0-9]*.i386.rpm
+filesystem-[0-9]*.i386.rpm
 findutils-[0-9]*.i386.rpm
 libacl-[0-9]*.i386.rpm
 libgcc-[0-9]*.i386.rpm
@@ -58,10 +64,7 @@ libmng-[0-9]*.i386.rpm
 libogg-[0-9]*.i386.rpm
 libpng-[0-9]*.i386.rpm
 libstdc++-[0-9]*.i386.rpm
-libtermcap-[0-9]*.i386.rpm
 libtiff-[0-9]*.i386.rpm
-libtool-libs-[0-9]*.i386.rpm
-libunicode-[0-9]*.i386.rpm
 libuser-[0-9]*.i386.rpm
 libvorbis-[0-9]*.i386.rpm
 libxml-[0-9]*.i386.rpm
@@ -102,11 +105,10 @@ portmap-[0-9]*.i386.rpm
 procmail-[0-9]*.i386.rpm
 procps-[0-9]*.i386.rpm
 psmisc-[0-9]*.i386.rpm
-pspell-[0-9]*.i386.rpm
 psutils-[0-9]*.i386.rpm
 python-[0-9]*.i386.rpm
 readline-[0-9]*.i386.rpm
-redhat-release-*.i386.rpm
+fedora-release-*.i386.rpm
 rootfiles-*.noarch.rpm
 rpm-[0-9]*.i386.rpm
 sed-[0-9]*.i386.rpm
@@ -121,7 +123,6 @@ sysklogd-[0-9]*.i386.rpm
 tar-[0-9]*.i386.rpm
 tcl-[0-9]*.i386.rpm
 tcsh-[0-9]*.i386.rpm
-termcap-*.noarch.rpm
 time-[0-9]*.i386.rpm
 tmpwatch-[0-9]*.i386.rpm
 umb-scheme-[0-9]*.i386.rpm
@@ -144,4 +145,3 @@ gmp-[0-9]*.i386.rpm
 expat-[0-9]*.i386.rpm
 net-tools-[0-9]*.i386.rpm
 nscd-[0-9]*.i386.rpm
-

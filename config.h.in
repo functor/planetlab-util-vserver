@@ -9,6 +9,9 @@
 /* Define to 1 when the fast syscall(2) invocation does not work */
 #undef ENSC_SYSCALL_TRADITIONAL
 
+/* The number of the vserver syscall */
+#undef ENSC_SYSCALL__NR_vserver
+
 /* Define to 1 if you have the declaration of `MS_MOVE', and to 0 if you
    don't. */
 #undef HAVE_DECL_MS_MOVE

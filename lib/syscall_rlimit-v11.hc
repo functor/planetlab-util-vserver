@@ -1,4 +1,4 @@
-// $Id: syscall_rlimit-v11.hc,v 1.1.2.6 2003/12/30 13:45:57 ensc Exp $    --*- c++ -*--
+// $Id: syscall_rlimit-v11.hc,v 1.1.2.7 2004/02/20 19:43:29 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -59,8 +59,8 @@ vc_set_rlimit_v11(xid_t ctx, int resource, struct vc_rlimit const *lim)
 static inline ALWAYSINLINE int
 vc_get_rlimit_mask_v11(xid_t ctx, int tmp, struct vc_rlimit_mask *lim)
 {
-  struct vcmd_ctx_rlimit_v0	vc_lim;
-  int				rc;
+  struct vcmd_ctx_rlimit_mask_v0	vc_lim;
+  int					rc;
 
   (void)tmp;
 

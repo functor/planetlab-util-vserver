@@ -1,4 +1,4 @@
-// $Id: syscall-compat.hc,v 1.1.4.7 2003/12/30 13:45:57 ensc Exp $    --*- c++ -*--
+// $Id: syscall-compat.hc,v 1.1.4.8 2004/02/19 22:56:53 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -44,7 +44,7 @@ vc_set_ipv4root_compat(uint32_t  bcast, size_t nb, struct vc_ip_mask_pair const 
   struct vcmd_set_ipv4root_v3	msg;
   size_t			i;
 
-  if (nb>=NB_IPV4ROOT) {
+  if (nb>NB_IPV4ROOT) {
     errno = -EINVAL;
     return -1;
   }

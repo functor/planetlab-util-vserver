@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.1 2003/09/29 22:01:58 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files,v 1.1.4.1 2004/04/03 01:40:08 ensc Exp $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -23,11 +23,13 @@ distrib_SCRPTS		= distrib/install-mdk8.2 \
 			  distrib/install-rh7.3 \
 			  distrib/install-rh8.0 \
 			  distrib/install-rh9.0 \
+			  distrib/install-fc1 \
 			  distrib/sample.sh
 
 distrib_DAT		= distrib/mdk8.2-minimum \
 			  distrib/rh7.3-minimum \
 			  distrib/rh8.0-minimum \
 			  distrib/rh9.0-minimum \
+			  distrib/fc1-minimum \
 			  distrib/sample.conf
 
