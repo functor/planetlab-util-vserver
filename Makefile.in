@@ -530,6 +530,7 @@ distrib_SCRPTS = distrib/install-mdk8.2 \
 			  distrib/install-rh8.0 \
 			  distrib/install-rh9.0 \
 			  distrib/install-fc1 \
+			  distrib/install-fc2 \
 			  distrib/sample.sh
 
 distrib_DAT = distrib/mdk8.2-minimum \
@@ -569,6 +570,9 @@ scripts_src_PRGS = scripts/vpstree \
 			   scripts/vrpm \
 			   scripts/vserver \
 			   scripts/vserver-copy \
+			   scripts/vcached \
+			   scripts/vuseradd \
+			   scripts/vuserdel \
 			   scripts/vtop
 
 scripts_gen_PRGS = scripts/vps
@@ -606,6 +610,7 @@ sysv_XTRAS = sysv/rebootmgr.subst \
 			   sysv/v_smb.subst \
 			   sysv/v_sshd.subst \
 			   sysv/v_xinetd.subst \
+			   sysv/vcached.subst \
 			   sysv/vservers.subst
 
 sysv_GENSCRPTS = sysv/rebootmgr \
@@ -617,6 +622,7 @@ sysv_GENSCRPTS = sysv/rebootmgr \
 			   sysv/v_smb \
 			   sysv/v_sshd \
 			   sysv/v_xinetd \
+			   sysv/vcached \
 			   sysv/vservers
 
 sysv_SCRPTS = $(sysv_GENSCRPTS)
