@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.17 2004/11/17 19:35:47 mef Exp $
+# $Id: vuseradd,v 1.18 2004/11/17 20:34:25 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -57,8 +57,8 @@ if [ ! -d "$VROOTDIR/$NAME" ] ; then
 	if [ $RETVAL -ne 0 ] ; then 
 	    echo "Error $RETVAL building $VROOTDIR/$NAME"
 	    chattr -R -i "$TMP"
-	    rm -rf "$TMP"
-	    userdel $NAME
+	    rm -rf "$TMP" /etc/vservers/$NAME.conf /var/run/vservers/$NAME.ctx
+	    userdel -r $NAME
 	    exit $RETVAL
 	else
 	    # sanity check
