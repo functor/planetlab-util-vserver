@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.3 2004/08/23 18:30:55 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.4 2004/08/25 14:55:21 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -38,7 +38,9 @@ GROUPID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
 
 # create vserver configuration file
 if [ ! -f /etc/vservers/$NAME.conf ] ; then
-    sed -e "s/#S_CONTEXT=/S_CONTEXT=$USERID/" \
+    sed \
+	-e "s/.*S_CONTEXT=.*/S_CONTEXT=$USERID/" \
+	-e "s/.*ONBOOT=.*/ONBOOT=yes/" \
 	< /etc/vservers/vserver-reference.conf \
 	> /etc/vservers/$NAME.conf
 fi
