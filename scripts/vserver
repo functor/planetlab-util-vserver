@@ -31,6 +31,7 @@ USR_LIB_VSERVER=$PKGLIBDIR
 
 VSERVER_CMD=$USR_SBIN/vserver
 WAITFOR_CMD="waitfor 60"
+VINIT_CMD=/etc/rc.vinit
 CHCONTEXT_CMD=$USR_SBIN/chcontext
 SAVE_S_CONTEXT_CMD=$USR_LIB_VSERVER/save_s_context
 CAPCHROOT_CMD=$USR_LIB_VSERVER/capchroot
@@ -441,10 +442,13 @@ elif [ "$2" = "start" ] ; then
 		# security context switch $VROOTDIR directory becomes a dead zone.
 		cd $VROOTDIR/$1
 		export PATH=$DEFAULTPATH
-		$WAITFOR_CMD $NICECMD \
-			$CHCONTEXT_CMD $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
-			$SAVE_S_CONTEXT_CMD /var/run/vservers/$1.ctx \
-			$CAPCHROOT_CMD $CHROOTOPT . $STARTCMD
+		# XXX execute /etc/rc.vinit first for backward compatibility
+		for CMD in "$VINIT_CMD $2" "$STARTCMD" ; do
+			$WAITFOR_CMD $NICECMD \
+				$CHCONTEXT_CMD $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
+				$SAVE_S_CONTEXT_CMD /var/run/vservers/$1.ctx \
+				$CAPCHROOT_CMD $CHROOTOPT . $CMD
+		done
 		sleep 2
 		test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh post-start $1
 	fi
@@ -521,8 +525,11 @@ elif [ "$2" = "stop" ] ; then
 
 		cd $VROOTDIR/$1
 		export PATH=$DEFAULTPATH
-		$WAITFOR_CMD $CHCONTEXT_CMD $SILENT $CAPS --secure --ctx $S_CONTEXT \
-			$CAPCHROOT_CMD . $STOPCMD
+		# XXX execute /etc/rc.vinit first for backward compatibility
+		for CMD in "$VINIT_CMD $2" "$STOPCMD" ; do
+			$WAITFOR_CMD $CHCONTEXT_CMD $SILENT $CAPS --secure --ctx $S_CONTEXT \
+				$CAPCHROOT_CMD . $CMD
+		done
 
 		if test "$IS_MINIT"; then
 		    echo "Waiting for minit finish-signal"
