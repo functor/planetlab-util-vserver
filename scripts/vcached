@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.1 2004/07/30 16:46:24 mlh-pl_kernel Exp $
+# $Id: vcached,v 1.2 2004/08/19 22:09:20 mlh-pl_kernel Exp $
 #
 
 # number of images to keep cached
@@ -58,7 +58,7 @@ if [ $foreground -eq 0 ] ; then
 fi
 
 # record PID
-trap "killall -q -w vbuild ; rm -f $pidfile ; exit 255" EXIT
+trap "rm -f $pidfile ; exit 255" EXIT
 echo $$ > $pidfile
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -82,10 +82,17 @@ while : ; do
 	if [ ! -d "$VROOTDIR/.vcache/v$i" ] ; then
 	    echo "$(date) Caching v$i"
 	    # build image in .vtmp
-	    "$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$VROOTDIR/.vtmp/v$i"
+	    TMP=$(mktemp -d "$VROOTDIR/.vtmp/v$i.XXXXXX")
+	    "$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$TMP"
+	    RETVAL=$?
 	    # move it to .vcache when complete
-	    mv "$VROOTDIR/.vtmp/v$i" "$VROOTDIR/.vcache/v$i"
-	    echo "$(date) v$i ready"
+	    if [ $RETVAL -eq 0 ] ; then
+		mv "$TMP" "$VROOTDIR/.vcache/v$i"
+		echo "$(date) v$i ready"
+	    else
+		echo "$(date) Error $RETVAL building v$i"
+		rm -rf "$TMP"
+	    fi
 	fi
     done
     [ $debug -ne 0 ] && echo "$(date) Sleeping for $period seconds"
