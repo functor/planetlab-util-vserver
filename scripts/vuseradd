@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.8 2004/09/22 17:52:28 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.8 2004/09/22 17:55:12 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -27,7 +27,7 @@ NAME=$1
 groupadd slices 2>/dev/null || :
 
 # add user
-useradd -g slices -s /bin/vsh $NAME
+useradd -g slices -s /usr/sbin/vsh $NAME
 
 # automount keys (eval expands ~)
 eval rm -rf ~$NAME/.ssh
