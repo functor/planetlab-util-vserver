@@ -81,7 +81,7 @@ src_vkill_SOURCES		=  src/vkill.c
 src_vkill_LDADD			=  lib/libvserver.a
 src_vkill_CPPFLAGS		=  $(AM_CPPFLAGS) -DLEGACYDIR=\"$(legacydir)\"
 
-src_vsh_SOURCES			=  src/vsh.c src/planetlab.c
+src_vsh_SOURCES			=  src/vsh.c
 src_vsh_LDADD			=  lib/libvserver.a
 
 src_vdlimit_SOURCES		=  src/vdlimit.c
