@@ -68,6 +68,7 @@ case "$1" in
 	rm -f /var/lock/subsys/vservers
 	;;
   restart|force-reload)
+	shift
 	$0 stop $*
 	$0 start $*
 	;;
