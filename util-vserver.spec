@@ -7,8 +7,6 @@ Packager: PlanetLab Central <support@planet-lab.org>
 Distribution: PlanetLab 3.0
 URL: http://cvs.planet-lab.org/cvs/util-vserver
 
-%define __chattr	/usr/bin/chattr
-
 Summary:	Linux virtual server utilities
 Name:		%{name}
 Version:	%{version}
@@ -23,7 +21,6 @@ Provides:	vserver = %epoch:%version-%release
 Conflicts:	vserver < %epoch:%version-%release
 Conflicts:	vserver > %epoch:%version-%release
 BuildRequires:	e2fsprogs-devel
-Requires(post):	%__chattr
 
 %package linuxconf
 Summary:	Linuxconf administration modules for vservers
@@ -99,8 +96,8 @@ chkconfig --del vcached
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
     echo /bin/vsh >> /etc/shells
 fi
-# make sure immutable bit is set on /vservers for safety
-%__chattr +t /vservers || :
+# make sure barrier bit is set on /vservers to prevent chroot() escapes
+%_libdir/%name/setattr --barrier /vservers
 
 %postun
 # 0 = erase, 1 = upgrade
