@@ -74,14 +74,12 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 	mv ${RPM_BUILD_ROOT}%_sysconfdir/init.d/* ${RPM_BUILD_ROOT}%_initrddir/
 }
 
-install -m 644 -D distrib/sample.conf $RPM_BUILD_ROOT/etc/vservers/vserver-reference.conf
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 
-%define services vcached
+%define services vcached vservers
 
 %pre
 # 1 = install, 2 = upgrade/reinstall
@@ -130,7 +128,6 @@ fi
 %config(noreplace) /etc/vservers.conf
 %config(noreplace) /etc/vcached.conf
 %dir /etc/vservers
-%config(noreplace) /etc/vservers/vserver-reference.conf
 %attr(0,root,root) %dir /vservers
 
 %exclude %_sbindir/newvserver
