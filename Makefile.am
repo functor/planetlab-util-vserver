@@ -86,6 +86,8 @@ endif
 install-exec-hook:
 	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
 	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
+
+install-data-hook:
 	cd $(DESTDIR)$(sysvdir) && $(LN_S) vservers vserver-init
 
 include $(top_srcdir)/lib/Makefile-files

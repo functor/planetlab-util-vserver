@@ -2084,6 +2084,8 @@ info-am:
 install-data-am: install-includeHEADERS install-legacySCRIPTS \
 	install-man install-scriptscfgDATA install-sysvSCRIPTS \
 	install-vservercfgDATA
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
 
 install-exec-am: install-libLIBRARIES install-pkglibDATA \
 	install-pkglibPROGRAMS install-pkglibSCRIPTS \
@@ -2169,6 +2171,8 @@ linuxvirtual.h:
 install-exec-hook:
 	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
 	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
+
+install-data-hook:
 	cd $(DESTDIR)$(sysvdir) && $(LN_S) vservers vserver-init
 
 #install-data-hook:		$(DESTDIR)$(pkglibdir)/setattr
