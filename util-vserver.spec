@@ -81,7 +81,7 @@ rm -rf $RPM_BUILD_ROOT
 %pre
 # 1 = install, 2 = upgrade/reinstall
 if [ $1 -eq 2 ] ; then
-    for i in %v_services ; do
+    for i in %{services} ; do
 	service $i stop
     done
 fi
@@ -90,12 +90,12 @@ fi
 %post
 # 1 = install, 2 = upgrade/reinstall
 if [ $1 -eq 1 ] ; then
-    for i in %services ; do
+    for i in %{services} ; do
 	chkconfig --add $i
 	chkconfig $i on
     done
 fi
-for i in %services ; do
+for i in %{services} ; do
     service $i start
 done
 
@@ -105,7 +105,7 @@ done
 %preun
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
-    for i in %services ; do
+    for i in %{services} ; do
 	service $i stop
 	chkconfig $i off
 	chkconfig --del $i
