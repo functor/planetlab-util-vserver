@@ -73,6 +73,9 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 	mv ${RPM_BUILD_ROOT}%_sysconfdir/init.d/* ${RPM_BUILD_ROOT}%_initrddir/
 }
 
+mkdir -p ${RPM_BUILD_ROOT}/bin
+ln -f ${RPM_BUILD_ROOT}%_sbindir/vsh ${RPM_BUILD_ROOT}/bin/vsh
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -100,7 +103,6 @@ done
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
     echo /bin/vsh >> /etc/shells
 fi
-ln -f /usr/sbin/vsh /bin/vsh
 
 %__chattr +t /vservers || :
 
@@ -110,7 +112,6 @@ ln -f /usr/sbin/vsh /bin/vsh
 if [ "$1" = 0 ] ; then
     perl -i -n -e 'next if /^\/bin\/vsh$/; print' /etc/shells
 fi
-rm -f /usr/sbin/vsh /bin/vsh
 
 %preun
 # 0 = erase, 1 = upgrade
