@@ -9,7 +9,7 @@ RETVAL=0
 
 start() {
     echo -n "Starting vcached: "
-    initlog -c /usr/sbin/vcached
+    initlog -c $USR_SBIN/vcached
     RETVAL=$?
     [ "$RETVAL" -eq 0 ] && success $"vcached start" || failure $"vcached start"
     echo
