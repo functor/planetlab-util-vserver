@@ -13,9 +13,10 @@
 # Tristan Koo - tristan.koo@intel-research.net
 # William Wung - wungism@uclink.berkeley.edu
 #
+# Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id$
+# $Id: vcached,v 1.1 2004/07/30 16:46:24 mlh-pl_kernel Exp $
 #
 
 # number of images to keep cached
@@ -36,12 +37,15 @@ logfile=/var/log/vcached.log
 # run in foreground
 foreground=0
 
+# debug
+debug=0
+
 # parse options
-while getopts 'f' OPT ; do
+while getopts 'fd' OPT ; do
     case "$OPT" in
         f) foreground=1 ;;
+        d) debug=1 ;;
     esac
-    shift $(($OPTIND-1))
 done
 
 # check if we are already running
@@ -54,8 +58,8 @@ if [ $foreground -eq 0 ] ; then
 fi
 
 # record PID
-trap "rm -f /var/run/vcached.pid && exit 255" EXIT
-echo $$ > /var/run/vcached.pid
+trap "killall -q -w vbuild ; rm -f $pidfile ; exit 255" EXIT
+echo $$ > $pidfile
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
 test -e "$UTIL_VSERVER_VARS" || {
@@ -73,7 +77,7 @@ mkdir -p "$VROOTDIR/.vtmp"
 
 # loop forever
 while : ; do
-    echo "$(date) Checking the cache"
+    [ $debug -ne 0 ] && echo "$(date) Checking the cache"
     for i in $(seq 0 $(($slots - 1))) ; do
 	if [ ! -d "$VROOTDIR/.vcache/v$i" ] ; then
 	    echo "$(date) Caching v$i"
@@ -84,6 +88,6 @@ while : ; do
 	    echo "$(date) v$i ready"
 	fi
     done
-    echo "$(date) Sleeping for $period seconds"
+    [ $debug -ne 0 ] && echo "$(date) Sleeping for $period seconds"
     sleep $period
 done
