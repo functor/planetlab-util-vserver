@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.12 2004/10/20 02:56:23 mef Exp $
+# $Id: vuseradd,v 1.13 2004/10/20 19:01:52 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -90,11 +90,4 @@ if [ -d "$VROOTDIR/$NAME" ] ; then
 fi
 
 # turn resource management on for vserver $NAME
-[ -x /usr/sbin/vs2ckrm ]  && /usr/sbin/vs2ckrm on $NAME
-[ -x /usr/sbin/cpulimit ]  && /usr/sbin/cpulimit on $NAME
-[ -x /usr/sbin/tasklimit ]  && /usr/sbin/tasklimit on $NAME
-[ -x /usr/sbin/iolimit ]  && /usr/sbin/iolimit on $NAME
-[ -x /usr/sbin/memlimit ]  && /usr/sbin/memlimit on $NAME
-[ -x /usr/sbin/bwlimit ]  && /usr/sbin/bwlimit on $NAME
-# PL2580 WAR: disklimit code is malfunctioning
-#[ -x /usr/sbin/disklimit ]  && /usr/sbin/disklimit on $NAME
+service resman start $NAME
