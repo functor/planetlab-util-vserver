@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.3 2004/08/25 14:58:45 mlh-pl_kernel Exp $
+# $Id: vcached,v 1.4 2004/08/26 16:48:48 mlh-pl_kernel Exp $
 #
 
 # get configuration
@@ -73,6 +73,7 @@ while : ; do
 		echo "$(date) v$i ready"
 	    else
 		echo "$(date) Error $RETVAL building v$i"
+		chattr -R -i "$TMP"
 		rm -rf "$TMP"
 	    fi
 	fi

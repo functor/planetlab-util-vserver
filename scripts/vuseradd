@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.9 2004/10/11 19:03:52 mef Exp $
+# $Id: vuseradd,v 1.10 2004/10/11 19:38:48 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -62,6 +62,7 @@ if [ ! -d "$VROOTDIR/$NAME" ] ; then
 	   [ $(du -s "$TMP" | awk "{ print \$1 }") -lt \
              $(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }") ] ; then
 	    echo "Error $RETVAL building $VROOTDIR/$NAME"
+	    chattr -R -i "$TMP"
 	    rm -rf "$TMP"
 	    exit $RETVAL
 	else
