@@ -1,9 +1,9 @@
 #ifndef __VDU_H
 #define __VDU_H
 
-typedef ino_t KEY;
+typedef ino64_t KEY;
 typedef KEY *PKEY;
-typedef struct stat VAL;
+typedef struct stat64 VAL;
 typedef VAL *PVAL;
 
 static inline

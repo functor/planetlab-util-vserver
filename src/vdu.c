@@ -17,6 +17,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#define _LARGEFILE64_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -35,7 +37,7 @@
 HashTable tbl;
 
 static int // boolean
-INOPut(PHashTable tbl, ino_t* key, struct stat **val){
+INOPut(PHashTable tbl, ino64_t* key, struct stat64 **val){
     return Put(tbl, key, val);
 }
 
@@ -60,7 +62,7 @@ void panic(char *s) {
 static void vdu_onedir (char const *path)
 {
     char const *foo = path;
-    struct stat dirst, st;
+    struct stat64 dirst, st;
     struct dirent *ent;
     char *name;
     DIR *dir;
@@ -80,7 +82,7 @@ static void vdu_onedir (char const *path)
 	panic("fchdir failed");
     }
 
-    if (fstat (dirfd,&dirst) != 0) {
+    if (fstat64 (dirfd,&dirst) != 0) {
 	fprintf (stderr,"Can't lstat directory %s\n",path);
 	panic("lstat failed");
     }
@@ -97,7 +99,7 @@ static void vdu_onedir (char const *path)
      */
 
     while ((ent=readdir(dir))!=NULL){
-	if (lstat(ent->d_name,&st)==-1){
+	if (lstat64(ent->d_name,&st)==-1){
 	    fprintf (stderr,"Can't stat %s/%s\n",path,ent->d_name);
 	    warning("lstat failed");
 	    continue;
@@ -107,7 +109,7 @@ static void vdu_onedir (char const *path)
 
 	if (S_ISREG(st.st_mode)){
 	    if (st.st_nlink > 1){
-		struct stat *val;
+		struct stat64 *val;
 		int nlink;
 
 		/* Check hash table if we've seen this inode
@@ -191,11 +193,11 @@ static void vdu_onedir (char const *path)
 }
 
 static void
-Count(ino_t* key, struct stat* val) {
+Count(ino64_t* key, struct stat64* val) {
     if(val->st_nlink) {
 	blocks += val->st_blocks;
 	size += val->st_size;
-	printf("ino=%ld nlink=%d\n",val->st_ino, val->st_nlink);
+	printf("ino=%16lld nlink=%d\n",val->st_ino, val->st_nlink);
     }
 }
 
