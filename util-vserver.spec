@@ -128,6 +128,7 @@ fi
 %_mandir/man8/*
 %config %_initrddir/*
 %config(noreplace) /etc/vservers.conf
+%config(noreplace) /etc/vcached.conf
 %dir /etc/vservers
 %config(noreplace) /etc/vservers/vserver-reference.conf
 %attr(0,root,root) %dir /vservers
