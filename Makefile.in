@@ -626,7 +626,7 @@ sysv_GENSCRPTS = sysv/rebootmgr \
 			   sysv/vservers
 
 sysv_SCRPTS = $(sysv_GENSCRPTS)
-sysv_CFG = sysv/vservers.conf
+sysv_CFG = sysv/vservers.conf sysv/vcached.conf
 linuxconf_gen_SCRPTS = linuxconf/newvserver
 linuxconf_src_DATMAN = linuxconf/newvserver.8
 linuxconf_cfg_src_DTA = linuxconf/newvserver.defaults
@@ -2166,6 +2166,11 @@ linuxvirtual.h:
 @ENSC_ENABLE_INTERNAL_HEADERS_FALSE@		ln -sf '$(kernelincludedir)/linux/virtual.h' '$@' && test -e '$@' || \
 @ENSC_ENABLE_INTERNAL_HEADERS_FALSE@		ln -sf '$(top_srcdir)/lib/virtual.h' '$@'
 
+install-exec-hook:
+	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
+	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
+	cd $(DESTDIR)$(sysvdir) && $(LN_S) vservers vserver-init
+
 #install-data-hook:		$(DESTDIR)$(pkglibdir)/setattr
 
 #$(DESTDIR)$(pkglibdir)/setattr:
@@ -2184,10 +2189,6 @@ scripts/%:		scripts/%.subst
 			@-rm -f '$@'
 			mv '$@.tmp' '$@'
 			@chmod a-w '$@'
-
-install-exec-hook:
-	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
-	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
 
 sysv/%:			sysv/%.subst
 			@mkdir -p $$(dirname '$@')
