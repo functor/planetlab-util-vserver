@@ -40,7 +40,8 @@ src_sbin_PRGS		=  src/chbind \
 			   src/rebootmgr \
 			   src/reducecap \
 			   src/vdu \
-			   src/vsh \
+			   src/vdu \
+			   src/vdlimit \
 			   src/vfiles \
 			   src/vkill \
 			   src/vserver-stat
@@ -82,6 +83,9 @@ src_vkill_CPPFLAGS		=  $(AM_CPPFLAGS) -DLEGACYDIR=\"$(legacydir)\"
 
 src_vsh_SOURCES			=  src/vsh.c src/planetlab.c
 src_vsh_LDADD			=  lib/libvserver.a
+
+src_vdlimit_SOURCES		=  src/vdlimit.c
+src_vdlimit_LDADD		=  lib/libvserver.a
 
 src_showattr_SOURCES		=  src/showattr.c
 src_showperm_SOURCES		=  src/showperm.c
