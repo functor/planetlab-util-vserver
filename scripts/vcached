@@ -16,29 +16,11 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.2 2004/08/19 22:09:20 mlh-pl_kernel Exp $
+# $Id: vcached,v 1.3 2004/08/25 14:58:45 mlh-pl_kernel Exp $
 #
 
-# number of images to keep cached
-slots=32
-
-# fill the cache periodically
-period=$((60 * 15))
-
-# nice adjustment
-nice=10
-
-# PID file
-pidfile=/var/run/vcached.pid
-
-# log file
-logfile=/var/log/vcached.log
-
-# run in foreground
-foreground=0
-
-# debug
-debug=0
+# get configuration
+. /etc/vcached.conf
 
 # parse options
 while getopts 'fd' OPT ; do
