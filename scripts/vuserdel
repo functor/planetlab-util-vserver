@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.1 2004/07/30 16:46:41 mlh-pl_kernel Exp $
+# $Id: vuserdel,v 1.2 2004/10/20 02:56:23 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -26,6 +26,9 @@ NAME=$1
 # stop vserver
 vserver $NAME stop
 
+# turn resource management off for vserver $NAME
+[ -x /usr/sbin/vs2ckrm ] && /usr/sbin/vs2ckrm off $NAME
+
 # delete user
 userdel -r $NAME
 
@@ -39,6 +42,3 @@ if [ -d $VROOTDIR/$NAME ] ; then
     chattr -R -i "$TMP"
     rm -rf "$TMP"
 fi
-
-# turn resource management off for vserver $NAME
-[ -x /usr/sbin/vs2ckrm ]  && /usr/sbin/vs2ckrm off $NAME
