@@ -1,0 +1,89 @@
+#!/bin/bash
+#
+# vcached: VServer cache daemon
+#
+# Description: A daemon that periodically preallocates vservers and stores
+# them in a cache.  Preallocated vservers from the cache may be then used to 
+# instantiate real vservers. Requires that /var/run/vcached.pid does not
+# exist on startup. Should start/stop/restart from /etc/init.d.
+#
+# Based on work by:
+# 
+# Brent Chun - bnc@intel-research.net
+# Tristan Koo - tristan.koo@intel-research.net
+# William Wung - wungism@uclink.berkeley.edu
+#
+# Copyright (c) 2004  The Trustees of Princeton University (Trustees).
+#
+# $Id$
+#
+
+# number of images to keep cached
+slots=32
+
+# fill the cache periodically
+period=$((60 * 15))
+
+# nice adjustment
+nice=10
+
+# PID file
+pidfile=/var/run/vcached.pid
+
+# log file
+logfile=/var/log/vcached.log
+
+# run in foreground
+foreground=0
+
+# parse options
+while getopts 'f' OPT ; do
+    case "$OPT" in
+        f) foreground=1 ;;
+    esac
+    shift $(($OPTIND-1))
+done
+
+# check if we are already running
+[ -f $pidfile ] && exit 1
+
+# daemonize
+if [ $foreground -eq 0 ] ; then
+    nohup nice -n $nice -- $0 $* -f >>$logfile 2>&1 &
+    exit 0
+fi
+
+# record PID
+trap "rm -f /var/run/vcached.pid && exit 255" EXIT
+echo $$ > /var/run/vcached.pid
+
+: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo "Can not find util-vserver installation; aborting..."
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+# take out the trash
+chattr -R -i "$VROOTDIR/.vtmp"
+rm -rf "$VROOTDIR/.vtmp"
+
+mkdir -p "$VROOTDIR/.vcache"
+mkdir -p "$VROOTDIR/.vtmp"
+
+# loop forever
+while : ; do
+    echo "$(date) Checking the cache"
+    for i in $(seq 0 $(($slots - 1))) ; do
+	if [ ! -d "$VROOTDIR/.vcache/v$i" ] ; then
+	    echo "$(date) Caching v$i"
+	    # build image in .vtmp
+	    "$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$VROOTDIR/.vtmp/v$i"
+	    # move it to .vcache when complete
+	    mv "$VROOTDIR/.vtmp/v$i" "$VROOTDIR/.vcache/v$i"
+	    echo "$(date) v$i ready"
+	fi
+    done
+    echo "$(date) Sleeping for $period seconds"
+    sleep $period
+done

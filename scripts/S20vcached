@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# chkconfig: 2345 20 80
+# description: vcached startup script
+# pidfile: /var/run/vcached.pid
+#
+. /etc/init.d/functions
+RETVAL=0
+
+start() {
+    echo -n "Starting vcached: "
+    initlog -c /usr/sbin/vcached
+    RETVAL=$?
+    [ "$RETVAL" -eq 0 ] && success $"vcached start" || failure $"vcached start"
+    echo
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/vcached
+    return $RETVAL
+}
+
+stop() {
+    echo -n "Stopping vcached: "
+    if [[ -e /var/run/vcached.pid ]]; then
+        /bin/kill `cat /var/run/vcached.pid`
+        RETVAL=$?
+    else
+        RETVAL=1
+    fi
+    [ "$RETVAL" -eq 0 ] && success $"vcached shutdown" || failure $"vcached shutdown
+"
+    echo
+    rm -f /var/lock/subsys/vcached
+    rm -f /var/run/vcached.pid
+    return $RETVAL
+}    
+
+restart() {
+    stop
+    start
+}    
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+exit $?
