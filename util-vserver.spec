@@ -76,6 +76,8 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 mkdir -p ${RPM_BUILD_ROOT}/bin
 ln -f ${RPM_BUILD_ROOT}%_sbindir/vsh ${RPM_BUILD_ROOT}/bin/vsh
 
+install -D -m 644 sysv/vcached.logrotate ${RPM_BUILD_ROOT}/etc/logrotate.d/vcached
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -134,6 +136,7 @@ fi
 %config %_initrddir/*
 %config(noreplace) /etc/vservers.conf
 %config(noreplace) /etc/vcached.conf
+/etc/logrotate.d/vcached
 %dir /etc/vservers
 %attr(0,root,root) %dir /vservers
 %attr(4755,root,root) /usr/sbin/vsh
