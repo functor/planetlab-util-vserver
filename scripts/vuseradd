@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.1 2004/07/30 16:46:41 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.2 2004/08/19 22:30:30 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -23,6 +23,9 @@ usage()
 [ -z "$1" ] && usage
 NAME=$1
 
+# bail on errors
+set -e
+
 # add user
 useradd -s /bin/vsh $NAME
 
@@ -31,7 +34,7 @@ usermod -s /bin/vsh $NAME
 
 # automount keys (eval expands ~)
 eval rm -rf ~$NAME/.ssh
-eval ln -sf /var/pl_sshd/keys/$NAME ~$NAME/.ssh
+eval ln -nsf /var/pl_sshd/keys/$NAME ~$NAME/.ssh
 
 USERID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
 GROUPID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
