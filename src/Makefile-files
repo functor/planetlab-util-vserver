@@ -40,7 +40,7 @@ src_sbin_PRGS		=  src/chbind \
 			   src/rebootmgr \
 			   src/reducecap \
 			   src/vdu \
-			   src/vdu \
+			   src/vsh \
 			   src/vdlimit \
 			   src/vfiles \
 			   src/vkill \
