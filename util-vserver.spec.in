@@ -97,9 +97,10 @@ fi
 for i in %{services} ; do
     [ "`/sbin/runlevel`" = "unknown" ] || service $i start
 done
-if [ ! -f /etc/shells ] || ! grep -q '^/usr/sbin/vsh$' /etc/shells ; then
-    echo /usr/sbin/vsh >> /etc/shells
+if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
+    echo /bin/vsh >> /etc/shells
 fi
+ln -f /usr/sbin/vsh /bin/vsh
 
 %__chattr +t /vservers || :
 
@@ -107,8 +108,9 @@ fi
 %postun
 # 0 = erase, 1 = upgrade
 if [ "$1" = 0 ] ; then
-    perl -i -n -e 'next if /^\/usr\/sbin\/vsh$/; print' /etc/shells
+    perl -i -n -e 'next if /^\/bin\/vsh$/; print' /etc/shells
 fi
+rm -f /usr/sbin/vsh /bin/vsh
 
 %preun
 # 0 = erase, 1 = upgrade
@@ -134,6 +136,7 @@ fi
 %dir /etc/vservers
 %attr(0,root,root) %dir /vservers
 %attr(4755,root,root) /usr/sbin/vsh
+%attr(4755,root,root) /bin/vsh
 
 %exclude %_sbindir/newvserver
 %exclude %_mandir/man8/newvserver*
