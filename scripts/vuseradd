@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.6 2004/08/26 22:28:49 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.8 2004/09/22 17:52:28 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -77,4 +77,10 @@ if [ -d "$VROOTDIR/$NAME" ] ; then
     # add user in vserver
     vserver $NAME suexec root groupadd -g $GROUPID slices
     vserver $NAME suexec root useradd -u $USERID -g $GROUPID -p '' $NAME
+
+    # add an unrestricted entry to /etc/sudoers file
+    if [ -f "$VROOTDIR/$NAME/etc/sudoers" ] && \
+       ! grep -q "^$NAME" "$VROOTDIR/$NAME/etc/sudoers" ; then
+	echo "$NAME	ALL=(ALL)	ALL" >> "$VROOTDIR/$NAME/etc/sudoers"
+    fi
 fi
