@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.4 2004/08/25 14:55:21 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.5 2004/08/26 16:51:11 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -41,7 +41,7 @@ if [ ! -f /etc/vservers/$NAME.conf ] ; then
     sed \
 	-e "s/.*S_CONTEXT=.*/S_CONTEXT=$USERID/" \
 	-e "s/.*ONBOOT=.*/ONBOOT=yes/" \
-	< /etc/vservers/vserver-reference.conf \
+	< $PKGLIBDIR/sample.conf \
 	> /etc/vservers/$NAME.conf
 fi
 
