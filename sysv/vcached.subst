@@ -6,6 +6,7 @@
 #
 . /etc/init.d/functions
 RETVAL=0
+USR_SBIN=/usr/sbin
 
 start() {
     echo -n "Starting vcached: "
