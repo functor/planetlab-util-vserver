@@ -36,9 +36,17 @@ extern int debug;
 extern bool testmode;
 
 // Patch to help compile this utility on unpatched kernel source
-#ifndef EXT2_IMMUTABLE_FILE_FL
-	#define EXT2_IMMUTABLE_FILE_FL	0x00000010
-	#define EXT2_IMMUTABLE_LINK_FL	0x00008000
+#ifndef EXT2_IMMUTABLE_FL
+#define EXT2_IMMUTABLE_FL 0x00000010
+#endif
+
+#ifndef EXT2_IUNLINK_FL
+/* Set both bits for backward compatibility */
+#define EXT2_IUNLINK_FL 0x08008000
+#endif
+
+#ifndef EXT2_BARRIER_FL
+#define EXT2_BARRIER_FL 0x04000000
 #endif
 
 
