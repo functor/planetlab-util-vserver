@@ -78,36 +78,29 @@ ln -f ${RPM_BUILD_ROOT}%_sbindir/vsh ${RPM_BUILD_ROOT}/bin/vsh
 
 install -D -m 644 sysv/vcached.logrotate ${RPM_BUILD_ROOT}/etc/logrotate.d/vcached
 
+mkdir -p $RPM_BUILD_ROOT/etc/cron.d
+. sysv/vcached.conf
+echo "*/$(($period / 60)) * * * * root %_sbindir/vcached -s -f -l $logfile" > $RPM_BUILD_ROOT/etc/cron.d/vcached
+
 %clean
 rm -rf $RPM_BUILD_ROOT
-
-%define services vcached vservers
 
 %pre
 # 1 = install, 2 = upgrade/reinstall
 if [ $1 -eq 2 ] ; then
-    for i in %{services} ; do
-	[ "`/sbin/runlevel`" = "unknown" ] || service $i stop || :
-    done
+    # vcached no longer runs as a daemon
+    [ "`/sbin/runlevel`" = "unknown" ] || service vcached stop || :
 fi
 
 %post
-# 1 = install, 2 = upgrade/reinstall
-if [ $1 -eq 1 ] ; then
-    for i in %{services} ; do
-	chkconfig --add $i
-	chkconfig $i on
-    done
-fi
-for i in %{services} ; do
-    [ "`/sbin/runlevel`" = "unknown" ] || service $i start
-done
+# vcached no longer runs as a daemon
+chkconfig vcached off
+chkconfig --del vcached
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
     echo /bin/vsh >> /etc/shells
 fi
-
+# make sure immutable bit is set on /vservers for safety
 %__chattr +t /vservers || :
-
 
 %postun
 # 0 = erase, 1 = upgrade
@@ -118,11 +111,9 @@ fi
 %preun
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
-    for i in %{services} ; do
-	[ "`/sbin/runlevel`" = "unknown" ] || service $i stop || :
-	chkconfig $i off
-	chkconfig --del $i
-    done
+    [ "`/sbin/runlevel`" = "unknown" ] || service vservers stop
+    chkconfig vservers off
+    chkconfig --del vservers
 fi
 
 %files
@@ -137,6 +128,7 @@ fi
 %config(noreplace) /etc/vservers.conf
 %config(noreplace) /etc/vcached.conf
 /etc/logrotate.d/vcached
+/etc/cron.d/vcached
 %dir /etc/vservers
 %attr(0,root,root) %dir /vservers
 %attr(4755,root,root) /usr/sbin/vsh
@@ -152,7 +144,34 @@ fi
 %_mandir/man8/newvserver*
 
 %changelog
-* Mon Oct 11 2004 Marc E. Fiuczynski <mef@cs.princeton.edu> 0.1-1.planetlab
+* Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
+- vcached no longer runs as a daemon
+- do not restart vservers when package is upgraded
+
+* Wed Nov 17 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-6.planetlab
++ planetlab-3_0-rc4
+- PL2445
+- Both vcached and vuseradd now print a warning message when vbuild
+  succeeds but the resulting new vserver image is smaller in size than
+  the vserver-reference image.
+- vuseradd: clean up some more junk on failure
+
+* Tue Nov 16 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-5.planetlab
++ planetlab-3_0-rc3
+- PL3026: This is the upgraded version of vdu that maintains an
+  internal hash table of files with a nlink count > 1.  Only if vdu
+  sees all hard links to a particular inode does it add its size and
+  block count to the total.
+
+* Fri Nov 12 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-4.planetlab
+- PL2445 Use -b option to du to avoid rounding errors.
+
+* Sat Nov  6 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-3.planetlab
++ planetlab-3_0-rc2
+- don't create the symbolic link /home/slice/.ssh, this is not how
+  pl_sshd works
+
+* Mon Oct 11 2004 Marc E. Fiuczynski <mef@cs.princeton.edu>
 - added vsh
 
 * Wed Aug 11 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.29-1.planetlab
