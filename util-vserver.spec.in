@@ -93,9 +93,14 @@ fi
 # vcached no longer runs as a daemon
 chkconfig vcached off
 chkconfig --del vcached
+
+chkconfig --add vservers
+chkconfig vservers on
+
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
     echo /bin/vsh >> /etc/shells
 fi
+
 # make sure barrier bit is set on /vservers to prevent chroot() escapes
 %_libdir/%name/setattr --barrier /vservers
 
