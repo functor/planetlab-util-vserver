@@ -16,31 +16,36 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.4 2004/08/26 16:48:48 mlh-pl_kernel Exp $
+# $Id: vcached,v 1.5 2004/10/12 21:27:15 mlhuang Exp $
 #
 
 # get configuration
 . /etc/vcached.conf
 
 # parse options
-while getopts 'fd' OPT ; do
+while getopts 'fdl:' OPT ; do
     case "$OPT" in
         f) foreground=1 ;;
         d) debug=1 ;;
+	l) exec 1>>$OPTARG ; exec 2>>$OPTARG ;;
     esac
 done
 
 # check if we are already running
-[ -f $pidfile ] && exit 1
+if [ -f $pidfile ] ; then
+    echo "vcached(`cat $pidfile`) already running"
+    exit 1
+fi
 
 # daemonize
 if [ $foreground -eq 0 ] ; then
-    nohup nice -n $nice -- $0 $* -f >>$logfile 2>&1 &
+    nohup setsid nice -n $nice -- $0 $* -f -l $logfile >/dev/null 2>&1 </dev/null &
     exit 0
 fi
 
 # record PID
 trap "rm -f $pidfile ; exit 255" EXIT
+trap "exec 1>>$logfile ; exec 2>>$logfile" HUP
 echo $$ > $pidfile
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
