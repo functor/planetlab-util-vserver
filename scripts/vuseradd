@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.5 2004/08/26 16:51:11 mlh-pl_kernel Exp $
+# $Id: vuseradd,v 1.6 2004/08/26 22:28:49 mlh-pl_kernel Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -23,18 +23,18 @@ usage()
 [ -z "$1" ] && usage
 NAME=$1
 
-# add user
-useradd -s /bin/vsh $NAME
+# add slices group if not already present
+groupadd slices 2>/dev/null || :
 
-# change shell (in case user already exists)
-usermod -s /bin/vsh $NAME
+# add user
+useradd -g slices -s /bin/vsh $NAME
 
 # automount keys (eval expands ~)
 eval rm -rf ~$NAME/.ssh
 eval ln -nsf /var/pl_sshd/keys/$NAME ~$NAME/.ssh
 
 USERID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
-GROUPID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
+GROUPID=$(awk -F: "\$1 == \"slices\" { print \$3 }" < /etc/group)
 
 # create vserver configuration file
 if [ ! -f /etc/vservers/$NAME.conf ] ; then
@@ -58,12 +58,14 @@ if [ ! -d "$VROOTDIR/$NAME" ] ; then
 	"$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$TMP"
 	RETVAL=$?
 	# move it to .vcache when complete
-	if [ $RETVAL -eq 0 ] ; then
-	    mv "$TMP" "$VROOTDIR/$NAME"
-	else
+	if [ $RETVAL -ne 0 ] || \
+	   [ $(du -s "$TMP" | awk "{ print \$1 }") -lt \
+             $(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }") ] ; then
 	    echo "Error $RETVAL building $VROOTDIR/$NAME"
 	    rm -rf "$TMP"
 	    exit $RETVAL
+	else
+	    mv "$TMP" "$VROOTDIR/$NAME"
 	fi
     fi
 fi
@@ -73,6 +75,6 @@ if [ -d "$VROOTDIR/$NAME" ] ; then
     chmod 755 "$VROOTDIR/$NAME"
 
     # add user in vserver
-    vserver $NAME suexec root groupadd -g $GROUPID $NAME
+    vserver $NAME suexec root groupadd -g $GROUPID slices
     vserver $NAME suexec root useradd -u $USERID -g $GROUPID -p '' $NAME
 fi
