@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.1.4.5 2003/11/28 23:25:49 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files,v 1.1.4.6 2004/03/04 03:23:09 ensc Exp $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -41,4 +41,4 @@ lib_XHDRS                       =  lib/syscall-compat.hc \
 lib_lib_LIBS			=  lib/libvserver.a
 
 lib_libvserver_a_SOURCES	=  $(lib_SRCS)
-lib_libvserver_a_CPPFLAGS	=  -I$(kernelincludedir) -D_GNU_SOURCE
+lib_libvserver_a_CPPFLAGS	=  -D_GNU_SOURCE

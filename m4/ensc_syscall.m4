@@ -1,4 +1,4 @@
-dnl $Id: ensc_syscall.m4,v 1.2.2.1 2004/02/05 03:52:45 ensc Exp $
+dnl $Id: ensc_syscall.m4,v 1.2.2.2 2004/03/04 03:12:34 ensc Exp $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -32,8 +32,6 @@ AC_DEFUN([ENSC_SYSCALL],
             xauto)
 		AC_CACHE_CHECK([which syscall(2) invocation works], [ensc_cv_test_syscall],
 			       [
-				old_CPPFLAGS=$CPPFLAGS
-				CPPFLAGS="-I$ensc_cv_path_kernelheaders"
 				AC_LANG_PUSH(C)
 				AC_COMPILE_IFELSE([
 #include <asm/unistd.h>
@@ -65,7 +63,6 @@ int main() {
 				[ensc_cv_test_syscall=traditional])
 
 				AC_LANG_POP
-				CPPFLAGS=$old_CPPFLAGS
 		])
 		with_syscall=$ensc_cv_test_syscall
         	;;

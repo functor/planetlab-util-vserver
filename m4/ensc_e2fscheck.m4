@@ -1,4 +1,4 @@
-dnl $Id: ensc_e2fscheck.m4,v 1.1.2.1 2004/01/26 18:20:51 ensc Exp $
+dnl $Id: ensc_e2fscheck.m4,v 1.1.2.2 2004/02/19 22:56:27 ensc Exp $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -46,9 +46,11 @@ the following reasons:
 * you have neither the e2fsprogs nor the kernel headers installed
 
 * kernel headers are broken (e.g. these of linux 2.6 are known to be)
-  and you do not have e2fsprogs headers installed; please try to
-  install e2fsprogs-devel (for Red Hat) or e2fsprogs-dev (for Debian)
-  in this case
+  and you do not have e2fsprogs headers installed; please try to install
+  - e2fsprogs-devel (for Red Hat), or
+  - libext2fs2-devel (for Mandrake), or
+  - e2fslibs-dev (for Debian)
+  in this case.
 
 * kernel headers are broken and your e2fsprogs headers are too old;
   until version 1.27 (inclusive), they are using reserved C++ keywords

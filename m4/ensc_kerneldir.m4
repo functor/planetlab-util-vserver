@@ -1,4 +1,4 @@
-dnl $Id: ensc_kerneldir.m4,v 1.1.2.2 2004/01/26 18:21:28 ensc Exp $
+dnl $Id: ensc_kerneldir.m4,v 1.1.2.3 2004/03/04 03:12:34 ensc Exp $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -50,6 +50,8 @@ AC_DEFUN([ENSC_KERNEL_HEADERS],
 		ensc_cv_path_kernelheaders=$ensc_cv_path_kerneldir/include
 	])
 
-	$1=$ensc_cv_path_kernelheaders
-	AC_SUBST($1)
+	if test x"$1" != x; then
+		$1=$ensc_cv_path_kernelheaders
+		AC_SUBST($1)
+	fi
 ])

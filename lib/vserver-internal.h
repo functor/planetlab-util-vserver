@@ -1,4 +1,4 @@
-// $Id: vserver-internal.h,v 1.1.4.13 2004/02/05 03:52:45 ensc Exp $    --*- c++ -*--
+// $Id: vserver-internal.h,v 1.1.4.14 2004/02/14 00:25:34 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -26,8 +26,8 @@
 #include <asm/unistd.h>
 #include <errno.h>
 
-#ifndef __NR_vserver
-#  define __NR_vserver	273
+#if !defined(__NR_vserver) && defined(ENSC_SYSCALL__NR_vserver)
+#  define __NR_vserver	ENSC_SYSCALL__NR_vserver
 #endif
 
 #define VC_PREFIX	0)

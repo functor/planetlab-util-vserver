@@ -1,4 +1,4 @@
-## $Id: validate.am,v 1.1.4.1 2003/11/03 23:10:50 ensc Exp $	---*- makefile -*---
+## $Id: validate.am,v 1.1.4.2 2004/03/04 03:12:34 ensc Exp $	---*- makefile -*---
 
 ## Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -25,5 +25,6 @@ distclean-uptodate:
 
 .%-up-to-date:
 			@rm -f  .*-up-to-date
+			@$(MAKE) -s clean
 			@touch -t 197001020000 '$@'
-			@$(MAKE) -s clean $(BUILT_SOURCES)
+			@$(MAKE) -s $(BUILT_SOURCES)
