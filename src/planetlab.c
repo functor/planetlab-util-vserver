@@ -136,7 +136,7 @@ static void mount_proc(char *sandbox_root,uid_t uid)
     sprintf(target, "%s/proc", sandbox_root);
     target[len - 1] = '\0';
     if (!proc_mounted(sandbox_root))
-        mount(source, target, "proc", MS_RDONLY, NULL);
+        mount(source, target, "proc", MS_BIND | MS_RDONLY, NULL);
 
     free(target);
 }
