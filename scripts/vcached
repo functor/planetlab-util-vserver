@@ -5,7 +5,8 @@
 # Description: A daemon that periodically preallocates vservers and stores
 # them in a cache.  Preallocated vservers from the cache may be then used to 
 # instantiate real vservers. Requires that /var/run/vcached.pid does not
-# exist on startup. Should start/stop/restart from /etc/init.d.
+# exist on startup. Should start/stop/restart from /etc/init.d. Can also be
+# run periodically with -s from /etc/cron.d.
 #
 # Based on work by:
 # 
@@ -16,17 +17,18 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.6 2004/10/13 02:35:47 mlhuang Exp $
+# $Id: vcached,v 1.7 2004/11/17 20:34:25 mef Exp $
 #
 
 # get configuration
 . /etc/vcached.conf
 
 # parse options
-while getopts 'fdl:' OPT ; do
+while getopts 'fdsl:' OPT ; do
     case "$OPT" in
         f) foreground=1 ;;
         d) debug=1 ;;
+	s) single=1 ;;
 	l) exec 1>>$OPTARG ; exec 2>>$OPTARG ;;
     esac
 done
@@ -90,6 +92,10 @@ while : ; do
 	    fi
 	fi
     done
+    # just run once
+    if [ $single -ne 0 ] ; then
+	break
+    fi
     [ $debug -ne 0 ] && echo "$(date) Sleeping for $period seconds"
     sleep $period
 done
