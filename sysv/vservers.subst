@@ -1,5 +1,5 @@
 #!/bin/sh
-# chkconfig: 345 98 10
+# chkconfig: 345 99 01
 # description: The vservers service is used to start and stop all
 #              the virtual servers.
 
@@ -68,8 +68,8 @@ case "$1" in
 	rm -f /var/lock/subsys/vservers
 	;;
   restart|force-reload)
-	$0 stop
-	$0 start
+	$0 stop $*
+	$0 start $*
 	;;
   reload)
 	echo Not implemented
