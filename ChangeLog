@@ -1,0 +1,748 @@
+2004-02-11 22:06  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.29
+
+2004-02-10 00:23  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.28.91
+
+2004-02-10 00:18  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am, src/Makefile-files: remove src/setattr on 'clean'
+	  (reported by Noèl Köthe)
+
+2004-02-09 23:55  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver-copy, src/vbuild.cc: further chattr "fixes"
+
+2004-02-06 23:28  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.28.90
+
+2004-02-06 23:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: require chattr set 't' attribute on
+	  /vservers
+
+2004-02-06 23:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/install-pre.sh, distrib/install-rh7.2,
+	  distrib/install-rh7.3, scripts/vserver: when creating new vserver
+	  topdirectories, call 'chattr -t' on them
+
+2004-02-05 04:52  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac, lib/syscall-legacy.hc, lib/vserver-internal.h,
+	  m4/ensc_syscall.m4: backported ENSC_SYSCALL_TRADITIONAL from HEAD
+	  version 0.28.1
+
+2004-01-29 22:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver-copy: fixed copyright, it is still at Mark
+	  Lawrence
+
+2004-01-28 12:04  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.28
+
+2004-01-26 19:23  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS: version 0.27.91
+
+2004-01-26 19:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.27.91 use new ext2fs.h test
+
+2004-01-26 19:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/ext2fs.h: updated to new ext2fs.h test
+
+2004-01-26 19:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/: ensc_cflags.m4, ensc_kerneldir.m4, ensc_uv_vrootdir.m4:
+	  added missing quotes
+
+2004-01-26 19:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_e2fscheck.m4: initial checkin
+
+2004-01-26 19:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_kill-v11.hc: fixed warnings about missing initializer
+
+2004-01-26 19:19  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: getversion.c, vserver.h: vc_get_version(): removed 'int
+	  cat' parameter
+
+2004-01-22 21:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.27.90
+
+2004-01-22 20:52  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: call 'chkconfig' to fix initscripts *after*
+	  generating the configuration (reported by DUCLOS Andre)
+
+2004-01-22 17:08  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: allow to override start/stop commands (patch by
+	  Erik Smit)
+
+2004-01-20 00:00  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver-copy: use an argument on 'mktemp' call
+
+2004-01-17 07:10  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver-copy: autodetect the mktemp/tempfile command
+	  (reported by DUCLOS Andre)
+
+2004-01-17 07:05  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: start programs with 'exec' on the 'suexec' (and
+	  related) commands (patch by Alec Thomas)
+
+2004-01-07 17:24  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/chcontext.c: backported from HEAD: * removed obsolete and
+	  unused 'fakeinit' variable * fixed ctx-creation with fakeinit and
+	  static ctx-id's; fakeinit   requires a second call for ctx -2 to
+	  take effect
+
+2004-01-07 17:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: fixed handling of errors within
+	  utilvserver_checkCompatVersion() to return real error-code but
+	  not -EINVAL
+
+2003-12-30 20:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.27
+
+2003-12-30 15:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.26.90
+
+2003-12-30 15:08  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: * another s!sys_virtual_context!vserver! * test for
+	  ext2fs.h headers with the C++ compiler; this will detect
+	  problems with RH rawhide headers very early
+	  (https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=112448)
+
+2003-12-30 15:07  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: another s!sys_virtual_context!vserver!
+
+2003-12-30 15:06  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_kill-v11.hc: made it compilable with non-C99
+	  compilers
+
+2003-12-30 14:50  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: added basic Slackware support (patch by Stephen
+	  Pearce)
+
+2003-12-30 14:49  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/vkill.c: * s!ctx_t!xid_t! * use native vc_ctx_kill() only
+	  when legacy-API is disabled * fixed help-msg
+
+2003-12-30 14:45  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_rlimit.c, lib/vserver-internal.h, lib/vserver.h,
+	  lib/getctx-compat.hc, lib/getctx-legacy.hc, lib/getctx.c,
+	  lib/syscall-compat.hc, lib/syscall.c, lib/syscall_kill-v11.hc,
+	  lib/syscall_kill.c, lib/syscall_rlimit-v11.hc, src/vlimit.c,
+	  configure.ac, compat.h: s!ctx_t!xid_t!
+
+2003-12-26 01:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: getversion-internal.hc, syscall-compat.hc,
+	  syscall_kill-v11.hc, syscall_rlimit-v11.hc, vserver-internal.h:
+	  s!sys_vserver!vserver!
+
+2003-12-23 17:54  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: fixed '--enable-apis' by
+	  s!supported_apis!enable_apis!
+
+2003-12-23 17:52  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: mount /dev/pts with correct options
+
+2003-12-23 17:52  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall-legacy.hc: use syscall(...) on __hppa__ too
+
+2003-12-03 01:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/.cvsignore: added vkill
+
+2003-12-03 01:08  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: added 'legacydir'
+
+2003-12-03 01:08  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/getversion.c: vc_get_version(): fixed typo to avoid recursive
+	  call
+
+2003-12-03 01:07  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/Makefile-files: added vkill
+
+2003-12-03 01:07  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/vkill.c: initial checkin
+
+2003-12-03 01:06  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/Makefile-files: install vkill and vunify.sh into
+	  LEGACYDIR
+
+2003-12-03 01:05  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/: vunify.old.sh[DEAD], vunify.sh: renamved vunify.old.sh
+	  to vunify.sh
+
+2003-11-29 00:26  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vps.subst: fixed behavior with multiple args (from Debian
+	  patch)
+
+2003-11-29 00:25  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: Makefile-files, syscall_kill-v11.hc, syscall_kill.c: added
+	  syscall_kill*
+
+2003-11-29 00:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/virtual.h: updated
+
+2003-11-29 00:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall.c: removed chrootsafe() code
+
+2003-11-29 00:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall-legacy.hc: removed old, unused code removed
+	  chrootsafe() code made it compilable with '-fPIC'
+
+2003-11-29 00:17  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: syscall-compat.hc, getversion-internal.hc:
+	  s!sys_virtual_context!sys_vserver!
+
+2003-11-29 00:14  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_rlimit-v11.hc: s!sys_virtual_context!sys_vserver!
+
+2003-11-29 00:12  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: s!sys_virtual_context!sys_vserver! made
+	  it compilable with '-fPIC'
+
+2003-11-29 00:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: removed vc_chrootsafe(); such an implementation
+	  seems to be impossible...  updated vc_new_s_context documentation
+	  added vc_ctx_kill() prototype + doc
+
+2003-11-29 00:10  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* tests/: Makefile-files, chrootsafe.cc[DEAD]: removed
+	  chrootsafe.cc; such an implementation seems to be impossible...
+
+2003-11-29 00:08  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/capchroot.c: use chroot() instead of vc_chrootsafe()
+
+2003-11-22 03:14  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, README, configure.ac: version 0.26
+
+2003-11-22 03:02  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* .cvsignore: updated
+
+2003-11-21 17:01  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/ifspec.c: fixed uninitialized variables when ioctl() on the
+	  given interfaces fails (thanks to Herbert Poetzl)
+
+2003-11-21 04:52  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.25.90
+
+2003-11-21 04:51  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* .cvsignore: updated
+
+2003-11-20 01:46  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: - use internal lib/virtual.h on default (controlled
+	  by   '--disable-internal-headers' option)
+
+2003-11-20 01:45  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: - added '--disable-internal-headers' option
+
+2003-11-19 01:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall_rlimit-v11.hc: vc_get_rlimit_mask_v11: fill
+	  calculated values into *lim
+
+2003-11-18 23:41  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.25
+
+2003-11-18 23:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: added 'BuildRequires: e2fsprogs-devel'
+
+2003-11-18 23:37  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: added checks for <ext2fs/ext2fs.h> and
+	  <linux/ext2_fs.h>
+
+2003-11-18 23:36  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: remove '__user' which was added in 2.6 headers
+
+2003-11-18 23:30  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/: vutil.cc, showattr.c, ext2fs.h, Makefile-files: use/added
+	  "ext2fs.h" header to bypass problems of 2.6 kernel headers (no
+	  __u64 with '--std=c99')
+
+2003-11-18 23:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* sysv/vservers.subst: small cosmetical change
+
+2003-11-18 21:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: - use VC_RANDCTX instead of VC_NOCTX -
+	  use the conditionalized CTX_USER2KERNEL/CTX_KERNEL2USER
+	  transformations
+
+2003-11-18 21:19  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: - removed C99 comments from copyright header; this
+	  might be used by   plain C89 programs also...  - added VC_RANDCTX
+	  constant - documented VC_* constants
+
+2003-11-18 21:18  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: added basic gentoo support (thanks to Allen D.
+	  Parker II)
+
+2003-11-18 00:54  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/: .cvsignore, Makefile-files, ctxlimit.c[DEAD], vlimit.c:
+	  renamed ctxlimit.* to vlimit.*
+
+2003-11-18 00:49  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* THANKS: added Sam Vilain
+
+2003-11-18 00:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.24.90
+
+2003-11-18 00:13  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* compat.h: made ctx_t and 'uint32_t' to fix kernel<->user
+	  conflicts (-1 in user becomes 0x0000ffff in kernel which would
+	  expect 0xffffffff)
+
+2003-11-18 00:12  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: added VC_SAMECTX identifier
+
+2003-11-18 00:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: added CTX_USER2KERNEL() and
+	  CTX_KERNEL2USER() macros to transform ctx from user into kernel
+	  type and vice versa
+
+2003-11-18 00:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: syscall-compat.hc, syscall_rlimit-v11.hc: use
+	  CTX_USER2KERNEL() macro to transform ctx from user into kernel
+	  type
+
+2003-11-17 23:02  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* sysv/: rebootmgr.subst, vservers.subst: check existence of
+	  cfg-file before starting the server
+
+2003-11-17 22:58  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: set correct mode/permissions of /var/run/utmp
+
+2003-11-08 00:04  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: Makefile-files, syscall_rlimit-v11.hc, syscall_rlimit.c:
+	  added rlimit syscalls
+
+2003-11-07 23:02  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/: .cvsignore, Makefile-files, ctxlimit.c: added ctxlimit
+
+2003-11-07 23:01  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/setctxlimit.c[DEAD]: removed; obsoleted by ctxlimit tool
+
+2003-11-07 23:00  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: added limit stuff
+
+2003-11-07 22:59  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h, configure.ac: added V11 API
+
+2003-11-07 22:58  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/virtual.h: updated; has now the limit-stuff
+
+2003-11-07 20:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* man/: vkill.8, setctxlimit.8, vdu.8: initial checkin (provided by
+	  Sam Vilain)
+
+2003-11-04 01:17  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.24
+
+2003-11-04 00:30  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* .cvsignore: added linuxcaps.h
+
+2003-11-04 00:13  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: * enumerated all used m4-files * use/set CVS2CL*
+	  flags * edit <linux/linuxcaps.h> and remove statements (#include,
+	  __u32)   which may cause errors
+
+2003-11-04 00:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: use ENSC_CHANGELOG
+
+2003-11-04 00:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/: changelog.am, ensc_changelog.m4: merged from HEAD
+
+2003-11-04 00:10  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/validate.am: updated from vserver-djinni
+
+2003-11-04 00:10  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/vutil.cc: fixed format-string error
+
+2003-11-03 21:56  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: use '--enable-linuxconf' conflict with
+	  future vserver-* versions
+
+2003-11-03 21:51  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: conditionalized built of linuxconf-module
+	  version 0.23.97
+
+2003-11-03 21:50  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: ignore lower 8 bits of API-version
+
+2003-11-03 21:49  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am, linuxconf/Makefile-files: conditionalized built of
+	  linuxconf-module
+
+2003-10-30 16:23  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS: version 0.23.96
+
+2003-10-30 16:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: set '-Wno-unused-parameter' use ENSC_UV_VROOTDIR
+
+2003-10-30 16:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* m4/ensc_uv_vrootdir.m4: backported from HEAD
+
+2003-10-30 16:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: create and own /vservers
+
+2003-10-30 16:17  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/: install-mdk8.2, install-post.sh, install-pre.sh,
+	  install-rh7.2, install-rh7.3, install-rh8.0, install-rh9.0: use
+	  customizable value for vserver-rootdir instead of hardcoded
+	  '/vservers' import the global configuration file
+	  (util-vserver-vars)
+
+2003-10-30 16:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/Makefile-files, scripts/distrib-info,
+	  scripts/util-vserver-vars.subst, scripts/vrpm, scripts/vserver,
+	  scripts/vserver-copy, scripts/vservers.grabinfo.sh,
+	  scripts/vunify.old.sh, src/Makefile-files, src/rebootmgr.c,
+	  src/vunify.cc, sysv/Makefile-files, sysv/rebootmgr.subst: use
+	  customizable value for vserver-rootdir instead of hardcoded
+	  '/vservers'
+
+2003-10-30 16:12  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* tests/: chrootsafe.cc, escaperoot.cc: do not declare unused
+	  parameters anymore
+
+2003-10-30 15:25  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in: provide/conflict with vserver-admin
+
+2003-10-30 15:24  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am, m4/ensc_kerneldir.m4: backported ENSC_KERNEL_HEADERS
+	  macro
+
+2003-10-30 15:23  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: backported CFLAGS/CXXFLAGS settings backported
+	  ENSC_KERNEL_HEADERS macro
+
+2003-10-30 02:47  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac: version 0.23.95
+
+2003-10-30 02:46  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* .cvsignore: added util-vserver.spec
+
+2003-10-30 02:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* util-vserver.spec.in, vserver.spec.in[DEAD], Makefile.am,
+	  configure.ac: renamed vserver.spec.in to util-vserver.spec.in
+
+2003-10-30 02:36  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver: - reenabled the copy-all mode; can be disabled
+	  by setting the   $UTIL_VSERVER_AVOID_COPY environment variable -
+	  use '-HS' ulimit switch for newly created vservers
+
+2003-10-30 02:34  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* newvserver.defaults[DEAD], linuxconf/.cvsignore,
+	  linuxconf/Makefile-files, linuxconf/newvserver.8,
+	  linuxconf/newvserver.defaults, linuxconf/newvserver.subst,
+	  man/newvserver.8[DEAD], man/Makefile-files, Makefile.am,
+	  vserver.spec.in: revived linuxconf-files, but moved them into an
+	  own directory
+
+2003-10-30 01:41  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/.cvsignore: added auto-generated perl-scripts
+
+2003-10-30 01:39  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/Makefile-files, Makefile.am: reorganized make-file to
+	  cope with substituted perl-scripts
+
+2003-10-30 01:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/: vkill[DEAD], vkill.subst, vps[DEAD], vps.subst: made
+	  '/usr/sbin' path customizable; perl-scripts will be substituted
+	  now
+
+2003-10-30 01:37  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/Makefile-files: define SBINDIR on rebootmgr.c compilation
+	  install 'setattr' program
+
+2003-10-30 01:36  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/: chcontext.c, reducecap.c: remove CAP_OPENDEV added
+	  CAP_QUOTACTL
+
+2003-10-30 01:33  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vpstree, scripts/vrpm, scripts/vserver-copy,
+	  scripts/vsysvwrapper, scripts/vtop, src/rebootmgr.c: use
+	  customizable paths for '/usr/sbin'
+
+2003-10-30 01:32  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/rootshell: use customizable paths for '/usr/sbin' do not
+	  log commands into /tmp/log anymore
+
+2003-10-30 01:31  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/distrib-info: made it 'bash' use customizable paths for
+	  '/usr/sbin'
+
+2003-10-30 01:30  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* man/reducecap.8: removed CAP_OPENDEV; added CAP_QUOTACTL
+
+2003-10-21 19:26  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.23.93
+
+2003-10-21 18:58  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/checkversion.c: fixed stupid thinko (EAGAIN vs. EINVAL)
+
+2003-10-18 03:48  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: getctx-legacy.hc, vserver.h: backported vc_X_getcctx()
+	  changes from HEAD
+
+2003-10-18 03:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.23.92
+
+2003-10-18 03:34  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/checkversion.c: restored compatibility for case when old
+	  syscall interface uses the new syscall-number
+
+2003-10-14 18:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: fixed vc_X_getcctx()
+
+2003-10-14 17:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: added some documentation added vc_X_getctx()
+	  (pseudo-)syscall
+
+2003-10-14 17:21  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: added macros from syscall.c added an
+	  'extern "C" {...}' block moved safechroot code into own file
+
+2003-10-14 17:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall.c: moved macros into vserver-internal moved version
+	  code into own files
+
+2003-10-14 17:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: syscall-compat.hc, syscall-legacy.hc: include
+	  "safechroot-internal.hc"
+
+2003-10-14 17:19  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: checkversion.c, getctx-compat.hc, getctx-legacy.hc,
+	  getctx.c, getversion-internal.hc, getversion.c,
+	  safechroot-internal.hc, uint2str.c: initial checkin
+
+2003-10-14 17:18  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/Makefile-files: added lots of new files
+
+2003-10-14 15:54  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: added check for existing sys_virtual_context()
+	  function renamed '--enable-supported-api' switch to
+	  '--enable-apis'
+
+2003-10-14 15:54  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver-internal.h: added check for existing
+	  sys_virtual_context() function
+
+2003-10-14 15:43  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall.c: added 'vc_get_version(int)' added lots of
+	  macro-magic to generalize the syscall-wrappers
+
+2003-10-14 15:42  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: added 'vc_get_version(int)'
+
+2003-10-14 04:55  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: version 0.23.91
+
+2003-10-14 04:54  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* vserver.spec.in: merged with VERSION_0_23 branch
+
+2003-10-14 03:32  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall-compat.hc: made it compilable with non-C99 compilers
+
+2003-10-14 03:31  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* sysv/Makefile-files: fixed typo in sed invocation
+
+2003-10-14 03:15  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/virtual-inc.h[DEAD]: removed since solved by more general
+	  'linuxvirtual.h'
+
+2003-10-14 03:14  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall.c: include "linuxvirtual.h" instead of "linux-inc.h"
+
+2003-10-14 03:13  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall-legacy.hc: added missing chroot() call
+
+2003-10-14 03:13  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/Makefile-files: removed virtual-inc.h
+
+2003-10-14 03:12  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: generalized CLEANFILES variable added
+	  'linuxvirtual.h' to BUILT_SOURCES
+
+2003-10-14 02:45  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* tests/chrootsafe.cc: use new API
+
+2003-10-14 02:42  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/: capchroot.c, chbind.c, chcontext.c, rebootmgr.c,
+	  reducecap.c, vserver-stat.c: use new API
+
+2003-10-14 02:36  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* compat.h: merged with HEAD
+
+2003-10-14 02:32  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* configure.ac: merged MS_MOVE/ctx_t code with HEAD added
+	  --enable-supported-apis switch
+
+2003-10-14 02:30  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* Makefile.am: added $(lib_XHDRS) and compat.h
+
+2003-10-14 02:28  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/Makefile-files: added lib_XHDRS with all the new files added
+	  -D_GNU_SOURCE flag
+
+2003-10-14 02:20  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/: syscall-compat.hc, syscall-legacy.hc, virtual-inc.h,
+	  virtual.h, vserver-internal.h: initial checkin
+
+2003-10-14 02:07  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/vserver.h: implemented new API
+
+2003-10-14 01:57  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib/syscall.c: implemented new API
+
+2003-10-14 01:53  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/Makefile-files: removed set_ctx_limit.c
+
