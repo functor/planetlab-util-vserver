@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.13 2004/10/20 19:01:52 mlhuang Exp $
+# $Id: vuseradd,v 1.14 2004/10/20 21:45:15 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -28,13 +28,6 @@ groupadd slices 2>/dev/null || :
 
 # add user
 useradd -g slices -s /bin/vsh $NAME
-
-# automount keys
-if [ -d "/var/pl_sshd/keys/$NAME" ]; then
-    # (eval expands ~)
-    eval rm -rf ~$NAME/.ssh
-    eval ln -nsf /var/pl_sshd/keys/$NAME ~$NAME/.ssh
-fi
 
 USERID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
 GROUPID=$(awk -F: "\$1 == \"slices\" { print \$3 }" < /etc/group)
