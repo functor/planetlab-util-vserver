@@ -17,7 +17,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vcached,v 1.7 2004/11/17 20:34:25 mef Exp $
+# $Id: vcached,v 1.8 2004/11/19 20:27:24 mlhuang Exp $
 #
 
 # get configuration
@@ -58,7 +58,6 @@ test -e "$UTIL_VSERVER_VARS" || {
 . "$UTIL_VSERVER_VARS"
 
 # take out the trash
-chattr -R -i "$VROOTDIR/.vtmp"
 rm -rf "$VROOTDIR/.vtmp"
 
 mkdir -p "$VROOTDIR/.vcache"
@@ -87,7 +86,6 @@ while : ; do
 		echo "$(date) v$i ready"
 	    else
 		echo "$(date) Error $RETVAL building v$i"
-		chattr -R -i "$TMP"
 		rm -rf "$TMP"
 	    fi
 	fi
