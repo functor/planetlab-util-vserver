@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.14 2004/10/20 21:45:15 mef Exp $
+# $Id: vuseradd,v 1.15 2004/11/06 16:10:42 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -55,8 +55,8 @@ if [ ! -d "$VROOTDIR/$NAME" ] ; then
 	RETVAL=$?
 	# move it to .vcache when complete
 	if [ $RETVAL -ne 0 ] || \
-	   [ $(du -s "$TMP" | awk "{ print \$1 }") -lt \
-             $(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }") ] ; then
+	   [ $(du -b -s "$TMP" | awk "{ print \$1 }") -lt \
+             $(du -b -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }") ] ; then
 	    echo "Error $RETVAL building $VROOTDIR/$NAME"
 	    chattr -R -i "$TMP"
 	    rm -rf "$TMP"
