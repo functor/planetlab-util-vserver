@@ -51,18 +51,17 @@ linuxconf.
 
 %prep
 %setup -q
-
-
-%build
 aclocal -I m4
 autoconf
-automake
+automake --add-missing
 # bootstrap to avoid BuildRequires of kernel-source
 for linux in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build ; do
    [[ -d $linux/include ]] && %configure --with-kerneldir=$linux --enable-linuxconf && break
 done
-%__make %{?_smp_mflags}
 
+
+%build
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -74,10 +73,8 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 	mv ${RPM_BUILD_ROOT}%_sysconfdir/init.d/* ${RPM_BUILD_ROOT}%_initrddir/
 }
 
-
 %clean
 rm -rf $RPM_BUILD_ROOT
-
 
 %define services vcached vservers
 
@@ -88,7 +85,6 @@ if [ $1 -eq 2 ] ; then
 	[ "`/sbin/runlevel`" = "unknown" ] || service $i stop || :
     done
 fi
-
 
 %post
 # 1 = install, 2 = upgrade/reinstall
@@ -101,9 +97,18 @@ fi
 for i in %{services} ; do
     [ "`/sbin/runlevel`" = "unknown" ] || service $i start
 done
+if [ ! -f /etc/shells ] || ! grep -q '^/usr/sbin/vsh$' /etc/shells ; then
+    echo /usr/sbin/vsh >> /etc/shells
+fi
 
 %__chattr +t /vservers || :
 
+
+%postun
+# 0 = erase, 1 = upgrade
+if [ "$1" = 0 ] ; then
+    perl -i -n -e 'next if /^\/usr\/sbin\/vsh$/; print' /etc/shells
+fi
 
 %preun
 # 0 = erase, 1 = upgrade
@@ -114,7 +119,6 @@ if [ $1 -eq 0 ] ; then
 	chkconfig --del $i
     done
 fi
-
 
 %files
 %defattr(-,root,root)
@@ -129,10 +133,10 @@ fi
 %config(noreplace) /etc/vcached.conf
 %dir /etc/vservers
 %attr(0,root,root) %dir /vservers
+%attr(4755,root,root) /usr/sbin/vsh
 
 %exclude %_sbindir/newvserver
 %exclude %_mandir/man8/newvserver*
-
 
 %files linuxconf
 %defattr(-,root,root)
@@ -140,8 +144,10 @@ fi
 %_sbindir/newvserver
 %_mandir/man8/newvserver*
 
-
 %changelog
+* Mon Oct 11 2004 Marc E. Fiuczynski <mef@cs.princeton.edu> 0.1-1.planetlab
+- added vsh
+
 * Wed Aug 11 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.29-1.planetlab
 - initial PlanetLab 3.0 build.
 
@@ -150,3 +156,4 @@ fi
 
 * Fri Sep 26 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.23.4-1
 - initial build.
+
