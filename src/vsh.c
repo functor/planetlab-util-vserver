@@ -394,12 +394,28 @@ static int sandbox_processes(uid_t uid, unsigned remove_cap)
 
 void runas_slice_user(char *username)
 {
-	struct passwd *pwd;
+	struct passwd pwdd, *pwd = &pwdd, *result;
+	char          *pwdBuffer;
 	char          *home_env, *logname_env, *mail_env, *shell_env, *user_env;
 	int           home_len, logname_len, mail_len, shell_len, user_len;
+	long          pwdBuffer_len;
 	static char   *envp[10];
 
-	if ((pwd = getpwnam(username)) == NULL) {
+
+	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if (pwdBuffer_len == -1) {
+		perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+		exit(1);
+	}
+
+	pwdBuffer = (char*)malloc(pwdBuffer_len);
+	if (pwdBuffer == NULL) {
+		perror("vserver: malloc error ");
+		exit(1);
+	}
+
+	errno = 0;
+	if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
 		perror("vserver: getpwnam error ");
 		exit(1);
 	}
@@ -470,16 +486,30 @@ void runas_slice_user(char *username)
 	}
 }
 
-
-
 void slice_enter(char *context)
 {
-	struct passwd   *pwd;
+	struct passwd pwdd, *pwd = &pwdd, *result;
+	char          *pwdBuffer;
+	long          pwdBuffer_len;
 	unsigned remove_cap;
 	uid_t uid;
 
-	if ((pwd = getpwnam(context)) == NULL) {
+	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
+	if (pwdBuffer_len == -1) {
+		perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+		exit(1);
+	}
+
+	pwdBuffer = (char*)malloc(pwdBuffer_len);
+	if (pwdBuffer == NULL) {
+		perror("vserver: malloc error ");
+		exit(1);
+	}
+
+	errno = 0;
+	if ((getpwnam_r(context,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
 		fprintf(stderr,"vserver: getpwname(%s) failed",context);
+		perror("");
 		exit(2);
 	}
 
@@ -521,15 +551,13 @@ enum
   EXIT_ENOENT = 127
 };
 
-extern void slice_enter(char *);
-extern void runas_slice_user(char *);
-
 int main(int argc, char **argv)
 {
-    char *context, *username, *shell;
-    struct passwd   *pwd;
+    struct passwd   pwdd, *pwd = &pwdd, *result;
+    char            *context, *username, *shell, *pwdBuffer;
+    long            pwdBuffer_len;
     uid_t           uid;
-    int index, i;
+    int             index, i;
 
     if (argv[0][0]=='-') 
       index = 1;
@@ -561,7 +589,20 @@ int main(int argc, char **argv)
     /* With the uid/gid appropriately set. Let's figure out what the
      * shell in the vserver's /etc/passwd is for the given username.
      */
-    if ((pwd = getpwnam(username)) == NULL) {
+
+    pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (pwdBuffer_len == -1) {
+	    perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+	    exit(1);
+    }
+    pwdBuffer = (char*)malloc(pwdBuffer_len);
+    if (pwdBuffer == NULL) {
+	    perror("vserver: malloc error ");
+	    exit(1);
+    }
+
+    errno = 0;
+    if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
         fprintf(stderr,"vsh: getpwnam error failed for %s\n",username); 
         exit(1);
     }
