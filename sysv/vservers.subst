@@ -4,66 +4,60 @@
 #              the virtual servers.
 
 USR_SBIN=/usr/sbin
-
+VROOTDIR=/vservers
 
 # Print the vserver name in priority/alpha order
 sortserver(){
-	(
-	cd /etc/vservers
-	for serv in *.conf
-	do
-	        test -f "$serv" || continue
-
-		PRIORITY=100
-		. $serv
-		printf "%03d %s\n" $PRIORITY `basename $serv .conf`
-	done
-	) | sort $* | (while read a b; do echo $b; done)
+    (
+    cd /etc/vservers
+    for serv in *.conf ; do
+	test -f "$serv" || continue
+	PRIORITY=100
+	. $serv
+	printf "%03d %s\n" $PRIORITY `basename $serv .conf`
+    done
+    ) | sort $* | (while read a b; do echo $b; done)
 }
 
 startservers(){
-	echo "Starting the virtual servers"
-	cd /etc/vservers
-	for name in ${*:-`sortserver`}
-	do
-		if ! test -f "$name.conf" ; then
-			echo No configuration for this vserver: /etc/vservers/$name.conf
-			continue
-		fi
-		ONBOOT=
-		. $name.conf
-		if [ "$ONBOOT" = "yes" ] ; then
-			$USR_SBIN/vserver $name start
-		else
-			echo virtual server $name not configured for on boot start
-		fi
-	done
+    echo "Starting the virtual servers"
+    cd /etc/vservers
+    for name in ${*:-`sortserver`} ; do
+	if ! test -f "$name.conf" ; then
+	    echo No configuration for this vserver: /etc/vservers/$name.conf
+	    continue
+	fi
+	ONBOOT=
+	BACKGROUND=no
+	if [ -f /etc/vservers.conf ] ; then
+	    . /etc/vservers.conf
+	fi
+	. $name.conf
+	if [ "$ONBOOT" = "yes" ] ; then
+	    mkdir -p $VROOTDIR/$name/var/log
+	    if [ "$BACKGROUND" = "yes" ] ; then
+		nohup setsid $USR_SBIN/vserver $name start >$VROOTDIR/$name/var/log/boot.log 2>&1 </dev/null &
+		sleep 1
+	    else
+		$USR_SBIN/vserver $name start 2>&1 </dev/null | tee $VROOTDIR/$name/var/log/boot.log
+	    fi
+	fi
+    done
 }
-
-BACKGROUND=off
-if [ -f /etc/vservers.conf ] ; then
-	. /etc/vservers.conf
-fi
-
 
 # See how we were called.
 case "$1" in
   start)
 	shift
-	if [ "$BACKGROUND" = "yes" ] ; then
-		startservers $* >/dev/tty8 </dev/tty8 2>/dev/tty8 &
-	else
-		startservers $*
-	fi
+	startservers $*
 	touch /var/lock/subsys/vservers
 	;;
   stop)
 	shift
 	echo "Stopping the virtual servers"
 	cd /etc/vservers
-	for name in ${*:-`sortserver -r`}
-	do
-		$USR_SBIN/vserver $name stop
+	for name in ${*:-`sortserver -r`} ; do
+	    $USR_SBIN/vserver $name stop
 	done
 	rm -f /var/lock/subsys/vservers
 	;;
@@ -77,13 +71,12 @@ case "$1" in
 	;;
   status)
 	cd /etc/vservers
-	for serv in *.conf
-	do
-		ONBOOT=no
-		name=`basename $serv .conf`
-		. $serv
-		echo -n ONBOOT=$ONBOOT " "
-		$USR_SBIN/vserver $name running
+	for serv in *.conf ; do
+	    ONBOOT=no
+	    name=`basename $serv .conf`
+	    . $serv
+	    echo -n ONBOOT=$ONBOOT " "
+	    $USR_SBIN/vserver $name running
 	done
 	;;
   *)
@@ -92,7 +85,3 @@ case "$1" in
 esac
 
 exit 0
-
-
-
-

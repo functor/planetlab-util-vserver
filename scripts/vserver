@@ -445,7 +445,7 @@ elif [ "$2" = "start" ] ; then
 		export PATH=$DEFAULTPATH
 		# XXX execute /etc/rc.vinit first for backward compatibility
 		for CMD in "$VINIT_CMD $2" "$STARTCMD" ; do
-			$WAITFOR_CMD $NICECMD \
+			$NICECMD \
 				$CHCONTEXT_CMD $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
 				$SAVE_S_CONTEXT_CMD /var/run/vservers/$1.ctx \
 				$CAPCHROOT_CMD $CHROOTOPT . $CMD
