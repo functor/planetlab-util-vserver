@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.11 2004/10/12 21:27:05 mlhuang Exp $
+# $Id: vuseradd,v 1.12 2004/10/20 02:56:23 mef Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -96,4 +96,5 @@ fi
 [ -x /usr/sbin/iolimit ]  && /usr/sbin/iolimit on $NAME
 [ -x /usr/sbin/memlimit ]  && /usr/sbin/memlimit on $NAME
 [ -x /usr/sbin/bwlimit ]  && /usr/sbin/bwlimit on $NAME
-[ -x /usr/sbin/disklimit ]  && /usr/sbin/disklimit on $NAME
+# PL2580 WAR: disklimit code is malfunctioning
+#[ -x /usr/sbin/disklimit ]  && /usr/sbin/disklimit on $NAME
