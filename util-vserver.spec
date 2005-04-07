@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 7.planetlab%{?date:.%{date}}
+%define release 8.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -146,6 +146,10 @@ fi
 %_mandir/man8/newvserver*
 
 %changelog
+* Thu Apr  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- vuserdel changes: don't shutdown vserver, just kill all processes;
+  unmount and mountpoints in vserver before deleting
+
 * Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
 - vcached no longer runs as a daemon
 - do not restart vservers when package is upgraded

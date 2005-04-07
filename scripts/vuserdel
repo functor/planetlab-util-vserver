@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.5 2004/10/26 03:11:23 mlhuang Exp $
+# $Id: vuserdel,v 1.6 2004/11/23 14:47:35 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -23,8 +23,22 @@ usage()
 [ -z "$1" ] && usage
 NAME=$1
 
-# stop vserver
-vserver $NAME stop
+# read config file to get context ID
+. /etc/vservers/$NAME.conf
+CTX=$S_CONTEXT
+
+# don't bother stopping gracefully, just kill all the processes
+$SBINDIR/chcontext --silent --secure --ctx $CTX $PKGLIBDIR/vserverkillall
+
+# unmount any directories in vserver that are mount points
+for d in `sed -ne "s%^[^ ]* \($VROOTDIR/$NAME/[^ ]*\) .*%\1%p" /proc/mounts`
+do
+        # use echo -e to turn escaped whitespace back into regular chars
+        # be careful about embedded backquotes here (i think we're safe)
+        dir=`echo -e "$d"`
+        echo "unmounting $dir"
+        umount -l "$dir"
+done
 
 # turn resource management off for vserver $NAME
 service resman stop $NAME
