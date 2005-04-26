@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.19 2004/11/17 20:37:32 mlhuang Exp $
+# $Id: vuseradd,v 1.20 2004/11/23 14:47:35 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -28,6 +28,9 @@ groupadd slices 2>/dev/null || :
 
 # add user
 useradd -g slices -s /bin/vsh $NAME
+
+# openssh-server 3.8 and above refuse login for "locked" accounts
+sed -i -e "s/$NAME:\!\!:\(.*\)/$NAME:*:\1/" /etc/shadow
 
 USERID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
 GROUPID=$(awk -F: "\$1 == \"slices\" { print \$3 }" < /etc/group)
