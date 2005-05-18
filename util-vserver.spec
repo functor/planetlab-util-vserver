@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 9.planetlab%{?date:.%{date}}
+%define release 10.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
