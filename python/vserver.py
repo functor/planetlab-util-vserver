@@ -1,0 +1,126 @@
+# Copyright 2005 Princeton University
+
+import errno
+import fcntl
+import os
+import re
+
+import linuxcaps
+import passfdimpl
+
+from vserver_vars import *
+
+CAP_SAFE = (linuxcaps.CAP_CHOWN |
+            linuxcaps.CAP_DAC_OVERRIDE |
+            linuxcaps.CAP_DAC_READ_SEARCH |
+            linuxcaps.CAP_FOWNER |
+            linuxcaps.CAP_FSETID |
+            linuxcaps.CAP_KILL |
+            linuxcaps.CAP_SETGID |
+            linuxcaps.CAP_SETUID |
+            linuxcaps.CAP_SETPCAP |
+            linuxcaps.CAP_SYS_TTY_CONFIG |
+            linuxcaps.CAP_LEASE |
+            linuxcaps.CAP_SYS_CHROOT |
+            linuxcaps.CAP_SYS_PTRACE)
+
+#
+# XXX - these are the flags taken from chcontext.c, but they don't match
+# up with those apparently used by the kernel
+#
+FLAGS_LOCK = 1
+FLAGS_SCHED = 2
+FLAGS_NPROC = 4
+FLAGS_PRIVATE = 8
+FLAGS_FAKEINIT = 16
+FLAGS_HIDEINFO = 32
+FLAGS_ULIMIT = 64
+
+
+              
+class VServer:
+
+    def __init__(self, name):
+
+        self.name = name
+        self.config = self.__read_config_file("/etc/vservers.conf")
+        self.config.update(self.__read_config_file("/etc/vservers/%s.conf" %
+                                                   self.name))
+        self.flags = 0
+        flags = self.config["S_FLAGS"].split(" ")
+        if "lock" in flags:
+            self.flags |= FLAGS_LOCK
+        if "nproc" in flags:
+            self.flags |= FLAGS_NPROC
+        self.remove_caps = ~CAP_SAFE
+        print "%x %x" % (self.flags, ~self.remove_caps)
+
+    config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
+
+    def __read_config_file(self, filename):
+
+        f = open(filename, "r")
+        data = f.read()
+        f.close()
+        config = {}
+        for m in self.config_var_re.finditer(data):
+            (key, val) = m.groups()
+            config[key] = val.strip('"')
+        return config
+
+    def open(self, filename, mode = "r"):
+
+        (sendsock, recvsock) = passfdimpl.socketpair()
+        child_pid = os.fork()
+        if child_pid == 0:
+            try:
+                # child process
+                os.chroot("%s/%s" % (VROOTDIR, self.name))
+                f = open(filename, mode)
+                passfdimpl.sendmsg(f.fileno(), sendsock)
+                os._exit(0)
+            except EnvironmentError, ex:
+                (result, errmsg) = (ex.errno, ex.strerror)
+            except Exception, ex:
+                (result, errmsg) = (255, str(ex))
+            os.write(sendsock, errmsg)
+            os._exit(result)
+
+        # parent process
+
+        # XXX - need this since a lambda can't raise an exception
+        def __throw(ex):
+            raise ex
+
+        os.close(sendsock)
+        throw = lambda : __throw(Exception(errmsg))
+        while True:
+            try:
+                (pid, status) = os.waitpid(child_pid, 0)
+                if os.WIFEXITED(status):
+                    result = os.WEXITSTATUS(status)
+                    if result != 255:
+                        errmsg = os.strerror(result)
+                        throw = lambda : __throw(IOError(result, errmsg))
+                    else:
+                        errmsg = "unexpected exception in child"
+                else:
+                    result = -1
+                    errmsg = "child killed"
+                break
+            except OSError, ex:
+                if ex.errno != errno.EINTR:
+                    os.close(recvsock)
+                    raise ex
+        fcntl.fcntl(recvsock, fcntl.F_SETFL, os.O_NONBLOCK)
+        try:
+            (fd, errmsg) = passfdimpl.recvmsg(recvsock)
+        except OSError, ex:
+            if ex.errno != errno.EAGAIN:
+                throw = lambda : __throw(ex)
+            fd = 0
+        os.close(recvsock)
+        if not fd:
+            throw()
+
+        return os.fdopen(fd)
