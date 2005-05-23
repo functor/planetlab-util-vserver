@@ -7,8 +7,9 @@ import re
 
 import linuxcaps
 import passfdimpl
+import vserverimpl
 
-from vserver_vars import *
+from util_vserver_vars import *
 
 CAP_SAFE = (linuxcaps.CAP_CHOWN |
             linuxcaps.CAP_DAC_OVERRIDE |
@@ -25,16 +26,16 @@ CAP_SAFE = (linuxcaps.CAP_CHOWN |
             linuxcaps.CAP_SYS_PTRACE)
 
 #
-# XXX - these are the flags taken from chcontext.c, but they don't match
-# up with those apparently used by the kernel
+# these are the flags taken from the kernel linux/vserver/legacy.h
 #
 FLAGS_LOCK = 1
-FLAGS_SCHED = 2
+FLAGS_SCHED = 2  # XXX - defined in util-vserver/src/chcontext.c
 FLAGS_NPROC = 4
 FLAGS_PRIVATE = 8
-FLAGS_FAKEINIT = 16
+FLAGS_INIT = 16
 FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
+FLAGS_NAMESPACE = 128
 
 
               
@@ -53,7 +54,7 @@ class VServer:
         if "nproc" in flags:
             self.flags |= FLAGS_NPROC
         self.remove_caps = ~CAP_SAFE
-        print "%x %x" % (self.flags, ~self.remove_caps)
+        self.ctx = int(self.config["S_CONTEXT"])
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -68,6 +69,10 @@ class VServer:
             config[key] = val.strip('"')
         return config
 
+    def __do_chroot(self):
+
+        return os.chroot("%s/%s" % (VROOTDIR, self.name))
+
     def open(self, filename, mode = "r"):
 
         (sendsock, recvsock) = passfdimpl.socketpair()
@@ -75,7 +80,7 @@ class VServer:
         if child_pid == 0:
             try:
                 # child process
-                os.chroot("%s/%s" % (VROOTDIR, self.name))
+                self.__do_chroot()
                 f = open(filename, mode)
                 passfdimpl.sendmsg(f.fileno(), sendsock)
                 os._exit(0)
@@ -124,3 +129,12 @@ class VServer:
             throw()
 
         return os.fdopen(fd)
+
+    def enter(self):
+
+        state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
+        self.__do_chroot()
+        vserverimpl.chcontext(self.ctx, self.remove_caps)
+        print >>state_file, "S_CONTEXT=%d" % self.ctx
+        print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
+        state_file.close()
