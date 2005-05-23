@@ -5,11 +5,11 @@ COMPILE = $(CC) $(CFLAGS)
 LIBS = -L../lib -lvserver
 LINK = $(CC) $(LDFLAGS)
 
-PY_MODS := passfdimpl.so
+NATIVE_MODS := vserverimpl.so
 
-all: $(PY_MODS)
+all: $(NATIVE_MODS)
 
-$(PY_MODS): %.so: %.o
+$(NATIVE_MODS): %.so: %.o
 	$(LINK) -shared -o $@ $^ $(LIBS)
 
 %.o: %.c
