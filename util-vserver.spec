@@ -79,6 +79,8 @@ mkdir -p $RPM_BUILD_ROOT/etc/cron.d
 . sysv/vcached.conf
 echo "*/$(($period / 60)) * * * * root %_sbindir/vcached -s -f -l $logfile" > $RPM_BUILD_ROOT/etc/cron.d/vcached
 
+%__make -C python INSTALL_ROOT=$RPM_BUILD_ROOT install
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -145,10 +147,34 @@ fi
 %_sbindir/newvserver
 %_mandir/man8/newvserver*
 
+
+
+%package py23
+Summary: Python modules for manipulating vservers
+Group: Applications/System
+Requires: python /usr/lib/util-vserver/util-vserver-vars util-python
+
+%description py23
+Python modules for manipulating vservers.  Provides a superset of the
+functionality of the vserver script (at least will do in the future),
+but more readily accessible from Python code.
+
+%files py23
+%defattr(0644,root,root)
+/usr/lib/python2.3/site-packages/util_vserver_vars.py
+/usr/lib/python2.3/site-packages/vserver.py
+/usr/lib/python2.3/site-packages/vserver.pyc
+/usr/lib/python2.3/site-packages/vserverimpl.so
+
+
+
 %changelog
+* Wed May 25 2005 Steve Muir <smuir@cs.princeton.edu>
+- add Python modules for manipulating vservers
+
 * Thu Apr  7 2005 Steve Muir <smuir@cs.princeton.edu>
 - vuserdel changes: don't shutdown vserver, just kill all processes;
-  unmount and mountpoints in vserver before deleting
+  unmount all mountpoints in vserver before deleting
 
 * Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
 - vcached no longer runs as a daemon

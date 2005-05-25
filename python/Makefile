@@ -14,3 +14,8 @@ $(NATIVE_MODS): %.so: %.o
 
 %.o: %.c
 	$(COMPILE) -c $<
+
+install:
+	python setup.py install --root=$(INSTALL_ROOT)
+	ln -s /usr/lib/util-vserver/util-vserver-vars \
+	$(INSTALL_ROOT)/usr/lib/python2.3/site-packages/util_vserver_vars.py
