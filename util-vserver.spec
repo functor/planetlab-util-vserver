@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 10.planetlab%{?date:.%{date}}
+%define release 11.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -169,6 +169,9 @@ but more readily accessible from Python code.
 
 
 %changelog
+* Thu Jun 02 2005 Marc E. Fiuczynski <mef@cs.princeton.edu>
+- Fixed vlimit command
+
 * Wed May 25 2005 Steve Muir <smuir@cs.princeton.edu>
 - add Python modules for manipulating vservers
 
