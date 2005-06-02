@@ -42,13 +42,10 @@ src_sbin_PRGS		=  src/chbind \
 			   src/vdu \
 			   src/vsh \
 			   src/vdlimit \
+			   src/vlimit \
 			   src/vfiles \
 			   src/vkill \
 			   src/vserver-stat
-
-
-src_sbin_PRGS_broken 	=  src/vlimit
-
 
 src_GENFILES		=  src/setattr
 
