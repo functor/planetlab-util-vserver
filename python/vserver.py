@@ -173,3 +173,6 @@ class VServer:
             except Exception, ex:
                 traceback.print_exc()
             os._exit(0)
+
+        # parent process
+        return child_pid
