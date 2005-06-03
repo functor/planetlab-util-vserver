@@ -4,6 +4,8 @@ import errno
 import fcntl
 import os
 import re
+import sys
+import time
 import traceback
 
 import linuxcaps
@@ -76,7 +78,7 @@ class VServer:
 
         return os.chroot("%s/%s" % (VROOTDIR, self.name))
 
-    def open(self, filename, mode = "r"):
+    def open(self, filename, mode = "r", bufsize = -1):
 
         (sendsock, recvsock) = passfdimpl.socketpair()
         child_pid = os.fork()
@@ -131,7 +133,7 @@ class VServer:
         if not fd:
             throw()
 
-        return os.fdopen(fd)
+        return os.fdopen(fd, mode, bufsize)
 
     def enter(self):
 
@@ -151,25 +153,46 @@ class VServer:
                 # get a new session
                 os.setsid()
 
-                # enter vserver context
-                self.enter()
-
                 # use /dev/null for stdin, /var/log/boot.log for stdout/err
                 os.close(0)
                 os.close(1)
                 os.open("/dev/null", os.O_RDONLY)
-                os.open("/var/log/boot.log",
-                        os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
+                log = self.open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
 
                 # write same output that vserver script does
-                os.write(1, "Starting the virtual server %s\n" % self.name)
-                os.write(1, "Server %s is not running\n" % self.name)
+                print >>log, ("%s: starting the virtual server %s" %
+                              (time.asctime(time.gmtime()), self.name))
 
                 # execute each init script in turn
-                # XXX - we don't support all the possible scripts
-                for cmd in self.INITSCRIPTS:
-                    os.spawnl(os.P_WAIT, *cmd)
+                # XXX - we don't support all scripts that vserver script does
+                cmd_pid = 0
+                for cmd in self.INITSCRIPTS + [None]:
+                    # don't bother waiting for last command to terminate
+                    if cmd == None:
+                        os._exit(0)
+
+                    # wait for previous command to terminate
+                    if cmd_pid:
+                        try:
+                            os.waitpid(cmd_pid, 0)
+                        except:
+                            print >>log, "error waiting for %s:" % cmd_pid
+                            traceback.print_exc()
+
+                    # fork and exec next command
+                    cmd_pid = os.fork()
+                    if cmd_pid == 0:
+                        try:
+                            # enter vserver context
+                            self.enter()
+                            print >>log, "executing '%s'" % " ".join(cmd)
+                            os.execl(cmd[0], *cmd)
+                        finally:
+                            traceback.print_exc()
+                            os._exit(1)
+
+            # we get here due to an exception in the top-level child process
             except Exception, ex:
                 traceback.print_exc()
             os._exit(0)
