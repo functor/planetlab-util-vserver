@@ -4,6 +4,7 @@ import errno
 import fcntl
 import os
 import re
+import traceback
 
 import linuxcaps
 import passfdimpl
@@ -40,6 +41,8 @@ FLAGS_NAMESPACE = 128
 
               
 class VServer:
+
+    INITSCRIPTS = [('/etc/rc.vinit', 'start'), ('/etc/rc.d/rc', '3')]
 
     def __init__(self, name):
 
@@ -138,3 +141,35 @@ class VServer:
         print >>state_file, "S_CONTEXT=%d" % self.ctx
         print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
         state_file.close()
+
+    def start(self):
+
+        child_pid = os.fork()
+        if child_pid == 0:
+            # child process
+            try:
+                # get a new session
+                os.setsid()
+
+                # enter vserver context
+                self.enter()
+
+                # use /dev/null for stdin, /var/log/boot.log for stdout/err
+                os.close(0)
+                os.close(1)
+                os.open("/dev/null", os.O_RDONLY)
+                os.open("/var/log/boot.log",
+                        os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
+                os.dup2(1, 2)
+
+                # write same output that vserver script does
+                os.write(1, "Starting the virtual server %s\n" % self.name)
+                os.write(1, "Server %s is not running\n" % self.name)
+
+                # execute each init script in turn
+                # XXX - we don't support all the possible scripts
+                for cmd in self.INITSCRIPTS:
+                    os.spawnl(os.P_WAIT, *cmd)
+            except Exception, ex:
+                traceback.print_exc()
+            os._exit(0)
