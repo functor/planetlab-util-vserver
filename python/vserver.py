@@ -135,14 +135,20 @@ class VServer:
 
         return os.fdopen(fd, mode, bufsize)
 
+    def __do_chcontext(self, state_file = None):
+
+        vserverimpl.chcontext(self.ctx, self.remove_caps)
+        if not state_file:
+            return
+        print >>state_file, "S_CONTEXT=%d" % self.ctx
+        print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
+        state_file.close()
+
     def enter(self):
 
         state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
         self.__do_chroot()
-        vserverimpl.chcontext(self.ctx, self.remove_caps)
-        print >>state_file, "S_CONTEXT=%d" % self.ctx
-        print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
-        state_file.close()
+        self.__do_chcontext(state_file)
 
     def start(self):
 
@@ -153,11 +159,15 @@ class VServer:
                 # get a new session
                 os.setsid()
 
+                # open state file to record vserver info
+                state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
+
                 # use /dev/null for stdin, /var/log/boot.log for stdout/err
                 os.close(0)
                 os.close(1)
                 os.open("/dev/null", os.O_RDONLY)
-                log = self.open("/var/log/boot.log", "w", 0)
+                self.__do_chroot()
+                log = open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
 
                 # write same output that vserver script does
@@ -185,12 +195,15 @@ class VServer:
                     if cmd_pid == 0:
                         try:
                             # enter vserver context
-                            self.enter()
+                            self.__do_chcontext(state_file)
                             print >>log, "executing '%s'" % " ".join(cmd)
                             os.execl(cmd[0], *cmd)
                         finally:
                             traceback.print_exc()
                             os._exit(1)
+                    else:
+                        # don't want to write state_file multiple times
+                        state_file = None
 
             # we get here due to an exception in the top-level child process
             except Exception, ex:
