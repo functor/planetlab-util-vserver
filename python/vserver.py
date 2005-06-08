@@ -8,6 +8,7 @@ import sys
 import time
 import traceback
 
+#import mount
 import linuxcaps
 import passfdimpl
 import vserverimpl
@@ -44,7 +45,8 @@ FLAGS_NAMESPACE = 128
               
 class VServer:
 
-    INITSCRIPTS = [('/etc/rc.vinit', 'start'), ('/etc/rc.d/rc', '3')]
+    INITSCRIPTS = [('/etc/rc.vinit', 'start'),
+                   ('/etc/rc.d/rc', '%(runlevel)d')]
 
     def __init__(self, name):
 
@@ -144,13 +146,38 @@ class VServer:
         print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
         state_file.close()
 
+    def __prep(self, runlevel, log):
+
+        """ Perform all the crap that the vserver script does before
+        actually executing the startup scripts. """
+
+        # remove /var/run and /var/lock/subsys files
+        # but don't remove utmp from the top-level /var/run
+        RUNDIR = "/var/run"
+        LOCKDIR = "/var/lock/subsys"
+        filter_fn = lambda fs: filter(lambda f: f != 'utmp', fs)
+        garbage = reduce((lambda (out, ff), (dir, subdirs, files):
+                          (out + map((dir + "/").__add__, ff(files)),
+                           lambda fs: fs)),
+                         list(os.walk(RUNDIR)),
+                         ([], filter_fn))[0]
+        garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
+                                              os.listdir(LOCKDIR)))
+        for f in garbage:
+            print >>log, "removing " + f
+            os.unlink(f)
+
+        # set the initial runlevel
+
+        # mount /proc and /dev/pts
+
     def enter(self):
 
         state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
         self.__do_chroot()
         self.__do_chcontext(state_file)
 
-    def start(self):
+    def start(self, runlevel = 3):
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -170,9 +197,11 @@ class VServer:
                 log = open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
 
-                # write same output that vserver script does
                 print >>log, ("%s: starting the virtual server %s" %
                               (time.asctime(time.gmtime()), self.name))
+
+                # perform pre-init cleanup
+                self.__prep(runlevel, log)
 
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
@@ -196,9 +225,12 @@ class VServer:
                         try:
                             # enter vserver context
                             self.__do_chcontext(state_file)
-                            print >>log, "executing '%s'" % " ".join(cmd)
-                            os.execl(cmd[0], *cmd)
-                        finally:
+                            arg_subst = { 'runlevel': runlevel }
+                            cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
+                                                      cmd[1:])
+                            print >>log, "executing '%s'" % " ".join(cmd_args)
+                            os.execl(cmd[0], *cmd_args)
+                        except:
                             traceback.print_exc()
                             os._exit(1)
                     else:
