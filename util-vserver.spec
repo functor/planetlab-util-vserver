@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 11.planetlab%{?date:.%{date}}
+%define release 12.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -169,6 +169,9 @@ but more readily accessible from Python code.
 
 
 %changelog
+* Wed Jun 15 2005 Steve Muir <smuir@cs.princeton.edu>
+- 'vserver-init start' functionality subsumed by Node Manager
+
 * Thu Jun 02 2005 Marc E. Fiuczynski <mef@cs.princeton.edu>
 - Fixed vlimit command
 

@@ -4,6 +4,7 @@
 #              the virtual servers.
 
 USR_SBIN=/usr/sbin
+CHCONTEXT="$USR_SBIN/chcontext --silent --secure --ctx"
 VROOTDIR=/vservers
 
 # Print the vserver name in priority/alpha order
@@ -11,45 +12,19 @@ sortserver(){
     (
     cd /etc/vservers
     for serv in *.conf ; do
+	# XXX - why is this check necessary?
 	test -f "$serv" || continue
 	PRIORITY=100
 	. $serv
-	printf "%03d %s\n" $PRIORITY `basename $serv .conf`
+	echo $PRIORITY `basename $serv .conf`
     done
-    ) | sort $* | (while read a b; do echo $b; done)
-}
-
-startservers(){
-    echo "Starting the virtual servers"
-    cd /etc/vservers
-    for name in ${*:-`sortserver`} ; do
-	if ! test -f "$name.conf" ; then
-	    echo No configuration for this vserver: /etc/vservers/$name.conf
-	    continue
-	fi
-	ONBOOT=
-	BACKGROUND=no
-	if [ -f /etc/vservers.conf ] ; then
-	    . /etc/vservers.conf
-	fi
-	. $name.conf
-	if [ "$ONBOOT" = "yes" ] ; then
-	    mkdir -p $VROOTDIR/$name/var/log
-	    if [ "$BACKGROUND" = "yes" ] ; then
-		nohup setsid $USR_SBIN/vserver $name start >$VROOTDIR/$name/var/log/boot.log 2>&1 </dev/null &
-		sleep 1
-	    else
-		$USR_SBIN/vserver $name start 2>&1 </dev/null | tee $VROOTDIR/$name/var/log/boot.log
-	    fi
-	fi
-    done
+    ) | sort -n $* | cut -d ' ' -f 2
 }
 
 # See how we were called.
 case "$1" in
   start)
-	shift
-	startservers $*
+	# do nothing - functionality subsumed by Node Manager
 	touch /var/lock/subsys/vservers
 	;;
   stop)
@@ -83,5 +58,3 @@ case "$1" in
 	echo "Usage: vservers {start|stop|restart|reload|status}"
 	exit 1
 esac
-
-exit 0
