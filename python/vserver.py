@@ -193,7 +193,7 @@ class VServer:
         self.__do_chroot()
         self.__do_chcontext(state_file)
 
-    def start(self, runlevel = 3):
+    def start(self, wait, runlevel = 3):
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -223,17 +223,18 @@ class VServer:
                 # XXX - we don't support all scripts that vserver script does
                 cmd_pid = 0
                 for cmd in self.INITSCRIPTS + [None]:
-                    # don't bother waiting for last command to terminate
-                    if cmd == None:
-                        os._exit(0)
-
-                    # wait for previous command to terminate
-                    if cmd_pid:
+                    # wait for previous command to terminate, unless it
+                    # is the last one and the caller has specified to wait
+                    if cmd_pid and (cmd != None or wait):
                         try:
                             os.waitpid(cmd_pid, 0)
                         except:
                             print >>log, "error waiting for %s:" % cmd_pid
                             traceback.print_exc()
+
+                    # end of list
+                    if cmd == None:
+                        os._exit(0)
 
                     # fork and exec next command
                     cmd_pid = os.fork()
