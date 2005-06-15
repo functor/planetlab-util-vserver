@@ -32,7 +32,9 @@ case "$1" in
 	echo "Stopping the virtual servers"
 	cd /etc/vservers
 	for name in ${*:-`sortserver -r`} ; do
-	    $USR_SBIN/vserver $name stop
+	    chcontext --ctx `id -u $name` /usr/lib/util-vserver/vserverkillall
+	    umount $VROOTDIR/$name/proc
+	    umount $VROOTDIR/$name/dev/pts
 	done
 	rm -f /var/lock/subsys/vservers
 	;;
