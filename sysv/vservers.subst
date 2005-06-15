@@ -4,7 +4,6 @@
 #              the virtual servers.
 
 USR_SBIN=/usr/sbin
-CHCONTEXT="$USR_SBIN/chcontext --silent --secure --ctx"
 VROOTDIR=/vservers
 
 # Print the vserver name in priority/alpha order
@@ -21,11 +20,42 @@ sortserver(){
     ) | sort -n $* | cut -d ' ' -f 2
 }
 
+startservers(){
+    echo "Starting the virtual servers"
+    cd /etc/vservers
+    for name in $*; do
+	if ! test -f "$name.conf" ; then
+	    echo No configuration for this vserver: /etc/vservers/$name.conf
+	    continue
+	fi
+	ONBOOT=
+	BACKGROUND=no
+	if [ -f /etc/vservers.conf ] ; then
+	    . /etc/vservers.conf
+	fi
+	. $name.conf
+	if [ "$ONBOOT" = "yes" ] ; then
+	    mkdir -p $VROOTDIR/$name/var/log
+	    if [ "$BACKGROUND" = "yes" ] ; then
+		nohup setsid $USR_SBIN/vserver $name start >$VROOTDIR/$name/var/log/boot.log 2>&1 </dev/null &
+		sleep 1
+	    else
+		$USR_SBIN/vserver $name start 2>&1 </dev/null | tee $VROOTDIR/$name/var/log/boot.log
+	    fi
+	fi
+    done
+}
+
 # See how we were called.
 case "$1" in
   start)
-	# do nothing - functionality subsumed by Node Manager
-	touch /var/lock/subsys/vservers
+	# do nothing unless passed a vserver name - 'start all' functionality
+	# subsumed by Node Manager
+	if [ -z "$2" ]; then
+	    touch /var/lock/subsys/vservers
+	else
+	    startservers $2
+	fi
 	;;
   stop)
 	shift
