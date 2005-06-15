@@ -8,9 +8,10 @@ import sys
 import time
 import traceback
 
-#import mount
+import mountimpl
 import linuxcaps
 import passfdimpl
+import utmp
 import vserverimpl
 
 from util_vserver_vars import *
@@ -164,12 +165,27 @@ class VServer:
         garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
                                               os.listdir(LOCKDIR)))
         for f in garbage:
-            print >>log, "removing " + f
             os.unlink(f)
 
         # set the initial runlevel
+        f = open(RUNDIR + "/utmp", "w")
+        utmp.set_runlevel(f, runlevel)
+        f.close()
 
         # mount /proc and /dev/pts
+        self.__do_mount("none", "/proc", "proc")
+        # XXX - magic mount options
+        self.__do_mount("none", "/dev/pts", "devpts", 0, "gid=5,mode=0620")
+
+    def __do_mount(self, *mount_args):
+
+        try:
+            mountimpl.mount(*mount_args)
+        except OSError, ex:
+            if ex.errno == errno.EBUSY:
+                # assume already mounted
+                return
+            raise ex
 
     def enter(self):
 
