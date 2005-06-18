@@ -33,9 +33,13 @@
 
 
 // Patch to help compile this utility on unpatched kernel source
-#ifndef EXT2_IMMUTABLE_FILE_FL
-	#define EXT2_IMMUTABLE_FILE_FL	0x00000010
-	#define EXT2_IMMUTABLE_LINK_FL	0x00008000
+#ifndef EXT2_IUNLINK_FL
+/* Set both bits for backward compatibility */
+#define EXT2_IUNLINK_FL 0x08008000
+#endif
+
+#ifndef EXT2_BARRIER_FL
+#define EXT2_BARRIER_FL 0x04000000
 #endif
 
 /*
@@ -108,22 +112,36 @@ int main (int argc, char *argv[])
 			}
 		}
 	}else if (strstr(argv[0],"setattr")!=NULL){
-		long flags = 0;
+		long flags, add_flags = 0, remove_flags = 0;
 		int  i;
 		ret = 0;
 		for (i=1; i<argc; i++){
 			const char *arg = argv[i];
 			if (strncmp(arg,"--",2)==0){
 				if (strcmp(arg,"--immutable")==0){
-					flags |= EXT2_IMMUTABLE_FILE_FL;
+					add_flags |= EXT2_IMMUTABLE_FL;
+				}else if (strcmp(arg,"--!immutable")==0 || strcmp(arg,"--~immutable")==0){
+					remove_flags |= EXT2_IMMUTABLE_FL;
 				}else if (strcmp(arg,"--immulink")==0){
-					flags |= EXT2_IMMUTABLE_LINK_FL;
+					add_flags |= EXT2_IUNLINK_FL;
+				}else if (strcmp(arg,"--!immulink")==0 || strcmp(arg,"--~immulink")==0){
+					remove_flags |= EXT2_IUNLINK_FL;
+				}else if (strcmp(arg,"--barrier")==0){
+					add_flags |= EXT2_BARRIER_FL;
+				}else if (strcmp(arg,"--!barrier")==0 || strcmp(arg,"--~barrier")==0){
+					remove_flags |= EXT2_BARRIER_FL;
 				}else{
 					fprintf (stderr,"Invalid option %s\n",arg);
 					ret = -1;
 					break;
 				}
 			}else{
+				ret = getext2flags (arg,&flags);
+				if (ret == -1){
+					break;
+				}
+				flags |= add_flags;
+				flags &= ~remove_flags;
 				ret = setext2flags (arg,flags);
 				if (ret == -1){
 					break;
