@@ -36,6 +36,9 @@ scripts_src_PRGS	=  scripts/vpstree \
 			   scripts/vrpm \
 			   scripts/vserver \
 			   scripts/vserver-copy \
+			   scripts/vcached \
+			   scripts/vuseradd \
+			   scripts/vuserdel \
 			   scripts/vtop
 scripts_gen_PRGS	=  scripts/vps
 
