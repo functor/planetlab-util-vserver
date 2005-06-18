@@ -51,7 +51,7 @@ struct EXCLDIR{
 static vector<EXCLDIR> excldirs;
 
 
-static int  ext2flags = EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL;
+static int  ext2flags = EXT2_IMMUTABLE_FL | EXT2_IUNLINK_FL;
 static struct {
 	int nblink;
 	int nbcopy;
@@ -228,9 +228,9 @@ int main (int argc, char *argv[])
 		}else if (strcmp(arg,"--noflags")==0){
 			ext2flags = 0;
 		}else if (strcmp(arg,"--immutable")==0){
-			ext2flags |= EXT2_IMMUTABLE_FILE_FL;
+			ext2flags |= EXT2_IMMUTABLE_FL;
 		}else if (strcmp(arg,"--immutable-mayunlink")==0){
-			ext2flags |= EXT2_IMMUTABLE_LINK_FL;
+			ext2flags |= EXT2_IUNLINK_FL;
 		}else if (strcmp(arg,"--excldir")==0){
 			i++;
 			excldirs.push_back (EXCLDIR(argv[i]));
