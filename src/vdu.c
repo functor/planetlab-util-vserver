@@ -17,6 +17,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+#include "compat.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -27,88 +32,165 @@
 #include <errno.h>
 #include <string.h>
 
-__extension__ typedef long long		longlong;
+#include <sys/ioctl.h>
+#include "ext2fs.h"
 
-static int vdu_onedir (char const *path, longlong *size)
-{
-	int ret = -1;
-	int dirfd = open (path,O_RDONLY);	// A handle to speed up
-												// chdir
-	if (dirfd == -1){
-		fprintf (stderr,"Can't open directory %s (%s)\n",path
-			,strerror(errno));
-	}else{
-	        DIR *dir;
+// Patch to help compile this utility on unpatched kernel source
+#ifndef EXT2_IMMUTABLE_FILE_FL
+	#define EXT2_IMMUTABLE_FILE_FL	0x00000010
+	#define EXT2_IMMUTABLE_LINK_FL	0x00008000
+#endif
 
-		fchdir (dirfd);
-		dir = opendir (".");
-		if (dir == NULL){
-			fprintf (stderr,"Can't open (opendir) directory %s (%s)\n",path
-				,strerror(errno));
-		}else{
-			struct stat dirst;
-			struct dirent *ent;
-			longlong dirsize = 0;
 
-			ret = 0;
-			lstat (".",&dirst);
-			while ((ent=readdir(dir))!=NULL){
-				struct stat st;
-				if (lstat(ent->d_name,&st)==-1){
-					fprintf (stderr,"Can't stat %s/%s (%s)\n",path
-						,ent->d_name,strerror(errno));
-					ret = -1;
-					break;
-				}else if (S_ISREG(st.st_mode)){
-					if (st.st_nlink == 1){
-						dirsize += st.st_size;
-					}
-				}else if (S_ISDIR(st.st_mode) && st.st_dev == dirst.st_dev){
-					if (strcmp(ent->d_name,".")!=0
-						&& strcmp(ent->d_name,"..")!=0){
-					        char	*tmp = malloc(strlen(path) + strlen(ent->d_name) + 2);
-						if (tmp==0) ret=-1;
-						else {
-						  strcpy(tmp, path);
-						  strcat(tmp, "/");
-						  strcat(tmp, ent->d_name);
-						  ret = vdu_onedir(tmp,&dirsize);
-						  free(tmp);
-						  fchdir (dirfd);
-						}
-					}
-				}
-			}
-			closedir (dir);
-			*size += dirsize;
-		}
-		close (dirfd);
-	}
-	return ret;
+//__extension__ typedef long long		longlong;
+__extension__ typedef long 		longlong;
+
+static longlong inodes;
+static longlong blocks;
+static longlong size;
+
+static short verbose = 0;
+
+static inline void warning(char *s) {
+    fprintf(stderr,"%s (%s)\n",s,strerror(errno));    
 }
+
+void panic(char *s) {
+    warning(s);
+    exit(2);
+}
+
+static void vdu_onedir (char const *path)
+{
+    struct stat dirst, st;
+    struct dirent *ent;
+    char *name;
+    DIR *dir;
+    int dirfd;
+    longlong dirsize, dirinodes, dirblocks;
+
+    dirsize = dirinodes = dirblocks = 0;
+
+    // A handle to speed up chdir
+    if ((dirfd = open (path,O_RDONLY)) == -1) {
+	fprintf (stderr,"Can't open directory %s\n",path);
+	panic("open failed");
+    }
+
+    if (fchdir (dirfd) == -1) {
+	fprintf (stderr,"Can't fchdir directory %s\n",path);
+	panic("fchdir failed");
+    }
+
+    if (fstat (dirfd,&dirst) != 0) {
+	fprintf (stderr,"Can't lstat directory %s\n",path);
+	panic("lstat failed");
+    }
+
+    if ((dir = opendir (".")) == NULL) {
+	fprintf (stderr,"Can't open (opendir) directory %s\n",path);
+	panic("opendir failed");
+    }
+
+
+    /* Walk the directory entries and compute the sum of inodes,
+       blocks, and disk space used. This code will recursively descend
+       down the directory structure. */
+
+    while ((ent=readdir(dir))!=NULL){
+	if (lstat(ent->d_name,&st)==-1){
+	    fprintf (stderr,"Can't stat %s/%s\n",path,ent->d_name);
+	    warning("lstat failed");
+	    continue;
+	}
+	
+	dirinodes ++;
+
+	if (S_ISREG(st.st_mode)){
+	    if (st.st_nlink > 1){
+		long flags;
+		int fd, res;
+
+		if ((fd = open(ent->d_name,O_RDONLY))==-1) {
+		    fprintf (stderr,"Can't open file %s/%s\n",path,ent->d_name);		    
+		    warning ("open failed");
+		    continue;
+		}
+
+		flags = 0;
+		res = ioctl(fd, EXT2_IOC_GETFLAGS, &flags);
+		close(fd);
+
+		if ((res == 0) && (flags & EXT2_IMMUTABLE_LINK_FL)){
+		    if (verbose)
+			printf ("Skipping %s\n",ent->d_name);		    
+		    continue;
+		}
+	    }
+	    dirsize += st.st_size;
+	    dirblocks += st.st_blocks;
+
+	} else if (S_ISDIR(st.st_mode)) {
+	    if ((st.st_dev == dirst.st_dev) &&
+		(strcmp(ent->d_name,".")!=0) &&
+		(strcmp(ent->d_name,"..")!=0)) {
+
+		dirsize += st.st_size;
+		dirblocks += st.st_blocks;
+
+		name = strdup(ent->d_name);
+		if (name==0) {
+		    panic("Out of memory\n");
+		}
+		vdu_onedir(name);
+		free(name);
+		fchdir(dirfd);
+	    }
+	} else {
+	    dirsize += st.st_size;
+	    dirblocks += st.st_blocks;
+	}
+    }
+    closedir (dir);
+    close (dirfd);
+    if (verbose)
+	printf("%8ld %8ld %8ld %s\n",dirinodes, dirblocks, dirsize>>10,path);
+    inodes += dirinodes;
+    blocks += dirblocks;
+    size   += dirsize;
+}
+
+
 
 int main (int argc, char *argv[])
 {
-	int ret = -1;
-	if (argc < 2){
-		fprintf (stderr,"vdu version %s\n",VERSION);
-		fprintf (stderr,"vdu directory ...\n\n");
-		fprintf (stderr
-			,"Compute the size of a directory tree, ignoring files\n"
-			 "with more than one link.\n");
-	}else{
-		int i;
+    int startdir, i;
 
-		ret = 0;
-		for (i=1; i<argc && ret != -1; i++){
-			longlong size = 0;
-			long ksize;
-			
-			ret = vdu_onedir (argv[i],&size);
-			ksize = size >> 10;
-			printf ("%s\t%ldK\n",argv[i],ksize);
-		}
+    if (argc < 2){
+	fprintf (stderr,"vdu version %s\n",VERSION);
+	fprintf (stderr,"vdu directory ...\n\n");
+	fprintf (stderr,"Compute the size of a directory tree.");
+    }else{
+	if ((startdir = open (".",O_RDONLY)) == -1) {
+	    fprintf (stderr,"Can't open current working directory\n");
+	    panic("open failed");
 	}
-	return ret;
+
+	for (i=1; i<argc; i++){
+	    inodes = blocks = size = 0;
+	    vdu_onedir (argv[i]);
+	    printf("%8ld %8ld %8ld %s TOTAL\n",inodes, blocks, size>>10,argv[i]);
+	    if (fchdir (startdir) == -1) {
+		panic("fchdir failed");
+	    }
+	}
+	close(startdir);
+    }
+    return 0;
 }
 
+/*
+ * Local variables:
+ *  c-basic-offset: 4
+ * End:
+ */
