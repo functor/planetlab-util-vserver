@@ -1,13 +1,19 @@
-%define __chattr	/usr/bin/chattr
+%define name util-vserver
+%define version 0.30
+%define release 12.planetlab%{?date:.%{date}}
+
+Vendor: PlanetLab
+Packager: PlanetLab Central <support@planet-lab.org>
+Distribution: PlanetLab 3.0
+URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
-Name:		util-vserver
-Version:	0.30
-Release:	0
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
 Epoch:		0
 Copyright:	GPL
 Group:		System Environment/Base
-URL:		http://savannah.nongnu.org/projects/util-vserver/
 Source0:	http://savannah.nongnu.org/download/util-vserver/stable.pkg/%version/%name-%version.tar.bz2
 Provides:	%name-devel = %epoch:%version-%release
 BuildRoot:	%_tmppath/%name-%version-%release-root
@@ -15,7 +21,6 @@ Provides:	vserver = %epoch:%version-%release
 Conflicts:	vserver < %epoch:%version-%release
 Conflicts:	vserver > %epoch:%version-%release
 BuildRequires:	e2fsprogs-devel
-Requires(post):	%__chattr
 
 %package linuxconf
 Summary:	Linuxconf administration modules for vservers
@@ -43,12 +48,17 @@ linuxconf.
 
 %prep
 %setup -q
+aclocal -I m4
+autoconf
+automake --add-missing
+# bootstrap to avoid BuildRequires of kernel-source
+for linux in $RPM_BUILD_DIR/linux-* /lib/modules/`uname -r`/build ; do
+   [[ -d $linux/include ]] && %configure --with-kerneldir=$linux --enable-linuxconf && break
+done
 
 
 %build
-%configure --enable-linuxconf
-%__make %{?_smp_mflags}
-
+make
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -60,36 +70,55 @@ test "%_initrddir" = %_sysconfdir/init.d || {
 	mv ${RPM_BUILD_ROOT}%_sysconfdir/init.d/* ${RPM_BUILD_ROOT}%_initrddir/
 }
 
+mkdir -p ${RPM_BUILD_ROOT}/bin
+ln -f ${RPM_BUILD_ROOT}%_sbindir/vsh ${RPM_BUILD_ROOT}/bin/vsh
+
+install -D -m 644 sysv/vcached.logrotate ${RPM_BUILD_ROOT}/etc/logrotate.d/vcached
+
+mkdir -p $RPM_BUILD_ROOT/etc/cron.d
+. sysv/vcached.conf
+echo "*/$(($period / 60)) * * * * root %_sbindir/vcached -s -f -l $logfile" > $RPM_BUILD_ROOT/etc/cron.d/vcached
+
+%__make -C python INSTALL_ROOT=$RPM_BUILD_ROOT install
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+# 1 = install, 2 = upgrade/reinstall
+if [ $1 -eq 2 ] ; then
+    # vcached no longer runs as a daemon
+    [ "`/sbin/runlevel`" = "unknown" ] || service vcached stop || :
+fi
 
-%define v_services	httpd named portmap sendmail smb sshd xinetd
 %post
-/sbin/chkconfig --add vservers
-/sbin/chkconfig --add rebootmgr
+# vcached no longer runs as a daemon
+chkconfig vcached off
+chkconfig --del vcached
 
-for i in %v_services; do
-	/sbin/chkconfig --add v_$i
-done
+chkconfig --add vservers
+chkconfig vservers on
 
-%__chattr +t /vservers || :
+if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
+    echo /bin/vsh >> /etc/shells
+fi
 
-
-%preun
-test "$1" != 0 || for i in %v_services; do
-	/sbin/chkconfig --del v_$i
-done
-
-test "$1" != 0 || %{_initrddir}/rebootmgr stop &>/dev/null || :
-test "$1" != 0 || /sbin/chkconfig --del rebootmgr
-test "$1" != 0 || /sbin/chkconfig --del vservers
-
+# make sure barrier bit is set on /vservers to prevent chroot() escapes
+%_libdir/%name/setattr --barrier /vservers
 
 %postun
-test "$1" = 0  || %{_initrddir}/rebootmgr condrestart >/dev/null || :
+# 0 = erase, 1 = upgrade
+if [ "$1" = 0 ] ; then
+    perl -i -n -e 'next if /^\/bin\/vsh$/; print' /etc/shells
+fi
 
+%preun
+# 0 = erase, 1 = upgrade
+if [ $1 -eq 0 ] ; then
+    [ "`/sbin/runlevel`" = "unknown" ] || service vservers stop
+    chkconfig vservers off
+    chkconfig --del vservers
+fi
 
 %files
 %defattr(-,root,root)
@@ -101,11 +130,16 @@ test "$1" = 0  || %{_initrddir}/rebootmgr condrestart >/dev/null || :
 %_mandir/man8/*
 %config %_initrddir/*
 %config(noreplace) /etc/vservers.conf
+%config(noreplace) /etc/vcached.conf
+/etc/logrotate.d/vcached
+/etc/cron.d/vcached
+%dir /etc/vservers
 %attr(0,root,root) %dir /vservers
+%attr(4755,root,root) /usr/sbin/vsh
+%attr(4755,root,root) /bin/vsh
 
 %exclude %_sbindir/newvserver
 %exclude %_mandir/man8/newvserver*
-
 
 %files linuxconf
 %defattr(-,root,root)
@@ -114,9 +148,76 @@ test "$1" = 0  || %{_initrddir}/rebootmgr condrestart >/dev/null || :
 %_mandir/man8/newvserver*
 
 
+
+%package py23
+Summary: Python modules for manipulating vservers
+Group: Applications/System
+Requires: python /usr/lib/util-vserver/util-vserver-vars util-python
+
+%description py23
+Python modules for manipulating vservers.  Provides a superset of the
+functionality of the vserver script (at least will do in the future),
+but more readily accessible from Python code.
+
+%files py23
+%defattr(0644,root,root)
+/usr/lib/python2.3/site-packages/util_vserver_vars.py
+/usr/lib/python2.3/site-packages/vserver.py
+/usr/lib/python2.3/site-packages/vserver.pyc
+/usr/lib/python2.3/site-packages/vserverimpl.so
+
+
+
 %changelog
+* Wed Jun 15 2005 Steve Muir <smuir@cs.princeton.edu>
+- 'vserver-init start' functionality subsumed by Node Manager
+
+* Thu Jun 02 2005 Marc E. Fiuczynski <mef@cs.princeton.edu>
+- Fixed vlimit command
+
+* Wed May 25 2005 Steve Muir <smuir@cs.princeton.edu>
+- add Python modules for manipulating vservers
+
+* Thu Apr  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- vuserdel changes: don't shutdown vserver, just kill all processes;
+  unmount all mountpoints in vserver before deleting
+
+* Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
+- vcached no longer runs as a daemon
+- do not restart vservers when package is upgraded
+
+* Wed Nov 17 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-6.planetlab
++ planetlab-3_0-rc4
+- PL2445
+- Both vcached and vuseradd now print a warning message when vbuild
+  succeeds but the resulting new vserver image is smaller in size than
+  the vserver-reference image.
+- vuseradd: clean up some more junk on failure
+
+* Tue Nov 16 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-5.planetlab
++ planetlab-3_0-rc3
+- PL3026: This is the upgraded version of vdu that maintains an
+  internal hash table of files with a nlink count > 1.  Only if vdu
+  sees all hard links to a particular inode does it add its size and
+  block count to the total.
+
+* Fri Nov 12 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-4.planetlab
+- PL2445 Use -b option to du to avoid rounding errors.
+
+* Sat Nov  6 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-3.planetlab
++ planetlab-3_0-rc2
+- don't create the symbolic link /home/slice/.ssh, this is not how
+  pl_sshd works
+
+* Mon Oct 11 2004 Marc E. Fiuczynski <mef@cs.princeton.edu>
+- added vsh
+
+* Wed Aug 11 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.29-1.planetlab
+- initial PlanetLab 3.0 build.
+
 * Thu Mar 18 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.29.3-0
 - removed '%%doc doc/FAQ.txt' since file does not exist anymore
 
 * Fri Sep 26 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.23.4-1
 - initial build.
+
