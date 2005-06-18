@@ -26,6 +26,7 @@ sysv_XTRAS		=  sysv/rebootmgr.subst \
 			   sysv/v_smb.subst \
 			   sysv/v_sshd.subst \
 			   sysv/v_xinetd.subst \
+			   sysv/vcached.subst \
 			   sysv/vservers.subst
 
 sysv_GENSCRPTS		=  sysv/rebootmgr \
@@ -37,11 +38,12 @@ sysv_GENSCRPTS		=  sysv/rebootmgr \
 			   sysv/v_smb \
 			   sysv/v_sshd \
 			   sysv/v_xinetd \
+			   sysv/vcached \
 			   sysv/vservers
 
 sysv_SCRPTS		=  $(sysv_GENSCRPTS)
 
-sysv_CFG		=  sysv/vservers.conf
+sysv_CFG		=  sysv/vservers.conf sysv/vcached.conf
 
 
 sysv/%:			sysv/%.subst
