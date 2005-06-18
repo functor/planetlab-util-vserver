@@ -47,6 +47,8 @@
 
 #define VC_CAT_PROCTRL		12
 
+#define VC_CAT_DLIMIT		36
+
 #define VC_CAT_RLIMIT		60
 
 #define VC_CAT_SYSTEST		61
