@@ -87,6 +87,15 @@
 extern "C" {
 #endif
 
+#define ENSC_STRUCT_IDX(STRUCT,ATTR)			\
+  ((char*)(&(STRUCT).ATTR) - (char*)(&(STRUCT)))
+#define ENSC_SAME_STRUCT_IDX(LHS,RHS,ATTR)			\
+  (ENSC_STRUCT_IDX(LHS,ATTR) == ENSC_STRUCT_IDX(RHS,ATTR))
+#define ENSC_SAME_STRUCT_ITEM(LHS,RHS,ATTR)	\
+  (ENSC_SAME_STRUCT_IDX(LHS,RHS,ATTR) &&	\
+   sizeof((LHS).ATTR)==sizeof((RHS).ATTR) &&	\
+   sizeof(LHS)==sizeof(RHS))
+
 #ifndef HAVE_VSERVER
 #ifdef ENSC_SYSCALL_TRADITIONAL
 inline static UNUSED ALWAYSINLINE

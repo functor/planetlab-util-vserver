@@ -34,6 +34,15 @@
 #define VC_LIM_INFINITY		(~0ULL)
 #define VC_LIM_KEEP		(~1ULL)
 
+#define VC_VXSM_FILL_RATE          	0x0001
+#define VC_VXSM_INTERVAL           	0x0002
+#define VC_VXSM_TOKENS             	0x0010
+#define VC_VXSM_TOKENS_MIN         	0x0020
+#define VC_VXSM_TOKENS_MAX         	0x0040
+#define VC_VXSM_PRIO_BIAS          	0x0100
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -80,6 +89,19 @@ extern "C" {
   int	vc_set_rlimit(xid_t ctx, int resource, struct vc_rlimit const *lim);
   int	vc_get_rlimit_mask(xid_t ctx, struct vc_rlimit_mask *lim);
 
+
+#define VC_CAT_SCHED		14
+  struct vc_set_sched {
+      uint_least32_t	set_mask;
+      int_least32_t	fill_rate;
+      int_least32_t	interval;
+      int_least32_t	tokens;
+      int_least32_t	tokens_min;
+      int_least32_t	tokens_max;
+      int_least32_t	priority_bias;
+  };
+
+  int		vc_set_sched(xid_t xid, struct vc_set_sched const *);
 
   /** sends a signal to a context/pid
       Special values for pid are:
