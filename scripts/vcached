@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# vcached: VServer cache daemon
+#
+# Description: A daemon that periodically preallocates vservers and stores
+# them in a cache.  Preallocated vservers from the cache may be then used to 
+# instantiate real vservers. Requires that /var/run/vcached.pid does not
+# exist on startup. Should start/stop/restart from /etc/init.d.
+#
+# Based on work by:
+# 
+# Brent Chun - bnc@intel-research.net
+# Tristan Koo - tristan.koo@intel-research.net
+# William Wung - wungism@uclink.berkeley.edu
+#
+# Mark Huang <mlhuang@cs.princeton.edu>
+# Copyright (c) 2004  The Trustees of Princeton University (Trustees).
+#
+# $Id: vcached,v 1.5 2004/10/12 21:27:15 mlhuang Exp $
+#
+
+# get configuration
+. /etc/vcached.conf
+
+# parse options
+while getopts 'fdl:' OPT ; do
+    case "$OPT" in
+        f) foreground=1 ;;
+        d) debug=1 ;;
+	l) exec 1>>$OPTARG ; exec 2>>$OPTARG ;;
+    esac
+done
+
+# check if we are already running
+if [ -f $pidfile ] ; then
+    echo "vcached(`cat $pidfile`) already running"
+    exit 1
+fi
+
+# daemonize
+if [ $foreground -eq 0 ] ; then
+    nohup setsid nice -n $nice -- $0 $* -f -l $logfile >/dev/null 2>&1 </dev/null &
+    exit 0
+fi
+
+# record PID
+trap "rm -f $pidfile ; exit 255" EXIT
+trap "exec 1>>$logfile ; exec 2>>$logfile" HUP
+echo $$ > $pidfile
+
+: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo "Can not find util-vserver installation; aborting..."
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+# take out the trash
+chattr -R -i "$VROOTDIR/.vtmp"
+rm -rf "$VROOTDIR/.vtmp"
+
+mkdir -p "$VROOTDIR/.vcache"
+mkdir -p "$VROOTDIR/.vtmp"
+
+# loop forever
+while : ; do
+    [ $debug -ne 0 ] && echo "$(date) Checking the cache"
+    for i in $(seq 0 $(($slots - 1))) ; do
+	if [ ! -d "$VROOTDIR/.vcache/v$i" ] ; then
+	    echo "$(date) Caching v$i"
+	    # build image in .vtmp
+	    TMP=$(mktemp -d "$VROOTDIR/.vtmp/v$i.XXXXXX")
+	    "$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$TMP"
+	    RETVAL=$?
+	    # move it to .vcache when complete
+	    if [ $RETVAL -eq 0 ] ; then
+		mv "$TMP" "$VROOTDIR/.vcache/v$i"
+		echo "$(date) v$i ready"
+	    else
+		echo "$(date) Error $RETVAL building v$i"
+		chattr -R -i "$TMP"
+		rm -rf "$TMP"
+	    fi
+	fi
+    done
+    [ $debug -ne 0 ] && echo "$(date) Sleeping for $period seconds"
+    sleep $period
+done
