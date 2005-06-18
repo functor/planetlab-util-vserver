@@ -122,6 +122,7 @@ int main (int argc, char *argv[])
 	unsigned remove_cap = 0;
 	unsigned add_cap = 0;
 	unsigned long secure = (1<<CAP_LINUX_IMMUTABLE)
+		|(1<<CAP_NET_BIND_SERVICE)
 		|(1<<CAP_NET_BROADCAST)
 		|(1<<CAP_NET_ADMIN)
 		|(1<<CAP_NET_RAW)
