@@ -1,0 +1,10 @@
+/var/log/vcached.log {
+    compress
+    daily
+    notifempty
+    rotate 5
+    missingok
+    postrotate
+        kill -HUP `cat /var/run/vcached.pid 2>/dev/null` 2>/dev/null || true
+    endscript
+}
