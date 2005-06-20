@@ -1,21 +1,15 @@
-INCLUDES := -I.. -I../lib -I/usr/include/python2.3
-CPPFLAGS = $(DEFS) $(INCLUDES)
-CFLAGS = $(CPPFLAGS) -g -Wall
-COMPILE = $(CC) $(CFLAGS)
+INCLUDES := -I.. -I../lib
 LIBS = -L../lib -lvserver
-LINK = $(CC) $(LDFLAGS)
 
-NATIVE_MODS := vserverimpl.so
+PY_MODS := vserver.py
+PY_EXT_MODS := vduimpl.so vserverimpl.so
 
-all: $(NATIVE_MODS)
+all: py-build
 
-$(NATIVE_MODS): %.so: %.o
-	$(LINK) -shared -o $@ $^ $(LIBS)
-
-%.o: %.c
-	$(COMPILE) -c $<
-
-install:
-	python setup.py install --root=$(INSTALL_ROOT)
+install: py-install
 	ln -s /usr/lib/util-vserver/util-vserver-vars \
 	$(INSTALL_ROOT)/usr/lib/python2.3/site-packages/util_vserver_vars.py
+
+-include pybuild.mk
+
+.PHONY: all install

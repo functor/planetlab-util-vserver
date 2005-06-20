@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 12.planetlab%{?date:.%{date}}
+%define release 13.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -162,6 +162,7 @@ but more readily accessible from Python code.
 %files py23
 %defattr(0644,root,root)
 /usr/lib/python2.3/site-packages/util_vserver_vars.py
+/usr/lib/python2.3/site-packages/vduimpl.so
 /usr/lib/python2.3/site-packages/vserver.py
 /usr/lib/python2.3/site-packages/vserver.pyc
 /usr/lib/python2.3/site-packages/vserverimpl.so
@@ -169,6 +170,9 @@ but more readily accessible from Python code.
 
 
 %changelog
+* Mon Jun 20 2005 Steve Muir <smuir@cs.princeton.edu>
+- import Marc's vdu implementation
+
 * Wed Jun 15 2005 Steve Muir <smuir@cs.princeton.edu>
 - 'vserver-init start' functionality subsumed by Node Manager
 
