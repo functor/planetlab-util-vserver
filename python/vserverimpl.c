@@ -137,7 +137,8 @@ vserver_dlimit(PyObject *self, PyObject *args)
 	int r;
 
 	memset(&data,0,sizeof(data));
-	if (!PyArg_ParseTuple(args, "s(iiiii)", &path, 
+	if (!PyArg_ParseTuple(args, "siiiiii", &path,
+			      &xid,
 			      &data.space_used,
 			      &data.space_total,
 			      &data.inodes_used,
