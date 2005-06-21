@@ -551,7 +551,13 @@ do_vdu(PyObject *self, PyObject *args)
 	Dispose(&tbl);
 
 	/* create a python (inode, block, size) tuple */
-	tuple = Py_BuildValue("(L,L,L)",s.inodes,s.blocks,s.size);
+	tuple = Py_BuildValue("(L,L,L)",
+			      s.inodes,
+			      s.blocks>>1, /* NOTE: div by 2 to adjust
+					    * 512b block count to 1K
+					    * block count 
+					    */
+			      s.size);
 	return (res == -1) ? PyErr_SetFromErrno(PyExc_OSError) : tuple;
 }
 
