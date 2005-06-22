@@ -70,6 +70,43 @@ vserver_chcontext(PyObject *self, PyObject *args)
   return Py_None;
 }
 
+static PyObject *
+__vserver_rlimit(PyObject *self, PyObject *args, int resource) {
+	struct vc_rlimit limits;
+	int xid; 
+	PyObject *ret;
+
+	limits.min = VC_LIM_KEEP;
+	limits.soft = VC_LIM_KEEP;
+	limits.hard = VC_LIM_KEEP;
+
+	if (!PyArg_ParseTuple(args, "iL", &xid, &limits.hard))
+		return NULL;
+
+	ret = Py_None;
+	if (vc_set_rlimit(xid, resource, &limits)) 
+		ret = PyErr_SetFromErrno(PyExc_OSError);
+	else if (vc_get_rlimit(xid, resource, &limits)==-1)
+		ret = PyErr_SetFromErrno(PyExc_OSError);
+	else
+		ret = Py_BuildValue("L",limits.hard);
+
+	return ret;
+}
+
+
+static PyObject *
+vserver_memlimit(PyObject *self, PyObject *args) {
+	return __vserver_rlimit(self,args,5);
+}
+
+static PyObject *
+vserver_tasklimit(PyObject *self, PyObject *args) {
+	return __vserver_rlimit(self,args,6);
+}
+
+
+
 /*
  * setsched
  */
@@ -177,8 +214,6 @@ vserver_dlimit(PyObject *self, PyObject *args)
 	return res;
 }
 
-
-
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "Change to the given vserver context" },
@@ -186,6 +221,10 @@ static PyMethodDef  methods[] = {
     "Change vserver scheduling attributes for given vserver context" },
   { "dlimit", vserver_dlimit, METH_VARARGS,
     "Set disk limits for given vserver context" },
+  { "tasklimit", vserver_tasklimit, METH_VARARGS,
+    "Set task limits for given vserver context" },
+  { "memlimit", vserver_memlimit, METH_VARARGS,
+    "Set memory limits for given vserver context" },
   { NULL, NULL, 0, NULL }
 };
 
