@@ -71,16 +71,16 @@ vserver_chcontext(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-__vserver_rlimit(PyObject *self, PyObject *args, int resource) {
+vserver_set_rlimit(PyObject *self, PyObject *args) {
 	struct vc_rlimit limits;
-	int xid; 
+	int xid, resource;
 	PyObject *ret;
 
 	limits.min = VC_LIM_KEEP;
 	limits.soft = VC_LIM_KEEP;
 	limits.hard = VC_LIM_KEEP;
 
-	if (!PyArg_ParseTuple(args, "iL", &xid, &limits.hard))
+	if (!PyArg_ParseTuple(args, "iiL", &xid, &resource, &limits.hard))
 		return NULL;
 
 	ret = Py_None;
@@ -94,18 +94,27 @@ __vserver_rlimit(PyObject *self, PyObject *args, int resource) {
 	return ret;
 }
 
-
 static PyObject *
-vserver_memlimit(PyObject *self, PyObject *args) {
-	return __vserver_rlimit(self,args,5);
+vserver_get_rlimit(PyObject *self, PyObject *args) {
+	struct vc_rlimit limits;
+	int xid, resource;
+	PyObject *ret;
+
+	limits.min = VC_LIM_KEEP;
+	limits.soft = VC_LIM_KEEP;
+	limits.hard = VC_LIM_KEEP;
+
+	if (!PyArg_ParseTuple(args, "ii", &xid, &resource))
+		return NULL;
+
+	ret = Py_None;
+	if (vc_get_rlimit(xid, resource, &limits)==-1)
+		ret = PyErr_SetFromErrno(PyExc_OSError);
+	else
+		ret = Py_BuildValue("L",limits.hard);
+
+	return ret;
 }
-
-static PyObject *
-vserver_tasklimit(PyObject *self, PyObject *args) {
-	return __vserver_rlimit(self,args,6);
-}
-
-
 
 /*
  * setsched
@@ -238,10 +247,10 @@ static PyMethodDef  methods[] = {
     "Set disk limits for given vserver context" },
   { "getdlimit", vserver_get_dlimit, METH_VARARGS,
     "Get disk limits for given vserver context" },
-  { "tasklimit", vserver_tasklimit, METH_VARARGS,
-    "Set task limits for given vserver context" },
-  { "memlimit", vserver_memlimit, METH_VARARGS,
-    "Set memory limits for given vserver context" },
+  { "setrlimit", vserver_set_rlimit, METH_VARARGS,
+    "Set resource limits for given resource of a vserver context" },
+  { "getrlimit", vserver_get_rlimit, METH_VARARGS,
+    "Get resource limits for given resource of a vserver context" },
   { NULL, NULL, 0, NULL }
 };
 
