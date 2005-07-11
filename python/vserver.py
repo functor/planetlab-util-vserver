@@ -130,6 +130,26 @@ class VServer:
             else:
                 raise ex
 
+    def get_sched(self):
+        # have no way of querying scheduler right now on a per vserver basis
+        return -1, False
+
+    def set_memlimit(self, limit):
+        ret = vserverimpl.setrlimit(self.ctx,5,limit)
+        return ret
+
+    def get_memlimit(self):
+        ret = vserverimpl.getrlimit(self.ctx,5)
+        return ret
+    
+    def set_tasklimit(self, limit):
+        ret = vserverimpl.setrlimit(self.ctx,6,limit)
+        return ret
+
+    def get_tasklimit(self):
+        ret = vserverimpl.getrlimit(self.ctx,6)
+        return ret
+
     def open(self, filename, mode = "r", bufsize = -1):
 
         (sendsock, recvsock) = passfdimpl.socketpair()
