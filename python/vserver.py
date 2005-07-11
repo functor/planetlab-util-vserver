@@ -84,7 +84,14 @@ class VServer:
     def set_dlimit(self, blocktotal):
         path = "%s/%s" % (VROOTDIR, self.name)
         inodes, blockcount, size = vduimpl.vdu(path)
-        vserverimpl.setdlimit(path, self.ctx, blockcount>>1, blocktotal, inodes, -1, 2)
+        blockcount = blockcount >> 1
+
+        if blocktotal > blockcount:
+            vserverimpl.setdlimit(path, self.ctx, blockcount>>1, \
+                                  blocktotal, inodes, -1, 2)
+        else:
+            # should raise some error value
+            print "block limit (%d) ignored for vserver %s" %(blocktotal,self.name)
 
     def get_dlimit(self):
         path = "%s/%s" % (VROOTDIR, self.name)
