@@ -12,7 +12,7 @@ import mountimpl
 import linuxcaps
 import passfdimpl
 import utmp
-import vserverimpl
+import vserverimpl, vduimpl
 
 from util_vserver_vars import *
 
@@ -80,6 +80,24 @@ class VServer:
     def __do_chroot(self):
 
         return os.chroot("%s/%s" % (VROOTDIR, self.name))
+
+    def set_dlimit(self, blocktotal):
+        path = "%s/%s" % (VROOTDIR, self.name)
+        inodes, blockcount, size = vduimpl.vdu(path)
+        vserverimpl.setdlimit(path, self.ctx, blockcount>>1, blocktotal, inodes, -1, 2)
+
+    def get_dlimit(self):
+        path = "%s/%s" % (VROOTDIR, self.name)
+        try:
+            blocksused, blocktotal, inodesused, inodestotal, reserved = \
+                        vserverimpl.getdlimit(path,self.ctx)
+        except OSError, ex:
+            if ex.errno == 3:
+                # get here if no vserver disk limit has been set for xid
+                # set blockused to -1 to indicate no limit
+                blocktotal = -1
+
+        return blocktotal
 
     def open(self, filename, mode = "r", bufsize = -1):
 
