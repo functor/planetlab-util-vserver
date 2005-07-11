@@ -42,6 +42,9 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
+# default values for new vserver scheduler
+SCHED_TOKENS_MIN = 50
+SCHED_TOKENS_MAX = 100
 
               
 class VServer:
@@ -105,6 +108,27 @@ class VServer:
                 blocktotal = -1
 
         return blocktotal
+
+    def set_sched(self, shares, besteffort = True):
+        global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX
+        tokensmin = SCHED_TOKENS_MIN
+        tokensmax = SCHED_TOKENS_MAX
+
+        if besteffort is True:
+            # magic "interval" value for Andy's scheduler to denote besteffort
+            interval = 1000
+            fillrate = shares
+        else:
+            interval = 1001
+            fillrate = shares
+
+        try:
+            vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax)
+        except OSError, ex:
+            if ex.errno == 22:
+                print "kernel does not support vserver scheduler"
+            else:
+                raise ex
 
     def open(self, filename, mode = "r", bufsize = -1):
 
