@@ -164,37 +164,16 @@ struct  vcmd_ctx_dlimit_v0 {
 #define CDLIM_KEEP              (~1ULL)
 
 static PyObject *
-vserver_dlimit(PyObject *self, PyObject *args)
+vserver_get_dlimit(PyObject *self, PyObject *args)
 {
 	PyObject *res;
 	char* path;
 	unsigned xid;
-	struct vcmd_ctx_dlimit_base_v0 init;
 	struct vcmd_ctx_dlimit_v0 data;
 	int r;
 
-	memset(&data,0,sizeof(data));
-	if (!PyArg_ParseTuple(args, "siiiiii", &path,
-			      &xid,
-			      &data.space_used,
-			      &data.space_total,
-			      &data.inodes_used,
-			      &data.inodes_total,
-			      &data.reserved))
+	if (!PyArg_ParseTuple(args, "si", &path,&xid))
 		return NULL;
-
-	data.name = path;
-	data.flags = 0;
-
-	init.name = path;
-	init.flags = 0;
-
-	r = vserver(VCMD_rem_dlimit, xid, &init);
-	if (r<0){}
-	r = vserver(VCMD_add_dlimit, xid, &init);
-	if (r<0){}
-	r = vserver(VCMD_set_dlimit, xid, &data);
-	if (r<0){}
 
 	memset(&data, 0, sizeof(data));
 	data.name = path;
@@ -214,13 +193,51 @@ vserver_dlimit(PyObject *self, PyObject *args)
 	return res;
 }
 
+
+static PyObject *
+vserver_set_dlimit(PyObject *self, PyObject *args)
+{
+	char* path;
+	unsigned xid;
+	struct vcmd_ctx_dlimit_base_v0 init;
+	struct vcmd_ctx_dlimit_v0 data;
+	int r;
+
+	memset(&data,0,sizeof(data));
+	if (!PyArg_ParseTuple(args, "siiiiii", &path,
+			      &xid,
+			      &data.space_used,
+			      &data.space_total,
+			      &data.inodes_used,
+			      &data.inodes_total,
+			      &data.reserved))
+		return NULL;
+
+	data.name = path;
+	data.flags = 0;
+
+	memset(&init, 0, sizeof(init));
+	init.name = path;
+	init.flags = 0;
+
+	r = vserver(VCMD_rem_dlimit, xid, &init);
+	if (r<0){}
+	r = vserver(VCMD_add_dlimit, xid, &init);
+	if (r<0){}
+	r = vserver(VCMD_set_dlimit, xid, &data);
+	if (r<0){}
+	return Py_None;	
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "Change to the given vserver context" },
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
-  { "dlimit", vserver_dlimit, METH_VARARGS,
+  { "setdlimit", vserver_set_dlimit, METH_VARARGS,
     "Set disk limits for given vserver context" },
+  { "getdlimit", vserver_get_dlimit, METH_VARARGS,
+    "Get disk limits for given vserver context" },
   { "tasklimit", vserver_tasklimit, METH_VARARGS,
     "Set task limits for given vserver context" },
   { "memlimit", vserver_memlimit, METH_VARARGS,
