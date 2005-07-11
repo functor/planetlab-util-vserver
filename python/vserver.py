@@ -13,6 +13,7 @@ import linuxcaps
 import passfdimpl
 import utmp
 import vserverimpl, vduimpl
+import cpulimit
 
 from util_vserver_vars import *
 
@@ -110,25 +111,38 @@ class VServer:
         return blocktotal
 
     def set_sched(self, shares, besteffort = True):
-        global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX
-        tokensmin = SCHED_TOKENS_MIN
-        tokensmax = SCHED_TOKENS_MAX
+        # for the old CKRM scheduler
+        if cpulimit.checkckrm() is True:
+            cpulimit.cpuinit()
+            cpulimit.vs2ckrm_on(self.name)
+            try:
+                cpulimit.cpulimit(self.name,shares)
+            except OSError, ex:
+                if ex.errno == 22:
+                    print "invalid shares argument"
+                    # should re-raise exception?!
 
-        if besteffort is True:
-            # magic "interval" value for Andy's scheduler to denote besteffort
-            interval = 1000
-            fillrate = shares
+        # for the new vserver scheduler
         else:
-            interval = 1001
-            fillrate = shares
+            global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX
+            tokensmin = SCHED_TOKENS_MIN
+            tokensmax = SCHED_TOKENS_MAX
 
-        try:
-            vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax)
-        except OSError, ex:
-            if ex.errno == 22:
-                print "kernel does not support vserver scheduler"
+            if besteffort is True:
+                # magic "interval" value for Andy's scheduler to denote besteffort
+                interval = 1000
+                fillrate = shares
             else:
-                raise ex
+                interval = 1001
+                fillrate = shares
+
+            try:
+                vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax)
+            except OSError, ex:
+                if ex.errno == 22:
+                    print "kernel does not support vserver scheduler"
+                else:
+                    raise ex
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
