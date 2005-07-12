@@ -13,7 +13,7 @@ import linuxcaps
 import passfdimpl
 import utmp
 import vserverimpl, vduimpl
-import cpulimit
+import cpulimit, bwlimit
 
 from util_vserver_vars import *
 
@@ -85,7 +85,7 @@ class VServer:
 
         return os.chroot("%s/%s" % (VROOTDIR, self.name))
 
-    def set_dlimit(self, blocktotal):
+    def set_disklimit(self, blocktotal):
         path = "%s/%s" % (VROOTDIR, self.name)
         inodes, blockcount, size = vduimpl.vdu(path)
         blockcount = blockcount >> 1
@@ -97,7 +97,7 @@ class VServer:
             # should raise some error value
             print "block limit (%d) ignored for vserver %s" %(blocktotal,self.name)
 
-    def get_dlimit(self):
+    def get_disklimit(self):
         path = "%s/%s" % (VROOTDIR, self.name)
         try:
             blocksused, blocktotal, inodesused, inodestotal, reserved = \
@@ -146,7 +146,7 @@ class VServer:
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
-        return -1, False
+        return (-1, False)
 
     def set_memlimit(self, limit):
         ret = vserverimpl.setrlimit(self.ctx,5,limit)
@@ -164,6 +164,20 @@ class VServer:
         ret = vserverimpl.getrlimit(self.ctx,6)
         return ret
 
+    def set_bwlimit(self, eth, limit, cap, minrate, maxrate):
+        if cap == "-1":
+            bwlimit.off(self.ctx,eth)
+        else:
+            bwlimit.on(self.ctx, eth, limit, cap, minrate, maxrate)
+
+    def get_bwlimit(self, eth):
+        # not implemented yet
+        bwlimit = -1
+        cap = "unknown"
+        minrate = "unknown"
+        maxrate = "unknown"
+        return (bwlimit, cap, minrate, maxrate)
+        
     def open(self, filename, mode = "r", bufsize = -1):
 
         (sendsock, recvsock) = passfdimpl.socketpair()
