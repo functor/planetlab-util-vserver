@@ -1,7 +1,7 @@
 INCLUDES := -I.. -I../lib
 LIBS = -L../lib -lvserver
 
-PY_MODS := vserver.py cpulimit.py dlimit.py
+PY_MODS := vserver.py cpulimit.py bwlimit.py
 PY_EXT_MODS := vduimpl.so vserverimpl.so
 
 all: py-build
