@@ -1,6 +1,6 @@
 %define name util-vserver
 %define version 0.30
-%define release 13.planetlab%{?date:.%{date}}
+%define release 14.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -161,6 +161,10 @@ but more readily accessible from Python code.
 
 %files py23
 %defattr(0644,root,root)
+/usr/lib/python2.3/site-packages/bwlimit.py
+/usr/lib/python2.3/site-packages/bwlimit.pyc
+/usr/lib/python2.3/site-packages/cpulimit.py
+/usr/lib/python2.3/site-packages/cpulimit.pyc
 /usr/lib/python2.3/site-packages/util_vserver_vars.py
 /usr/lib/python2.3/site-packages/vduimpl.so
 /usr/lib/python2.3/site-packages/vserver.py
@@ -170,6 +174,9 @@ but more readily accessible from Python code.
 
 
 %changelog
+* Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
+- add bwlimit and cpulimit modules
+
 * Mon Jun 20 2005 Steve Muir <smuir@cs.princeton.edu>
 - import Marc's vdu implementation
 
