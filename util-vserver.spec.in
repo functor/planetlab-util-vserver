@@ -1,6 +1,6 @@
 %define name @PACKAGE@
 %define version @VERSION@
-%define release 9.planetlab%{?date:.%{date}}
+%define release 14.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -79,6 +79,8 @@ mkdir -p $RPM_BUILD_ROOT/etc/cron.d
 . sysv/vcached.conf
 echo "*/$(($period / 60)) * * * * root %_sbindir/vcached -s -f -l $logfile" > $RPM_BUILD_ROOT/etc/cron.d/vcached
 
+%__make -C python INSTALL_ROOT=$RPM_BUILD_ROOT install
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -134,7 +136,52 @@ fi
 %_sbindir/newvserver
 %_mandir/man8/newvserver*
 
+
+
+%package py23
+Summary: Python modules for manipulating vservers
+Group: Applications/System
+Requires: python /usr/lib/util-vserver/util-vserver-vars util-python
+
+%description py23
+Python modules for manipulating vservers.  Provides a superset of the
+functionality of the vserver script (at least will do in the future),
+but more readily accessible from Python code.
+
+%files py23
+%defattr(0644,root,root)
+/usr/lib/python2.3/site-packages/bwlimit.py
+/usr/lib/python2.3/site-packages/bwlimit.pyc
+/usr/lib/python2.3/site-packages/cpulimit.py
+/usr/lib/python2.3/site-packages/cpulimit.pyc
+/usr/lib/python2.3/site-packages/util_vserver_vars.py
+/usr/lib/python2.3/site-packages/vduimpl.so
+/usr/lib/python2.3/site-packages/vserver.py
+/usr/lib/python2.3/site-packages/vserver.pyc
+/usr/lib/python2.3/site-packages/vserverimpl.so
+
+
+
 %changelog
+* Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
+- add bwlimit and cpulimit modules
+
+* Mon Jun 20 2005 Steve Muir <smuir@cs.princeton.edu>
+- import Marc's vdu implementation
+
+* Wed Jun 15 2005 Steve Muir <smuir@cs.princeton.edu>
+- 'vserver-init start' functionality subsumed by Node Manager
+
+* Thu Jun 02 2005 Marc E. Fiuczynski <mef@cs.princeton.edu>
+- Fixed vlimit command
+
+* Wed May 25 2005 Steve Muir <smuir@cs.princeton.edu>
+- add Python modules for manipulating vservers
+
+* Thu Apr  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- vuserdel changes: don't shutdown vserver, just kill all processes;
+  unmount all mountpoints in vserver before deleting
+
 * Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
 - vcached no longer runs as a daemon
 - do not restart vservers when package is upgraded
