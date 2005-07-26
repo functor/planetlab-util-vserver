@@ -84,18 +84,7 @@ echo "*/$(($period / 60)) * * * * root %_sbindir/vcached -s -f -l $logfile" > $R
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%pre
-# 1 = install, 2 = upgrade/reinstall
-if [ $1 -eq 2 ] ; then
-    # vcached no longer runs as a daemon
-    [ "`/sbin/runlevel`" = "unknown" ] || service vcached stop || :
-fi
-
 %post
-# vcached no longer runs as a daemon
-chkconfig vcached off
-chkconfig --del vcached
-
 chkconfig --add vservers
 chkconfig vservers on
 
@@ -115,7 +104,7 @@ fi
 %preun
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
-    [ "`/sbin/runlevel`" = "unknown" ] || service vservers stop
+    [ "$PL_BOOTCD" = "1" ] || service vservers stop
     chkconfig vservers off
     chkconfig --del vservers
 fi
