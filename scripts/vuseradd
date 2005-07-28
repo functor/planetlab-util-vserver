@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.20 2004/11/23 14:47:35 mlhuang Exp $
+# $Id: vuseradd,v 1.21 2005/04/26 21:23:28 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -21,19 +21,21 @@ usage()
 }
 
 [ -z "$1" ] && usage
+[ "$1" == "--static" ] && { STATIC=yes; shift; }
 NAME=$1
 
 # add slices group if not already present
 groupadd slices 2>/dev/null || :
 
 # add user
-useradd -g slices -s /bin/vsh $NAME
+[ -z "$STATIC" ] && useradd -g slices -s /bin/vsh $NAME
 
 # openssh-server 3.8 and above refuse login for "locked" accounts
 sed -i -e "s/$NAME:\!\!:\(.*\)/$NAME:*:\1/" /etc/shadow
 
-USERID=$(awk -F: "\$1 == \"$NAME\" { print \$3 }" < /etc/passwd)
-GROUPID=$(awk -F: "\$1 == \"slices\" { print \$3 }" < /etc/group)
+USERID=`id -u $NAME`
+GROUPID=`id -g $NAME`
+GROUPNAME=`id -gn $NAME`
 
 # create vserver configuration file
 if [ ! -f /etc/vservers/$NAME.conf ] ; then
@@ -80,7 +82,7 @@ if [ -d "$VROOTDIR/$NAME" ] ; then
     chmod 755 "$VROOTDIR/$NAME"
 
     # add user in vserver
-    vserver $NAME suexec root groupadd -g $GROUPID slices
+    vserver $NAME suexec root groupadd -g $GROUPID $GROUPNAME
     vserver $NAME suexec root useradd -u $USERID -g $GROUPID -p '' $NAME
 
     # add an unrestricted entry to /etc/sudoers file
@@ -92,3 +94,5 @@ fi
 
 # turn resource management on for vserver $NAME
 service resman start $NAME
+# XXX - resman doesn't print a trailing newline
+echo

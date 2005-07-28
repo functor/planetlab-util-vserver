@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.6 2004/11/23 14:47:35 mlhuang Exp $
+# $Id: vuserdel,v 1.7 2005/04/07 19:37:25 smuir Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
@@ -21,6 +21,7 @@ usage()
 }
 
 [ -z "$1" ] && usage
+[ "$1" == "--static" ] && { STATIC=yes; shift; }
 NAME=$1
 
 # read config file to get context ID
@@ -42,9 +43,11 @@ done
 
 # turn resource management off for vserver $NAME
 service resman stop $NAME
+# XXX - resman doesn't print a trailing newline
+echo
 
 # delete user
-userdel -r $NAME
+[ -z "$STATIC" ] && userdel -r $NAME
 
 # remove vserver configuration file
 rm -f /etc/vservers/$NAME.conf
