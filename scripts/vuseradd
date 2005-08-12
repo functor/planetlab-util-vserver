@@ -1,0 +1,98 @@
+#!/bin/bash
+#
+# useradd(8) wrapper for vservers
+#
+# Copyright (c) 2004  The Trustees of Princeton University (Trustees).
+#
+# $Id: vuseradd,v 1.21 2005/04/26 21:23:28 mlhuang Exp $
+#
+
+: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo "Can not find util-vserver installation; aborting..."
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+usage()
+{
+    echo "usage: $0 name"
+    exit 1
+}
+
+[ -z "$1" ] && usage
+[ "$1" == "--static" ] && { STATIC=yes; shift; }
+NAME=$1
+
+# add slices group if not already present
+groupadd slices 2>/dev/null || :
+
+# add user
+[ -z "$STATIC" ] && useradd -g slices -s /bin/vsh $NAME
+
+# openssh-server 3.8 and above refuse login for "locked" accounts
+sed -i -e "s/$NAME:\!\!:\(.*\)/$NAME:*:\1/" /etc/shadow
+
+USERID=`id -u $NAME`
+GROUPID=`id -g $NAME`
+GROUPNAME=`id -gn $NAME`
+
+# create vserver configuration file
+if [ ! -f /etc/vservers/$NAME.conf ] ; then
+    sed \
+	-e "s/.*S_CONTEXT=.*/S_CONTEXT=$USERID/" \
+	-e "s/.*ONBOOT=.*/ONBOOT=yes/" \
+	< $PKGLIBDIR/sample.conf \
+	> /etc/vservers/$NAME.conf
+fi
+
+if [ ! -d "$VROOTDIR/$NAME" ] ; then
+    # check the cache
+    shopt -s nullglob
+    for i in "$VROOTDIR/.vcache/"* ; do
+	[ -d "$i" ] && mv "$i" "$VROOTDIR/$NAME" && break
+    done
+    # build vserver
+    if [ ! -d "$VROOTDIR/$NAME" ] ; then
+	# build image in .vtmp
+	TMP=$(mktemp -d "$VROOTDIR/.vtmp/$NAME.XXXXXX")
+	"$PKGLIBDIR/vbuild" "$VROOTDIR/vserver-reference" "$TMP"
+	RETVAL=$?
+	# move it to .vcache when complete
+	if [ $RETVAL -ne 0 ] ; then 
+	    echo "Error $RETVAL building $VROOTDIR/$NAME"
+	    rm -rf "$TMP" /etc/vservers/$NAME.conf /var/run/vservers/$NAME.ctx
+	    userdel -r $NAME
+	    exit $RETVAL
+	else
+	    # sanity check
+	    vnewsize=$(du -s "$TMP" | awk "{ print \$1 }")
+	    vrefsize=$(du -s "$VROOTDIR/vserver-reference" | awk "{ print \$1 }")
+	    if [ $vnewsize -lt $vrefsize ] ; then
+		echo "WARNING: Unexpected for 'du -s $VROOTDIR/$NAME'=$vnewsize to be less than 'du -s $VROOTDIR/vserver-reference'=$vrefsize"
+	    fi
+
+	    mv "$TMP" "$VROOTDIR/$NAME"
+	fi
+    fi
+fi
+
+if [ -d "$VROOTDIR/$NAME" ] ; then
+    # fix permissions
+    chmod 755 "$VROOTDIR/$NAME"
+
+    # add user in vserver
+    vserver $NAME suexec root groupadd -g $GROUPID $GROUPNAME
+    vserver $NAME suexec root useradd -u $USERID -g $GROUPID -p '' $NAME
+
+    # add an unrestricted entry to /etc/sudoers file
+    if [ -f "$VROOTDIR/$NAME/etc/sudoers" ] && \
+       ! grep -q "^$NAME" "$VROOTDIR/$NAME/etc/sudoers" ; then
+	echo "$NAME	ALL=(ALL)	ALL" >> "$VROOTDIR/$NAME/etc/sudoers"
+    fi
+fi
+
+# turn resource management on for vserver $NAME
+service resman start $NAME
+# XXX - resman doesn't print a trailing newline
+echo
