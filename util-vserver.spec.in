@@ -1,6 +1,6 @@
 %define name @PACKAGE@
 %define version @VERSION@
-%define release 14.planetlab%{?date:.%{date}}
+%define release 15.planetlab%{?date:.%{date}}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -163,6 +163,9 @@ but more readily accessible from Python code.
 
 
 %changelog
+* Thu Jul 28 2005 Steve Muir <smuir@cs.princeton.edu>
+- add support for static vserver IDs to vuseradd and vuserdel
+
 * Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
 - add bwlimit and cpulimit modules
 
