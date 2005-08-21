@@ -1,4 +1,4 @@
-// $Id: vutil.h,v 1.1 2003/09/29 22:01:57 ensc Exp $
+// $Id: vutil.h,v 1.3 2003/10/21 13:23:28 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vutil.h by Jacques Gelinas
@@ -21,6 +21,8 @@
 #ifndef VUTIL_H
 #define VUTIL_H
 
+#include "vserver.hh"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -36,42 +38,35 @@ extern int debug;
 extern bool testmode;
 
 // Patch to help compile this utility on unpatched kernel source
-#ifndef EXT2_IMMUTABLE_FL
-#define EXT2_IMMUTABLE_FL 0x00000010
-#endif
-
-#ifndef EXT2_IUNLINK_FL
-/* Set both bits for backward compatibility */
-#define EXT2_IUNLINK_FL 0x08008000
-#endif
-
-#ifndef EXT2_BARRIER_FL
-#define EXT2_BARRIER_FL 0x04000000
+#ifndef EXT2_IMMUTABLE_FILE_FL
+	#define EXT2_IMMUTABLE_FILE_FL	0x00000010
+	/* Set both bits for backward compatibility */
+	#define EXT2_IMMUTABLE_LINK_FL	0x08008000
 #endif
 
 
-FILE *vutil_execdistcmd (const char *, const string &, const char *);
+FILE *vutil_execdistcmd (const char *, Vserver const &, const char *);
 extern const char K_DUMPFILES[];
 extern const char K_UNIFILES[];
 extern const char K_PKGVERSION[];
 
-class PACKAGE{
+class Package{
 public:
 	string name;
 	string version;	// version + release
-	PACKAGE(string &_name, string &_version)
+	Package(string &_name, string &_version)
 		: name (_name), version(_version)
 	{
 	}
-	PACKAGE(const char *_name, const char *_version)
+	Package(const char *_name, const char *_version)
 		: name (_name), version(_version)
 	{
 	}
-	PACKAGE(const string &line)
+	Package(const string &line)
 	{
 		*this = line;
 	}
-	PACKAGE & operator = (const string &_line)
+	Package & operator = (const string &_line)
 	{
 		string line (_line);
 		string::iterator pos = find (line.begin(),line.end(),'=');
@@ -81,16 +76,16 @@ public:
 		}
 		return *this;
 	}
-	PACKAGE (const PACKAGE &pkg)
+	Package (const Package &pkg)
 	{
 		name = pkg.name;
 		version = pkg.version;
 	}
-	bool operator == (const PACKAGE &v) const
+	bool operator == (const Package &v) const
 	{
 		return name == v.name && version == v.version;
 	}
-	bool operator < (const PACKAGE &v) const
+	bool operator < (const Package &v) const
 	{
 		bool ret = false;
 		if (name < v.name){
@@ -101,7 +96,7 @@ public:
 		return ret;
 	}
 	// Load the file member of the package, but exclude configuration file
-	void loadfiles(const string &ref, set<string> &files)
+	void loadfiles(Vserver const &ref, set<string> &files)
 	{
 		if (debug > 2) cout << "Loading files for package " << name << endl;
 		string namever = name + '-' + version;
@@ -126,10 +121,10 @@ public:
 
 // Check if two package have the same name (but potentially different version)
 class same_name{
-	const PACKAGE &pkg;
+	const Package &pkg;
 public:
-	same_name(const PACKAGE &_pkg) : pkg(_pkg) {}
-	bool operator()(const PACKAGE &p)
+	same_name(const Package &_pkg) : pkg(_pkg) {}
+	bool operator()(const Package &p)
 	{
 		return pkg.name == p.name;
 	}
