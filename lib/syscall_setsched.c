@@ -1,4 +1,4 @@
-// $Id: syscall_setsched.c,v 1.2 2004/09/22 20:45:37 ensc Exp $    --*- c -*--
+// $Id$    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,16 +19,12 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
 #include "vserver.h"
+#include "linuxvirtual.h"
 
 #define VC_MULTIVERSION_SYSCALL	1
 #include "vserver-internal.h"
-
-#include "linuxvirtual.h"
-
-#define VC_ENABLE_API_V13
 
 #ifdef VC_ENABLE_API_V13
 #  include "syscall_setsched-v13.hc"

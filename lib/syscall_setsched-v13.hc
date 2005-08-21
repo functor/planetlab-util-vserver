@@ -1,4 +1,4 @@
-// $Id: syscall_setsched-v13.hc,v 1.4 2004/10/19 21:04:23 ensc Exp $    --*- c -*--
+// $Id$    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,10 +21,9 @@
 #endif
 
 #include "vserver.h"
-#include "sched_cmd.h"
+#include <lib_internal/util.h>
 
 #define VCGET(MASK,VAL)		((data->set_mask & (MASK)) ? (VAL) : SCHED_KEEP);
-
 
 static inline ALWAYSINLINE int
 vc_set_sched_v13obs(xid_t xid, struct vc_set_sched const *data)
@@ -55,7 +54,7 @@ vc_set_sched_v13b(xid_t xid, struct vc_set_sched const *data)
       X(set_mask)   && X(fill_rate)  && X(interval)   && X(tokens) &&
       X(tokens_min) && X(tokens_max) && X(priority_bias))
     return vserver(VCMD_set_sched, CTX_USER2KERNEL(xid),
-		   (struct vc_set_sched *)(data));
+		   const_cast(struct vc_set_sched *)(data));
   else {
     k_data.set_mask      = data->set_mask;
     k_data.fill_rate     = data->fill_rate;
