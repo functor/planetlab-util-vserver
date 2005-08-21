@@ -1,12 +1,11 @@
-#!/bin/bash
+#! /bin/bash
+# $Id: vserver,v 1.30 2005/04/28 18:03:42 ensc Exp $
 
-# Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
-# based on vserver by Jacques Gelinas
+# Copyright (C) 2003,2004,2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
+# the Free Software Foundation; version 2 of the License.
 #  
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,670 +16,262 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-# This is a script to control a virtual server
+# set -e
 
-: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
 test -e "$UTIL_VSERVER_VARS" || {
-    echo "Can not find util-vserver installation; aborting..."
+    echo $"Can not find util-vserver installation (the file '$UTIL_VSERVER_VARS' would be expected); aborting..." >&2
     exit 1
 }
 . "$UTIL_VSERVER_VARS"
+. "$_LIB_FUNCTIONS"
 
-USR_SBIN=$SBINDIR
-USR_LIB_VSERVER=$PKGLIBDIR
+### Some local functions
 
-VSERVER_CMD=$USR_SBIN/vserver
-WAITFOR_CMD="waitfor 60"
-VINIT_CMD=/etc/rc.vinit
-CHCONTEXT_CMD=$USR_SBIN/chcontext
-SAVE_S_CONTEXT_CMD=$USR_LIB_VSERVER/save_s_context
-CAPCHROOT_CMD=$USR_LIB_VSERVER/capchroot
-VSERVERKILLALL_CMD=$USR_LIB_VSERVER/vserverkillall
-DEFAULTPATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin
-
-vserver_mknod(){
-	mknod $1 $2 $3 $4
-	chmod $5 $1
-}
-
-mountproc()
+function showHelp()
 {
-	mkdir -p $1/proc $1/dev/pts
-	if [ ! -d $1/proc/1 ] ; then
-		mount -t proc none $1/proc
-		mount -t devpts -o gid=5,mode=0620 none $1/dev/pts
-	fi
-}
-umountproc()
-{
-	umount $1/proc 2>/dev/null
-	umount $1/dev/pts 2>/dev/null
+    echo \
+$"Usage: $(basename $0) [-s|--sync] [-v|--verbose] [--silent]
+             [--] <vserver> <command> <args>*
+
+<vserver> is the name of a vserver.
+
+Possible commands are:
+    start [--rescue] [--rescue-cmd <cmd>]
+                ... starts the specified vserver
+    stop        ... stops the specified vserver
+    restart     ... restarts the specified vserver; this is the subsequent
+                    execution of a synchronized 'stop' and a 'start'
+    condrestart ... restarts the vserver when it is running already
+    suexec <user> <shell-command> <args*>
+                ... executes a command as the specified user in the vserver
+    exec <shell-command> <args*>
+                ... executes a command as root in the vserver
+    enter       ... executes the configured shell in the vserver
+    chkconfig <chkconfig-options*>
+                ... modifies the init-system; currently, only Red Hat's
+		    chkconfig is supported
+    running     ... succeeds iff the vserver is running
+    status      ... gives out some human readable status information about
+                    the vserver, and succeeds iff the vserver is running
+
+    build <buildopts>*
+                ... builds a new vserver from scratch
+
+    unify [-R]
+		... (de)unify vserver
+		
+    pkg install <pkg>
+		... installs package(s) in the vserver
+		
+    apt-get,apt-config,apt-cache <apt-opts>*
+		... execute the apt-* command for the given vserver
+    rpm <rpm-opts>*
+		... execute the rpm command for the given vserver
+
+    pkgmgmt externalize|internalize [-y]
+		... externalize or internalize the package-management for the
+		    given vserver. 'Externalize' means that package metadata
+		    and management tools (apt-get,rpm) are living in the host,
+		    while 'internalize' means that data and programs from the
+		    vserver will be used.
+
+    unify <vunify-opts>*
+                ... unify the vserver with its reference vserver(s).
+		    
+
+Please report bugs to $PACKAGE_BUGREPORT"
+    exit 0
 }
 
-# Check that the vservers parent directory has permission 000
-# This is the key to avoid chroot escape
-testperm()
+function showVersion()
 {
-	return
-	PERM=`$USR_LIB_VSERVER/showperm $VROOTDIR/$1/..`
-	if [ "$PERM" != 000 ] ; then
-		echo
-		echo "**********************************************************"
-		echo $VROOTDIR/$1/.. has insecure permissions.
-		echo A vserver administrator may be able to visit the root server.
-		echo To fix this, do
-		echo "	" chmod 000 $VROOTDIR/$1/..
-		echo do it anytime you want, even if vservers are running.
-		echo "**********************************************************"
-		echo
-	fi
+    echo \
+$"vserver $PACKAGE_VERSION -- manages the state of vservers
+This program is part of $PACKAGE_STRING
+
+Copyright (C) 2003,2004,2005 Enrico Scholz
+This program is free software; you may redistribute it under the terms of
+the GNU General Public License.  This program has absolutely no warranty."
+    exit 0
 }
 
-# Extract the initial runlevel from the vserver inittab
-get_initdefault()
+function suexec()
 {
-	INITDEFAULT=`grep :initdefault $VROOTDIR/$1/etc/inittab | sed 's/:/ /g' | ( read a level b; echo $level)`
+    . $__PKGLIBDIR/vserver.suexec
 }
 
-# Read the vserver configuration file, reusing the PROFILE value
-# found in /var/run/vservers
-readlastconf()
+function restart()
 {
-	if [ -f /var/run/vservers/$1.ctx ] ; then
-		. /var/run/vservers/$1.ctx
-		if [ "$S_PROFILE" != "" ] ; then
-			export PROFILE=$S_PROFILE
-		fi
-	fi
-	export PROFILE
-	. /etc/vservers/$1.conf
+    "${SELF[@]}" --sync "$vserver" stop
+    exec "${SELF[@]}" "$vserver" start
 }
 
-# Wait for a process to finish for $1 seconds.
-waitfor()
+function msg()
 {
-	timeout=$1
-	shift
-	# Background the process.
-	$@ &
-	# Wait for it to finish.
-	while [ $timeout -gt 0 ] ; do
-		sleep 1
-		kill -0 $! 2>/dev/null || break
-		timeout=$(($timeout - 1))
-	done
-	# Try nicely terminating it, then just kill it.
-	if [ $timeout -eq 0 ] ; then
-		kill -TERM $! && kill -0 $! 2>/dev/null && kill -KILL $!
-	fi
-	# Cleanup.
-	wait
+    test -z "$OPTION_SILENT" || return 0
+    echo "$@"
 }
 
-usage()
-{
-	echo vserver [ options ] server-name command ...
-	echo
-	echo server-name is a directory in $VROOTDIR
-	echo
-	echo The commands are:
-	echo " build   : Create a virtual server by copying the packages"
-	echo "           of the root server"
-	echo " enter   : Enter in the virtual server context and starts a shell"
-	echo "           Same as \"vserver name exec /bin/sh\""
-	echo " exec    : Exec a command in the virtual server context"
-	echo " suexec  : Exec a command in the virtual server context uid"
-	echo " service : Control a service inside a vserver"
-	echo "           vserver name service service-name start/stop/restart/status"
-	echo " start   : Starts the various services in the vserver, runlevel 3"
-	echo " stop    : Ends all services and kills the remaining processes"
-	echo " running : Tells if a virtual server is running"
-	echo "           It returns proper exit code, so you can use it as a test"
-	echo " status  : Tells some information about a vserver"
-	echo " chkconfig : It turns a server on or off in a vserver"
-	echo
-	echo "--silent : No informative messages about vserver context and IP numbers"
-	echo "           Useful when you want to redirect the output"
-}
+### main starts here
 
-calculateCaps()
-{
-    local f
-    for f in "$@"; do
-	case $f in
-	    !CAP_SYS_CHROOT)
-		CHROOTOPT=--nochroot
-		;;
-	    *)
-		CAPS="$CAPS --cap $f"
-		;;
-	esac
-    done
-}
+set +e
 
-SILENT=
-while true
-do
-	if [ "$1" = "--silent" ] ; then
-		SILENT=--silent
-		shift
-	else
-		break
-	fi
+OPTIONS_ORIG=( "$@" )
+tmp=$(getopt -o +sv --long nonamespace,--nonamespace,--insecure,defaulttty,help,debug,version,sync,verbose,silent -n "$0" -- "$@") || exit 1
+eval set -- "$tmp"
+
+OPTION_FORCE_SYNC=
+OPTION_VERBOSE=
+OPTION_SILENT=
+OPTION_DEBUG=
+OPTION_NONAMESPACE=
+OPTION_INSECURE=
+OPTION_DEFAULTTTY=
+
+while true; do
+    case "$1" in
+	(--help)    	showHelp $0 ;;
+	(--version) 	showVersion ;;
+	(--debug)	OPTION_DEBUG=$1; set -x;;
+	(-v|--verbose)	OPTION_VERBOSE=$1;;
+	(-s|--sync) 	OPTION_FORCE_SYNC=$1;;
+	(--silent) 	OPTION_SILENT=$1;;
+	(----nonamespace)OPTION_NONAMESPACE=$1;;
+	(--defaulttty)	OPTION_DEFAULTTTY=$1;;
+	(----insecure)	OPTION_INSECURE=1;;
+	(--)	   	shift; break;;
+	(*)	   	echo $"vserver: internal error; arg=='$1'" >&2; exit 1;;
+    esac
+    shift
 done
-# Setup the default ulimit for a vserver
-setdefulimit(){
-	# File handle are limited to half of the current system limit
-	# Virtual memory is limited to the ram size
-	NFILE=`cat /proc/sys/fs/file-max`
-	NFILE=`expr $NFILE / 2`
-	VMEM=`cat /proc/meminfo  | grep MemTotal | (read a b c; echo $b)`
-	# Disabled for now, we need a different to set the security
-	# context limit than fiddling with ulimit
-	#ulimit -H -n $NFILE -v $VMEM
-}
-if [ $# -lt 2 ] ; then
-	usage
-elif [ "$2" = "build" ] ; then
-	# Either the directory does not exist or is empty
-	NBSUB=`ls $VROOTDIR/$1 2>/dev/null | grep -v lost+found | wc -l` 
-	NBSUB=`expr $NBSUB`
-	if [ "$NBSUB" != 0 ] ; then
-		echo Virtual server $VROOTDIR/$1 already exist
-	else
-		if [ ! -d $VROOTDIR ] ; then
-			mkdir $VROOTDIR || exit 1
-			chmod 000 $VROOTDIR
-			chattr +t $VROOTDIR
-			echo Directory $VROOTDIR was created with permissions 000
-		fi
-		mkdir -p $VROOTDIR/$1 || exit 1
-		chattr -t $VROOTDIR/$1
-		chmod 755 $VROOTDIR/$1
-		if test "$UTIL_VSERVER_AVOID_COPY"; then
-		    mkdir -p $VROOTDIR/$1/{etc/rc.d/init.d,sbin,var/run,var/log}
-		else
-		    cp -ax /sbin /bin /etc /usr /var /lib $VROOTDIR/$1/. || exit 1
-		fi
-		cd $VROOTDIR/$1 || exit 1
-		rm -fr lib/modules/*
-		rm -f var/spool/mail/*
-		rm -f `find var/run -type f`
-		rm -f `find var/log -type f`
-		touch var/log/wtmp
-		rm -f var/lock/subsys/*
-		rm -f etc/cron.d/kmod
-		mkdir proc tmp home root boot
-		test -f /root/.bashrc && cp -a /root/.bashrc root/.
-		test -f /root/.bash_profile && cp -a /root/.bash_profile root/.
-		chmod 1777 tmp
-		chmod 750 root
-		# Create a minimal dev so the virtual server can't grab
-		# more privileges
-		mkdir dev dev/pts
-		vserver_mknod dev/null c 1 3 666
-		vserver_mknod dev/zero c 1 5 666
-		vserver_mknod dev/full c 1 7 666
-		vserver_mknod dev/random c 1 8 644
-		vserver_mknod dev/urandom c 1 9 644
-		vserver_mknod dev/tty c 5 0 666
-		vserver_mknod dev/ptmx c 5 2 666
-		touch dev/hdv1
-		# Create a dummy /etc/fstab and /etc/mtab to please
-		# df and linuxconf. We use hdv1, which does not exist
-		# to remind the admin that it is not the real drive
-		echo /dev/hdv1 / ext2 defaults 1 1 >etc/fstab
-		echo /dev/hdv1 / ext2 rw 0 0 >etc/mtab
-		# Install the vreboot utility
-		cp -a $USR_LIB_VSERVER/vreboot sbin/.
-		ln -sf vreboot sbin/vhalt
 
-		echo Directory $VROOTDIR/$1 has been populated
-		if [ ! -d /etc/vservers ] ; then
-			mkdir /etc/vservers
-			chmod 600 /etc/vservers
-			echo Directory /etc/vservers has been created
-		fi
-		if [ ! -f /etc/vservers/$1.conf ] ; then
-			CONF=/etc/vservers/$1.conf
-			cat >$CONF <<-EOF
-if [ "$PROFILE" = "" ] ; then
-	PROFILE=prod
+OPTION_ALL=( $OPTION_SILENT $OPTION_VERBOSE $OPTION_DEBUG $OPTION_DEFAULTTTY )
+SELF=( "$0" "${OPTION_ALL[@]}" )
+
+vserver=$1
+cmd=$2
+
+test "$cmd" != build || { shift 2; exec "$_VSERVER_BUILD" -n "$vserver" "$@"; }
+
+
+allow_legacy=
+
+case "$vserver" in
+    (./*) VSERVER_DIR=`pwd`/$vserver;;
+    (/*)  VSERVER_DIR=$vserver;;
+    (*)	  VSERVER_DIR=$__CONFDIR/$vserver
+	  allow_legacy=1
+	  ;;
+esac
+
+if test -n "$allow_legacy"; then
+    do_legacy=
+    test ! -e "$VSERVER_DIR/legacy" || do_legacy=1
+    test -d "$VSERVER_DIR" -o ! -e "$__CONFDIR/$vserver.conf" || do_legacy=1
+
+    test -z "$do_legacy" || {
+	echo $"WARNING: can not find configuration, assuming legacy method" >&2
+	exec "$_VSERVER_LEGACY" "$@"
+    }
 fi
-# Select the IP number assigned to the virtual server
-# This IP must be one IP of the server, either an interface
-# or an IP alias
-# A vserver may have more than one IP. Separate them with spaces.
-# do not forget double quotes.
-# Some examples:
-# IPROOT="1.2.3.4 2.3.4.5"
-# IPROOT="eth0:1.2.3.4 eth1:2.3.4.5"
-# If the device is not specified, IPROOTDEV is used
-case \$PROFILE in
-prod)
-	IPROOT=1.2.3.4
-	# The netmask and broadcast are computed by default from IPROOTDEV
-	#IPROOTMASK=
-	#IPROOTBCAST=
-	# You can define on which device the IP alias will be done
-	# The IP alias will be set when the server is started and unset
-	# when the server is stopped
-	#IPROOTDEV=eth0
-	# You can set a different host name for the vserver
-	# If empty, the host name of the main server is used
-	S_HOSTNAME=
+
+test -d "$VSERVER_DIR" || {
+    echo $"\
+Can not find a vserver-setup at '$VSERVER_DIR/'.
+
+Possible solutions:
+* fix the spelling of the '$vserver' vserver name
+* read 'vserver $vserver build --help' about ways to create a new vserver
+* see 'vserver --help' for the syntax of this command
+"
+    exit 5
+} >&2
+
+if test -e "$VSERVER_DIR"/name; then
+    read VSERVER_NAME <"$VSERVER_DIR"/name
+else
+    VSERVER_NAME=$(basename "$VSERVER_DIR")
+fi
+
+test "$2" != start -o -n "$OPTION_NONAMESPACE" || isAvoidNamespace "$VSERVER_DIR" || \
+    exec $_VNAMESPACE --new -- $_VSERVER ----nonamespace "${OPTIONS_ORIG[@]}"
+
+. $__PKGLIBDIR/vserver.functions
+case "$2" in
+    (start|stop)
+	shift 2
+	. $__PKGLIBDIR/vserver.$cmd
 	;;
-backup)
-	IPROOT=1.2.3.4
-	#IPROOTMASK=
-	#IPROOTBCAST=
-	#IPROOTDEV=eth0
-	S_HOSTNAME=
+    (suexec|restart)
+	shift 2
+	$cmd "$@"
+	;;
+    (condrestart)
+	test ! isVserverRunning "$VSERVER_DIR" || restart
+	;;
+    (exec)
+	shift 2
+	suexec root "$@"
+	;;
+    (chkconfig)
+	shift 2
+	suexec root chkconfig "$@"
+	;;
+    (enter)
+	getEnterShell "$VSERVER_DIR"
+	suexec root "${ENTER_SHELL[@]}"
+	;;
+    (running)
+	isVserverRunning "$VSERVER_DIR"
+	;;
+
+    (unify)
+	shift 2
+	exec $_VUNIFY "$@" "$vserver"
+	;;
+
+    (hashify)
+	shift 2
+	exec $_VHASHIFY "$@" "$vserver"
+	;;
+		
+    (pkg)
+	shift 2
+	exec $_VPKG "$vserver" "$@"
+	;;
+
+    (pkgmgmt)
+	op=$3
+	shift 3
+	exec $_VNAMESPACE --new -- $_PKGMGMT ${op:+--$op} "$@" -- "$vserver"
+	;;
+
+    (apt-get|apt-config|apt-cache)
+	export _APT_GET=$2
+	shift 2
+	exec $_VAPT_GET -- "$@"
+	;;
+    (rpm)
+	exec $_VRPM -- "$@"
+	;;
+	
+    (status)
+	if getVserverStatus "$VSERVER_DIR" ctx procnum; then
+	    msg $"Vserver '$vserver' is running at context '$ctx'"
+
+	    if test "$2" = status; then
+		msg $"Number of processes: " $procnum
+		msg $"Uptime:              "	$("$_FILETIME" "$VSERVER_DIR/run")
+	    fi
+	    exit 0
+	else
+	    msg $"Vserver '$vserver' is stopped"
+	    exit 3
+	fi
+	;;
+    (*)
+	echo $"Usage: $0 {start|stop|suexec|restart|condrestart|exec|enter|chkconfig|running|status}" >&2
+	exit 2
 	;;
 esac
-# Uncomment the onboot line if you want to enable this
-# virtual server at boot time
-#ONBOOT=yes
-# You can set a different NIS domain for the vserver
-# If empty, the current on is kept
-# Set it to "none" to have no NIS domain set
-S_DOMAINNAME=
-# You can set the priority level (nice) of all process in the vserver
-# Even root won't be able to raise it
-S_NICE=
-# You can set various flags for the new security context
-# lock: Prevent the vserver from setting new security context
-# sched: Merge scheduler priority of all processes in the vserver
-#        so that it acts a like a single one.
-# nproc: Limit the number of processes in the vserver according to ulimit
-#        (instead of a per user limit, this becomes a per vserver limit)
-# private: No other process can join this security context. Even root
-# Do not forget the quotes around the flags
-S_FLAGS="lock nproc"
-# You can set various ulimit flags and they will be inherited by the
-# vserver. You enter here various command line argument of ulimit
-# ULIMIT="-HS -u 200"
-# The example above, combined with the nproc S_FLAGS will limit the
-# vserver to a maximum of 200 processes
-#ULIMIT="-HS -u 1000"
-ULIMIT=""
-# You can set various capabilities. By default, the vserver are run
-# with a limited set, so you can let root run in a vserver and not
-# worry about it. He can't take over the machine. In some cases
-# you can to give a little more capabilities (such as CAP_NET_RAW)
-# S_CAPS="CAP_NET_RAW"
-S_CAPS=""
-# Select an unused context (this is optional)
-# The default is to allocate a free context on the fly
-# In general you don't need to force a context
-#S_CONTEXT=
-			EOF
-			echo $CONF has been created. Look at it\!
-		fi
-		# Turn off some service useless on a vserver
-		#		vserver_turnoff apmd network autofs dhcpd gpm ipchains iptables \
-		#			irda isdn keytable kudzu linuxconf-setup netfs nfs nfslock \
-		#			pcmcia portmap pppoe random rawdevices rhnsd rstatd ruserd \
-		#			rwalld rwhod sendmail smb snmpd v_httpd h_xinetd v_sshd vservers \
-		#			xfs ypbind xinetd
-		(
-			cd etc/init.d 2>/dev/null || cd etc/rc.d/init.d
-			for serv in *
-			do
-				case $serv in
-				*.bak|*~|functions|killall|halt|single)
-					;;
-				*)
-					#$USR_LIB_VSERVER/capchroot $VROOTDIR/$1 /sbin/chkconfig --level 2345 $serv off
-					$0 --silent $1 chkconfig --level 2345 $serv off
-					;;
-				esac
-			done
-		)
-		rm -f etc/rc.d/rc6.d/S*reboot
-	fi
-elif [ ! -f /etc/vservers/$1.conf ] ; then
-	echo No configuration for this vserver: /etc/vservers/$1.conf
-	exit 1
-elif [ ! -d $VROOTDIR/$1/. ] ; then
-	echo No directory for this vserver: $VROOTDIR/$1
-	exit 1
-elif [ "$2" = "start" ] ; then
-	echo Starting the virtual server $1
-	testperm $1
-	if ! $VSERVER_CMD $1 running
-	then
-		test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh pre-start $1
-		S_NICE=
-		S_FLAGS=
-		. /etc/vservers/$1.conf
-		export PROFILE
-		cd $VROOTDIR/$1 || exit 1
-
-		if [ "$PROFILE" != "" ] ; then
-			echo export PROFILE=$PROFILE >etc/PROFILE
-		fi
-
-		rm -f `find var/run -type f`
-		touch var/run/utmp
-		chgrp ${UTMP_GROUP:-utmp} var/run/utmp
-		chmod 0664 var/run/utmp
-		rm -f  var/lock/subsys/*
-		mountproc $VROOTDIR/$1
-		CTXOPT=
-		HOSTOPT=
-		DOMAINOPT=
-		NICECMD=
-		FLAGS=
-		CAPS=
-		get_initdefault $1
-		STARTCMD="/etc/rc.d/rc $INITDEFAULT"
-		if [ -x $VROOTDIR/$1/etc/init.d/rc ] ; then
-			STARTCMD="/etc/init.d/rc $INITDEFAULT"
-		elif [ -x $VROOTDIR/$1/usr/bin/emerge ] ; then
-			STARTCMD="/sbin/rc default"
-		elif [ -x $VROOTDIR/$1/etc/rc.d/rc.M ] ; then
-		        STARTCMD="/etc/rc.d/rc.M"			
-		fi
-
-		DISCONNECT=
-		FAKEINIT=
-		for f in $S_FLAGS dummy
-		do
-			case $f in
-			dummy)
-				;;
-
-                        minit)
-				FAKEINIT=true
-                                FLAGS="$FLAGS --flag fakeinit"
-                                STARTCMD=/sbin/minit-start
-                                DISCONNECT=--disconnect
-				;;
-
-			fakeinit)
-				FAKEINIT=true
-				FLAGS="$FLAGS --flag $f"
-				STARTCMD=/sbin/init
-				DISCONNECT=--disconnect
-				;;
-			*)
-				FLAGS="$FLAGS --flag $f"
-				;;
-			esac
-		done
-		if [ -n "$S_START" ] ; then
-			STARTCMD=$S_START
-		fi		
-		if [ "$FAKEINIT" = "" ] ; then
-			$USR_LIB_VSERVER/fakerunlevel $INITDEFAULT var/run/utmp
-		fi
-
-		calculateCaps $S_CAPS
-
-		if [ "$S_CONTEXT" != "" ] ; then
-			CTXOPT="--ctx $S_CONTEXT"
-		fi
-		if [ "$S_HOSTNAME" != "" ] ; then
-			HOSTOPT="--hostname $S_HOSTNAME"
-			export HOSTNAME=$S_HOSTNAME
-		fi
-		if [ "$S_DOMAINNAME" != "" ] ; then
-			DOMAINOPT="--domainname $S_DOMAINNAME"
-		fi
-		if [ "$S_NICE" != "" ] ; then
-			NICECMD="nice -$S_NICE"
-		fi
-		mkdir -p /var/run/vservers
-		chmod 700 /var/run/vservers
-		setdefulimit
-		if [ "$ULIMIT" != "" ] ; then
-			ulimit $ULIMIT
-		fi
-		#echo FLAGS=$FLAGS
-		#echo CAPS=$CAPS
-		# We switch to $VROOTDIR/$1 now, because after the
-		# security context switch $VROOTDIR directory becomes a dead zone.
-		cd $VROOTDIR/$1
-		export PATH=$DEFAULTPATH
-		# XXX execute /etc/rc.vinit first for backward compatibility
-		for CMD in "$VINIT_CMD $2" "$STARTCMD" ; do
-			$NICECMD \
-				$CHCONTEXT_CMD $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
-				$SAVE_S_CONTEXT_CMD /var/run/vservers/$1.ctx \
-				$CAPCHROOT_CMD $CHROOTOPT . $CMD
-		done
-		sleep 2
-		test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh post-start $1
-	fi
-elif [ "$2" = "running" ] ; then
-	if [ ! -f /var/run/vservers/$1.ctx ] ; then
-		echo Server $1 is not running
-		exit 1
-	else
-		. /var/run/vservers/$1.ctx
-		NB=$($USR_SBIN/vps ax | awk '{print $2}' | grep \^$S_CONTEXT\$ | wc -l)
-		#NB=`$CHCONTEXT_CMD --silent --ctx $S_CONTEXT ps ax | wc -l`
-		#NB=`eval expr $NB + 0`
-		if [ "$NB" -gt 0 ] ; then
-			echo Server $1 is running
-			exit 0
-		else
-			echo Server $1 is not running
-			exit 1
-		fi
-	fi
-elif [ "$2" = "status" ] ; then
-	if $0 $1 running
-	then
-		. /var/run/vservers/$1.ctx
-		NB=$($USR_SBIN/vps ax | awk '{print $2}' | grep \^$S_CONTEXT\$ | wc -l)
-		echo $NB processes running
-		echo Vserver uptime: `$USR_LIB_VSERVER/filetime /var/run/vservers/$1.ctx`
-	fi
-elif [ "$2" = "stop" ] ; then
-	echo Stopping the virtual server $1
-	CAPS=
-	IS_MINIT=
-	readlastconf $1
-	if $VSERVER_CMD $1 running
-	then
-		test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh pre-stop $1
-		cd $VROOTDIR/$1
-		mountproc $VROOTDIR/$1
-		# The fakeinit flag tell us how to turn off the server
-		get_initdefault $1
-		export PREVLEVEL=$INITDEFAULT
-		STOPCMD="/etc/rc.d/rc 6"
-		if [ -x $VROOTDIR/$1/etc/init.d/rc ] ; then
-			STOPCMD="/etc/init.d/rc 6"
-		elif [ -x $VROOTDIR/$1/usr/bin/emerge ] ; then
-			STOPCMD="/sbin/rc shutdown"
-		elif [ -x $VROOTDIR/$1/etc/rc.d/rc.6 ] ; then
-		        STOPCMD="/etc/rc.d/rc.6"
-		fi
-
-		for f in $S_FLAGS dummy
-		do
-			case $f in
-                        minit)
-				IS_MINIT=1
-				FLAGS="$FLAGS --flag fakeinit"
-                                STOPCMD="/sbin/minit-stop"
-                                ;;
-
-			fakeinit)
-				FLAGS="$FLAGS --flag $f"
-				STOPCMD="/sbin/init 6"
-				;;
-			*)
-				;;
-			esac
-		done
-
-		if [ -n "$S_STOP" ] ; then
-			STOPCMD=$S_STOP
-		fi
-		
-		calculateCaps $S_CAPS
-
-		cd $VROOTDIR/$1
-		export PATH=$DEFAULTPATH
-		# XXX execute /etc/rc.vinit first for backward compatibility
-		for CMD in "$VINIT_CMD $2" "$STOPCMD" ; do
-			$WAITFOR_CMD $CHCONTEXT_CMD $SILENT $CAPS --secure --ctx $S_CONTEXT \
-				$CAPCHROOT_CMD . $CMD
-		done
-
-		if test "$IS_MINIT"; then
-		    echo "Waiting for minit finish-signal"
-		    dd if=var/run/minit-stop of=/dev/zero bs=1 count=1 &>/dev/null
-		    sleep 1
-		else
-		    echo sleeping 5 seconds
-		    sleep 5
-		fi
-
-		echo Killing all processes
-		$CHCONTEXT_CMD $CAPS --secure --silent --ctx $S_CONTEXT \
-			$VSERVERKILLALL_CMD
-	fi
-	# We umount anyway, because "enter" establish the mount
-	# but when you exit, the server is considered not running
-	umountproc $VROOTDIR/$1
-	cd /
-	test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh post-stop $1
-elif [ "$2" = "restart" ] ; then
-	if $0 $1 running
-	then
-		$0 $1 stop
-		$0 $1 start
-	fi
-elif [ "$2" = "suexec" ] ; then
-	if [ -z "$3" ] ; then
-		echo "Missing user!" >&2
-		echo "vserver vserver-name suexec user command [ args ... ]" >&2
-		exit 1
-	elif [ -z "$4" ] ; then
-		echo "Missing command and arguments!" >&2
-		echo "vserver vserver-name suexec user command [ args ... ]" >&2
-		exit 1
-	else
-		readlastconf $1
-		. /etc/vservers/$1.conf
-		cd $VROOTDIR/$1
-		mountproc $VROOTDIR/$1
-		PS1="[\u@vserver:$1 \W]"
-		export PS1
-		VSERVER=$1
-		USERID=$3
-		shift; shift; shift
-		CAPS=
-		for f in $S_CAPS dummy
-		do
-			case $f in
-			dummy)
-				;;
-			!CAP_SYS_CHROOT)
-				CHROOTOPT=--nochroot
-				;;
-			*)
-				CAPS="$CAPS --cap $f"
-				;;
-			esac
-		done
-		FLAGS=
-		for f in $S_FLAGS dummy
-		do
-			case $f in
-                        minit)
-				FLAGS="$FLAGS --flag fakeinit"
-                                ;;
-
-			dummy)
-				;;
-			*)
-				FLAGS="$FLAGS --flag $f"
-				;;
-			esac
-		done
-		setdefulimit
-		if [ "$ULIMIT" != "" ] ; then
-			ulimit $ULIMIT
-		fi
-		if $0 $VSERVER running >/dev/null
-		then
-			. /var/run/vservers/$VSERVER.ctx
-			cd $VROOTDIR/$VSERVER
-			export PATH=$DEFAULTPATH
-			exec $CHCONTEXT_CMD $SILENT $FLAGS $CAPS --secure --ctx $S_CONTEXT \
-				$CAPCHROOT_CMD --suid $USERID . "$@"
-		else
-			test -x /etc/vservers/$1.sh && /etc/vservers/$1.sh pre-start $1
-			CTXOPT=
-			HOSTOPT=
-			DOMAINOPT=
-			if [ "$S_CONTEXT" != "" ] ; then
-				CTXOPT="--ctx $S_CONTEXT"
-			fi
-			if [ "$S_HOSTNAME" != "" ] ; then
-				HOSTOPT="--hostname $S_HOSTNAME"
-				export HOSTNAME=$S_HOSTNAME
-			fi
-			if [ "$S_DOMAINNAME" != "" ] ; then
-				DOMAINOPT="--domainname $S_DOMAINNAME"
-			fi
-			mkdir -p /var/run/vservers
-			cd $VROOTDIR/$VSERVER
-			export PATH=$DEFAULTPATH
-			exec $CHCONTEXT_CMD $SILENT $FLAGS $CAPS --secure $CTXOPT $HOSTOPT $DOMAINOPT \
-				$SAVE_S_CONTEXT_CMD /var/run/vservers/$VSERVER.ctx \
-				$CAPCHROOT_CMD --suid $USERID $CHROOTOPT . "$@"
-		fi
-	fi
-elif [ "$2" = "exec" ] ; then
-	VSERV=$1
-	shift; shift
-	exec $0 $SILENT $VSERV suexec root "$@"
-elif [ "$2" = "enter" ] ; then
-	testperm $1
-	exec $0 $SILENT $1 exec /bin/bash -login
-elif [ "$2" = "service" ] ; then
-	VSERVER=$1
-	shift
-	shift
-	exec $0 $SILENT $VSERVER exec /sbin/service "$@"
-elif [ "$2" = "chkconfig" ] ; then
-	VSERVER=$1
-	LEVELS=()
-	shift
-	shift
-	if [ "$1" = "--level" ] ; then
-		LEVELS=( --level "$2" )
-		shift 2
-	fi
-	if [ $# != 2 -a ! -x $VROOTDIR/$VSERVER/sbin/chkconfig ] ; then
-		echo Invalid argument, expected vserver name chkconfig [ --level nnn ] service on\|off
-	elif [ -x $VROOTDIR/$VSERVER/sbin/chkconfig ] ; then
-		exec $0 --silent $VSERVER exec /sbin/chkconfig "${LEVELS[@]}" "$@"
-	elif [ -x $VROOTDIR/$VSERVER/usr/sbin/update-rc.d ] ; then
-		if [ "$2" = "on" -o "$2" = "start" ] ; then
-			$0 --silent $VSERVER exec /usr/sbin/update-rc.d -f $1 remove >/dev/null
-			exec $0 --silent $VSERVER exec /usr/sbin/update-rc.d $1 start 80 2 3 4 5 . stop 20 0 1 6 . >/dev/null
-		elif [ "$2" = "off" -o "$2" = "stop" ] ; then
-			$0 --silent $VSERVER exec /usr/sbin/update-rc.d -f $1 remove >/dev/null
-			exec $0 --silent $VSERVER exec /usr/sbin/update-rc.d $1 stop 20 0 1 2 3 4 5 6 . >/dev/null
-		else
-			echo vserver chkconfig: Expecting on or off
-		fi
-	else
-		echo chkconfig functionality is not available on this
-		echo vserver distribution.
-		echo Looked for /sbin/chkconfig and /usr/sbin/update-rc.d
-	fi
-else
-	echo Command unknown $2
-	echo
-	usage
-fi
-
