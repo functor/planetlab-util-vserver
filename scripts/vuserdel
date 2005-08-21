@@ -4,10 +4,10 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.7 2005/04/07 19:37:25 smuir Exp $
+# $Id: vuserdel,v 1.8 2005/07/28 21:30:07 smuir Exp $
 #
 
-: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
 test -e "$UTIL_VSERVER_VARS" || {
     echo "Can not find util-vserver installation; aborting..."
     exit 1
@@ -29,10 +29,10 @@ NAME=$1
 CTX=$S_CONTEXT
 
 # don't bother stopping gracefully, just kill all the processes
-$SBINDIR/chcontext --silent --secure --ctx $CTX $PKGLIBDIR/vserverkillall
+chcontext --silent --secure --ctx $CTX $__LEGACYDIR/vserverkillall
 
 # unmount any directories in vserver that are mount points
-for d in `sed -ne "s%^[^ ]* \($VROOTDIR/$NAME/[^ ]*\) .*%\1%p" /proc/mounts`
+for d in `sed -ne "s%^[^ ]* \($__DEFAULT_VSERVERDIR/$NAME/[^ ]*\) .*%\1%p" /proc/mounts`
 do
         # use echo -e to turn escaped whitespace back into regular chars
         # be careful about embedded backquotes here (i think we're safe)
@@ -42,7 +42,7 @@ do
 done
 
 # turn resource management off for vserver $NAME
-service resman stop $NAME
+chkconfig resman && service resman stop $NAME
 # XXX - resman doesn't print a trailing newline
 echo
 
@@ -56,8 +56,8 @@ rm -f /etc/vservers/$NAME.conf
 rm -f /var/run/vservers/$NAME.ctx
 
 # destroy vserver
-if [ -d $VROOTDIR/$NAME ] ; then
-    TMP=$(mktemp -d "$VROOTDIR/.vtmp/$NAME.XXXXXX")
-    mv "$VROOTDIR/$NAME" "$TMP"
+if [ -d $__DEFAULT_VSERVERDIR/$NAME ] ; then
+    TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+    mv "$__DEFAULT_VSERVERDIR/$NAME" "$TMP"
     rm -rf "$TMP"
 fi
