@@ -28,7 +28,7 @@ AC_INIT(util-vserver, 0.30.208, enrico.scholz@informatik.tu-chemnitz.de)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
-AM_INIT_AUTOMAKE([1.9 gnits dist-bzip2 subdir-objects])
+AM_INIT_AUTOMAKE([1.8.3 gnits dist-bzip2 subdir-objects])
 AM_MAINTAINER_MODE
 
 AC_CANONICAL_BUILD
