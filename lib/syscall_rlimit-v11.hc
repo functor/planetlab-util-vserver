@@ -1,4 +1,4 @@
-// $Id: syscall_rlimit-v11.hc,v 1.1.2.7 2004/02/20 19:43:29 ensc Exp $    --*- c++ -*--
+// $Id: syscall_rlimit-v11.hc,v 1.5 2004/02/20 19:03:24 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -35,7 +35,7 @@ vc_get_rlimit_v11(xid_t ctx, int resource, struct vc_rlimit *lim)
   int				rc;
 
   vc_lim.id        = resource;
-  rc = vserver(VC_CMD(RLIMIT, 1, 0), CTX_USER2KERNEL(ctx), &vc_lim);
+  rc = vserver(VCMD_get_rlimit, CTX_USER2KERNEL(ctx), &vc_lim);
   lim->min  = KERN2USR(vc_lim.minimum);
   lim->soft = KERN2USR(vc_lim.softlimit);
   lim->hard = KERN2USR(vc_lim.maximum);
@@ -53,18 +53,17 @@ vc_set_rlimit_v11(xid_t ctx, int resource, struct vc_rlimit const *lim)
   vc_lim.softlimit = USR2KERN(lim->soft);
   vc_lim.maximum   = USR2KERN(lim->hard);
 
-  return vserver(VC_CMD(RLIMIT, 2, 0), CTX_USER2KERNEL(ctx), &vc_lim);
+  return vserver(VCMD_set_rlimit, CTX_USER2KERNEL(ctx), &vc_lim);
 }
 
 static inline ALWAYSINLINE int
-vc_get_rlimit_mask_v11(xid_t ctx, int tmp, struct vc_rlimit_mask *lim)
+vc_get_rlimit_mask_v11(xid_t ctx, int UNUSED tmp, struct vc_rlimit_mask *lim)
 {
   struct vcmd_ctx_rlimit_mask_v0	vc_lim;
   int					rc;
 
-  (void)tmp;
+  rc = vserver(VCMD_get_rlimit_mask, CTX_USER2KERNEL(ctx), &vc_lim);
 
-  rc = vserver(VC_CMD(RLIMIT, 3, 0), CTX_USER2KERNEL(ctx), &vc_lim);
   lim->min  = vc_lim.minimum;
   lim->soft = vc_lim.softlimit;
   lim->hard = vc_lim.maximum;

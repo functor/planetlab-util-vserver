@@ -1,4 +1,4 @@
-// $Id: vserver-stat.c,v 1.1.4.1 2003/10/14 00:45:04 ensc Exp $
+// $Id: vserver-stat.c,v 1.22 2005/07/03 12:31:25 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vserver-stat.cc by Guillaum Dallaire and Jacques Gelinas
@@ -17,26 +17,15 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-/*
-	vserver-stat help you to see all the active context currently in the kernel
-	with some useful stat
-
-	Changelog:
-
-	2003-01-08 Jacques Gelinas: Shows vserver description
-	2002-02-28 Jacques Gelinas: Use dynamic system call
-	2002-06-05 Martial Rioux : fix memory output error
-	2002-12-05 Martial Rioux : fix output glitch
-	2001-11-29 added uptime/ctx stat
-	2001-11-20 added vmsize, rss, stime and utime stat
-*/
-
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
 #include "vserver.h"
+#include "util.h"
+#include "internal.h"
+
+#include <ensc_vector/vector.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,464 +39,562 @@
 #include <errno.h>
 #include <syscall.h>
 #include <time.h>
+#include <stdbool.h>
+#include <getopt.h>
+#include <sys/param.h>
+
+#define ENSC_WRAPPERS_DIRENT	1
+#define ENSC_WRAPPERS_VSERVER	1
+#define ENSC_WRAPPERS_FCNTL	1
+#define ENSC_WRAPPERS_UNISTD	1
+#include "wrappers.h"
 
 #define PROC_DIR_NAME "/proc"
 #define CTX_DIR_NAME "/var/run/vservers/"
 #define CTX_NAME_MAX_LEN 50
 
-struct ctx_list
+int	wrapper_exit_code = 1;
+
+#ifndef AT_CLKTCK
+#define AT_CLKTCK       17    /* frequency of times() */
+#endif
+
+static unsigned long	hertz   =0x42;
+static unsigned long	pagesize=0x42;
+
+struct XidData
 {
-	int ctx;
-	int process_count;
-	int VmSize_total;
-	int VmRSS_total;
-	long start_time_oldest;
-	long stime_total, utime_total;
-	char name[CTX_NAME_MAX_LEN];
-	struct ctx_list *next;
-} *my_ctx_list;
+    xid_t		xid;
+    int			process_count;
+    int			VmSize_total;
+    int			VmRSS_total;
+    uint64_t		start_time_oldest;
+    uint64_t		stime_total, utime_total;
+
+    vcCfgStyle		cfgstyle;
+    char const *	name;
+};
 
 struct process_info
 {
-	long VmSize;		// number of pages of virtual memory
-	long VmRSS;		// resident set size from /proc/#/stat
-	long start_time;	// start time of process -- seconds since 1-1-70
-	long stime, utime;	// kernel & user-mode CPU time accumulated by process
-	long cstime, cutime;	// cumulative time of process and reaped children
-	int s_context;
+	long 		VmSize;		// number of pages of virtual memory
+	long 		VmRSS;		// resident set size from /proc/#/stat
+	uint64_t	start_time;	// start time of process -- milliseconds since 1-1-70
+        uint64_t	stime, utime;	// kernel & user-mode CPU time accumulated by process
+	uint64_t	cstime, cutime;	// cumulative time of process and reaped children
+	xid_t		s_context;
 };
 
-char *process_name;
+struct ArgInfo {
+    enum { tpUNSET, tpCTX, tpPID }	type;
+    xid_t		ctx;
+    pid_t		pid;
+    unsigned int	interval;
+    bool		shutdown;
+    bool		omit_init;
+    size_t		argc;
+    char * const *	argv;
+};
 
-void usage()
+#define CMD_HELP		0x1000
+#define CMD_VERSION		0x1001
+
+struct option const
+CMDLINE_OPTIONS[] = {
+  { "help",     no_argument,  0, CMD_HELP },
+  { "version",  no_argument,  0, CMD_VERSION },
+  { "sort",     required_argument, 0, 'O' },
+  {0,0,0,0}
+};
+
+static void
+showHelp(char const *cmd)
 {
-	fprintf(stderr, "%s: from vserver kit version %s\n", process_name, VERSION);
-	fprintf(stderr, "(no argument needed)\n\n");
-	fprintf(stderr, "Show informations about all the active context.\n\n");
-	fprintf(stderr, "	CTX#		Context number\n");
-	fprintf(stderr, "			#0 = root context\n");
-	fprintf(stderr, "			#1 = monitoring context\n");
-	fprintf(stderr, "	PROC QTY	Quantity of processes in each context\n");
-	fprintf(stderr, "	VSZ		Number of pages of virtual memory\n");
-	fprintf(stderr, "	RSS		Resident set size\n");
-	fprintf(stderr, "	userTIME	User-mode CPU time accumulated\n");
-	fprintf(stderr, "	sysTIME		Kernel-mode CPU time accumulated\n");
-	fprintf(stderr, "	UPTIME		Uptime/context\n");
-	fprintf(stderr, "	NAME		Virtual server name\n");
-	fprintf(stderr, "\n");
-
+  WRITE_MSG(1, "Usage:  ");
+  WRITE_STR(1, cmd);
+  WRITE_MSG(1,
+	    "\n"
+	    "Show informations about all the active context.\n\n"
+	    "	CTX#		Context number\n"
+	    "			#0 = root context\n"
+	    "			#1 = monitoring context\n"
+	    "	PROC QTY	Quantity of processes in each context\n"
+	    "	VSZ		Number of pages of virtual memory\n"
+	    "	RSS		Resident set size\n"
+	    "	userTIME	User-mode CPU time accumulated\n"
+	    "	sysTIME		Kernel-mode CPU time accumulated\n"
+	    "	UPTIME		Uptime/context\n"
+	    "	NAME		Virtual server name\n"
+	    "\n");
+  exit(0);
 }
+
+static void
+showVersion()
+{
+  WRITE_MSG(1,
+	    "vserver-stat " VERSION " -- show virtual context statistics\n"
+	    "This program is part of " PACKAGE_STRING "\n\n"
+	    "Copyright (C) 2003,2005 Enrico Scholz\n"
+	    VERSION_COPYRIGHT_DISCLAIMER);
+  exit(0);
+}
+
 
 // return uptime (in ms) from /proc/uptime
-long get_uptime()
+static uint64_t
+getUptime()
 {
-	int fd;
-	double up;
-	char buffer[64];
+  int		fd;
+  char		buffer[64];
+  char *	errptr;
+  size_t	len;
+  uint64_t	secs;
+  uint32_t	msecs=0;
 
-	// open the /proc/uptime file
-	if ((fd = open("/proc/uptime", O_RDONLY, 0)) == -1)
-		return 0;
+    // open the /proc/uptime file
+  fd  = EopenD("/proc/uptime", O_RDONLY, 0);
+  len = Eread(fd, buffer, sizeof buffer);
 
-	if (read(fd, buffer, sizeof(buffer)) < 1)
-		return 0;
+  if (len==sizeof(buffer)) {
+    WRITE_MSG(2, "Too much data in /proc/uptime; aborting...\n");
+    exit(1);
+  }
+  Eclose(fd);
 
-	close(fd);
+  while (len>0 && buffer[len-1]=='\n') --len;
+  buffer[len] = '\0';
 
-	if (sscanf(buffer, "%lf", &up) < 1)
-	{
-		fprintf(stderr, "%s: bad data in /proc/uptime\n", process_name);
-		return 0;
-	}
+  secs = strtol(buffer, &errptr, 10);
+  if (*errptr!='.') errptr = buffer;
+  else {
+    unsigned int	mult;
+    switch (strlen(errptr+1)) {
+      case 0	:  mult = 1000; break;
+      case 1	:  mult = 100;  break;
+      case 2	:  mult = 10;   break;
+      case 3	:  mult = 1;    break;
+      default	:  mult = 0;    break;
+    }
+    msecs = strtol(errptr+1, &errptr, 10) * mult;
+  }
 
-	return up * 100;
+  if ((*errptr!='\0' && *errptr!=' ') || errptr==buffer) {
+    WRITE_MSG(2, "Bad data in /proc/uptime\n");
+    exit(1);
+  }
+
+  return secs*1000 + msecs;
 }
 
-// insert a new record to the list
-struct ctx_list *insert_ctx(int ctx, struct ctx_list *next)
+static int
+cmpData(void const *xid_v, void const *map_v)
 {
-	struct ctx_list *new;
+  xid_t const * const			xid = xid_v;
+  struct XidData const * const		map = map_v;
+  int	res = *xid - map->xid;
 
-	new = (struct ctx_list *)malloc(sizeof(struct ctx_list));
-	new->ctx = ctx;
-	new->process_count = 0;
-	new->VmSize_total = 0;
-	new->VmRSS_total = 0;
-	new->utime_total = 0;
-	new->stime_total = 0;
-	new->start_time_oldest = 0;
-	new->next = next;
-	new->name[0] = '\0';
-
-	return new;
+  return res;
 }
 
-// find the ctx record with the ctx number
-struct ctx_list *find_ctx(struct ctx_list *list, int ctx)
+static void
+registerXid(struct Vector *vec, struct process_info *process)
 {
-	// very simple search engine...
-	while(list != NULL)
-	{
-		// find
-		if (list->ctx == ctx)
-		{
-			return list;
-		}
-		list = list->next;
-	}
-	return NULL;
+  struct XidData	*res;
+
+  res = Vector_search(vec, &process->s_context, cmpData);
+  if (res==0) {
+    res = Vector_insert(vec, &process->s_context, cmpData);
+    res->xid           = process->s_context;
+    res->process_count = 0;
+    res->VmSize_total  = 0;
+    res->VmRSS_total   = 0;
+    res->utime_total   = 0;
+    res->stime_total   = 0;
+    res->start_time_oldest = process->start_time;
+  }
+
+  ++res->process_count;
+  res->VmSize_total += process->VmSize;
+  res->VmRSS_total  += process->VmRSS;
+  res->utime_total  += process->utime + process->cutime;
+  res->stime_total  += process->stime + process->cstime;
+
+  res->start_time_oldest = MIN(res->start_time_oldest, process->start_time);
 }
 
-// compute the process info into the list
-void add_ctx(struct ctx_list *list, struct process_info *process)
+static inline uint64_t
+toMsec(uint64_t v)
 {
-	list->process_count ++;
-	list->VmSize_total += process->VmSize;
-	list->VmRSS_total += process->VmRSS;
-	list->utime_total += process->utime + process->cutime;
-	list->stime_total += process->stime + process->cstime;
-
-	if (list->start_time_oldest == 0) // first entry
-		list->start_time_oldest = process->start_time;
-	else
-		if (list->start_time_oldest > process->start_time)
-			list->start_time_oldest = process->start_time;
+  return v*1000llu/hertz;
 }
 
-// increment the count number in the ctx record using ctx number
-void count_ctx(struct ctx_list *list, struct process_info *process)
-{
-	struct ctx_list *prev = list;
 
-	if (process == NULL) return;
-
-	// search
-	while(list != NULL)
-	{
-		// find
-		if (list->ctx == process->s_context)
-		{
-			add_ctx(list, process);
-			return;
-		}
-		// insert between
-		if (list->ctx > process->s_context)
-		{
-			prev->next = insert_ctx(process->s_context, list);
-			add_ctx(prev->next, process);
-			return;
-		}
-		// ++
-		prev = list;
-		list = list->next;
-	}
-	// add at the end
-	prev->next = insert_ctx(process->s_context, NULL);
-	add_ctx(prev->next, process);
+// shamelessly stolen from procps...
+static unsigned long
+find_elf_note(unsigned long findme){
+  unsigned long *ep = (unsigned long *)environ;
+  while(*ep++);
+  while(*ep){
+    if(ep[0]==findme) return ep[1];
+    ep+=2;
+  }
+  return (unsigned long)(-1);
 }
 
-// free mem
-void free_ctx(struct ctx_list *list)
-{
-	struct ctx_list *prev;
+static void initHertz()	   __attribute__((__constructor__));
+static void initPageSize() __attribute__((__constructor__));
 
-	for(;list != NULL; list = prev)
-	{
-		prev = list->next;		
-		free(list);
-	}
+static void
+initHertz()
+{
+  hertz = find_elf_note(AT_CLKTCK);
+  if (hertz==(unsigned long)(-1))
+    hertz = sysconf(_SC_CLK_TCK);
 }
 
-/*
-	Read the vserver description
-*/
-static void read_description(
-	const char *name,		// Vserver name
-	char descrip[1000])
+static void
+initPageSize()
 {
-	char conf[PATH_MAX];
-	FILE *fin;
-	descrip[0] = '\0';
-	snprintf (conf,sizeof(conf)-1,"/etc/vservers/%s.conf",name);
-	fin = fopen (conf,"r");
-	if (fin != NULL){
-		char line[1000];
-		while (fgets(line,sizeof(line)-1,fin)!=NULL){
-			if (line[0] == '#'){
-				char *pt = line+1;
-				while (isspace(*pt)) pt++;
-				if (strncmp(pt,"Description:",12)==0){
-					int last;
-					pt += 12;
-					while (isspace(*pt)) pt++;
-					strcpy (descrip,pt);
-					last = strlen(descrip)-1;
-					if (last >=0 && descrip[last] == '\n'){
-						descrip[last] = '\0';
-					}
-				}
-			}
-		}
-		fclose (fin);
-	}
-}
-
-// show the ctx_list with name from /var/run/servers/*.ctx
-void show_ctx(struct ctx_list *list)
-{
-	// fill the ctx_list using the /var/run/servers/*.ctx file(s)
-	 __extension__ int bind_ctx_name(struct ctx_list *list)
-	{
-		// fetch the context number in /var/run/vservers/'filename'
-		int fetch_ctx_number(char *filename)
-		{
-			int fd;
-			int ctx;
-			char buf[25];
-
-			// open file
-			if ((fd = open(filename, O_RDONLY, 0)) == -1)
-				return -1;
-			// put the file in a small buffer
-			if (read(fd, buf, sizeof(buf)) < 1)
-				return -1;
-
-			close(fd);
-
-			sscanf(buf, "S_CONTEXT=%d", &ctx);
-			return ctx;
-		}
-
-		/* begin bind_ctx_name */
-
-		DIR *ctx_dir;
-		struct dirent *dir_entry;
-		char *p;
-		char ctx_name[CTX_NAME_MAX_LEN];
-		struct ctx_list *ctx;
-		int ctx_number;
-
-		// open the /var/run/vservers directory
-		if ((ctx_dir = opendir(CTX_DIR_NAME)) == NULL)
-		{
-			fprintf(stderr, "%s: in openning %s: %s\n", process_name, CTX_DIR_NAME, strerror(errno));
-			return -1;
-		}
-	
-		chdir(CTX_DIR_NAME);
-		while ((dir_entry = readdir(ctx_dir)) != NULL)
-		{
-			strncpy(ctx_name, dir_entry->d_name, sizeof(ctx_name));
-			p = strstr(ctx_name, ".ctx");
-			if (p != NULL) // make sure that it is a .ctx file..
-			{
-				*p = '\0'; // remove the .ctx in the file name
-				if ((ctx_number = fetch_ctx_number(dir_entry->d_name)) > 1)
-				{
-					if ((ctx = find_ctx(list, ctx_number)) != NULL)
-						strncpy(ctx->name, ctx_name, CTX_NAME_MAX_LEN);
-				}
-			}
-			// else fprintf(stderr, "invalid file %s in %s\n", dir_entry->d_name, CTX_DIR_NAME);
-		}
-		closedir(ctx_dir);	
-		return 0;
-	}
-
-	 __extension__ char *convert_time(unsigned t, char *str)
-	{
-		unsigned hh, mm, ss, ms;
-
-		ms = t % 100;
-		t /= 100;
-
-		ss = t%60;
-		t /= 60;
-		mm = t%60;
-		t /= 60;
-		hh = t%60;
- 		t /= 24;
-
-		if (t > 0)	// day > 0
-		{
-	  			snprintf(str, 25, "%3.ud%02uh%02u", t, (hh%12) ? hh%12 : 12, mm);
-		}
-		else
-		{
-			if (hh > 0) // hour > 0
-	  			snprintf(str, 25, " %2.uh%02um%02u", hh, mm, ss);
-			else
-			{
-	  			snprintf(str, 25, " %2.um%02u.%02u", mm, ss, ms);
-			}
-		}
-		return str;
-	}
-
-	 __extension__ char *convert_mem(unsigned long total, char *str)
-	{
-		// Byte
-		if (total < 1024)
-		{
-			snprintf(str, 25, "%luB", total);
-			return str;
-		}
-
-		total >>= 10; // kByte
-		if (total < 1024)
-		{
-			snprintf(str, 25, "%lukB", total);
-			return str;
-		}
-
-		total >>= 10; // MByte
-		if (total < 1024)
-		{
-			snprintf(str, 25, "%luMB", total);
-			return str;
-		}
-
-		total >>= 10; // GByte
-		if (total < 1024)
-		{
-			snprintf(str, 25, "%luGB", total);
-			return str;
-		}
-		total >>= 10; // TByte
-		snprintf(str, 25, "%luTB", total);
-		return str;
-	}
-
-	/* begin show_ctx */
-	char utime[25], stime[25], ctx_uptime[25];
-	char vmsize[25], vmrss[25];
-	long uptime = get_uptime();
-
-	// now we have all the active context, fetch the name
-	// from /var/run/vservers/*.ctx
-	bind_ctx_name(list);
-
-	printf("CTX  PROC    VSZ    RSS  userTIME   sysTIME    UPTIME NAME     DESCRIPTION\n");
-	while(list != NULL)
-	{
-		char descrip[1000];
-		if (list->ctx == 1)
-			strncpy(list->name, "monitoring server", CTX_NAME_MAX_LEN);
-
-		read_description (list->name,descrip);
-
-		printf("%-4d %4d %6s %6s %9s %9s %9s %-8s %s\n", list->ctx, list->process_count,
-			convert_mem(list->VmSize_total, vmsize), convert_mem(list->VmRSS_total, vmrss),
-			convert_time(list->utime_total, utime), convert_time(list->stime_total, stime), convert_time(uptime - list->start_time_oldest, ctx_uptime)
-			, list->name,descrip);
-		list = list->next;
-	}
+  pagesize = sysconf(_SC_PAGESIZE);
 }
 
 // open the process's status file to get the ctx number, and other stat
-struct process_info *get_process_info(char *pid)
+struct process_info *
+get_process_info(char *pid)
 {
-	int fd;
-	char buffer[1024];
-	char *p;
-	static struct process_info process;
+  int 				fd;
+  char				buffer[1024];
+  char				*p;
+  size_t			idx, l=strlen(pid);
+  static struct process_info	process;
 
-	// open the proc/#/status file
-	snprintf(buffer, sizeof(buffer),  "/proc/%s/status", pid);
-	if ((fd = open(buffer, O_RDONLY, 0)) == -1)
-		return NULL;
-	// put the file in a buffer
-	if (read(fd, buffer, sizeof(buffer)) < 1)
-		return NULL;
+#if 1
+  process.s_context = vc_get_task_xid(atoi(pid));
+#else
+#  warning Compiling in debug-code
+  process.s_context = random()%6;
+#endif
 
-	close(fd);
+  if (process.s_context==VC_NOCTX) {
+    int		err=errno;
+    WRITE_MSG(2, "vc_get_task_xid(");
+    WRITE_STR(2, pid);
+    WRITE_MSG(2, "): ");
+    WRITE_STR(2, strerror(err));
+    WRITE_MSG(2, "\n");
 
-	// find the s_context entry
-	if ((p = strstr(buffer, "s_context:")) == NULL)
-		return NULL;
+    return 0;
+  }
+  
+  memcpy(buffer,     "/proc/", 6); idx  = 6;
+  memcpy(buffer+idx, pid,      l); idx += l;
+  memcpy(buffer+idx, "/stat",  6);
+	
+    // open the /proc/#/stat file
+  if ((fd = open(buffer, O_RDONLY, 0)) == -1)
+    return NULL;
+    // put the file in a buffer
+  if (read(fd, buffer, sizeof(buffer)) < 1)
+    return NULL;
 
-	sscanf(p, "s_context: %d", &process.s_context);
+  close(fd);
 
-	// open the /proc/#/stat file
-	snprintf(buffer, sizeof(buffer),  "/proc/%s/stat", pid);
-	if ((fd = open(buffer, O_RDONLY, 0)) == -1)
-		return NULL;
-	// put the file in a buffer
-	if (read(fd, buffer, sizeof(buffer)) < 1)
-		return NULL;
+  p   = strchr(buffer, ')');		// go after the PID (process_name)
+  for (idx = 0; idx<12 && *p!='\0'; ++p)
+    if ((*p)==' ') ++idx;
 
-	close(fd);
+  process.utime  = toMsec(strtol(p,   &p, 10));
+  process.stime  = toMsec(strtol(p+1, &p, 10));
+  process.cutime = toMsec(strtol(p+1, &p, 10));
+  process.cstime = toMsec(strtol(p+1, &p, 10));
 
-	p = strchr(buffer, ')');		// go after the PID (process_name)
-	sscanf(p + 2,
-		"%*s "
-		"%*s %*s %*s %*s %*s "
-		"%*s %*s %*s %*s %*s %ld %ld "
-		"%ld %ld %*s %*s %*s %*s "
-		"%ld %ld "
-		"%ld ", &process.utime, &process.stime,
-			&process.cutime, &process.cstime,
-			&process.start_time,
- 			&process.VmSize, &process.VmRSS);
+  for (idx = 0; idx<5 && *p!='\0'; ++p)
+    if ((*p)==' ') ++idx;
 
-	return &process;
+  process.start_time = toMsec(strtol(p,   &p, 10));
+  process.VmSize     = strtol(p+1, &p, 10);
+  process.VmRSS      = strtol(p+1, &p, 10);
+
+  //printf("pid=%s, start_time=%llu\n", pid, process.start_time);
+  return &process;
+}
+
+static size_t
+fillUintZero(char *buf, unsigned long val, size_t cnt)
+{
+  size_t	l;
+  
+  l = utilvserver_fmt_ulong(buf, val);
+  if (l<cnt) {
+    memmove(buf+cnt-l, buf, l);
+    memset(buf, '0', cnt-l);
+  }
+  buf[cnt] = '\0';
+
+  return cnt;
+}
+
+static void
+shortenMem(char *buf, unsigned long val)
+{
+  char const *	SUFFIXES[] = { " ", "K", "M", "G", "T", "+" };
+  char		tmp[16];
+  char const *	suffix = "+";
+  size_t	i, l;
+  unsigned int	mod = 0;
+
+  for (i=0; i<6; ++i) {
+    if (val<1000) {
+      suffix = SUFFIXES[i];
+      break;
+    }
+    mod   = 10*(val & 1023)/1024;
+    val >>= 10;
+  }
+
+  if (val >9999) val=9999;
+  if (val>=1000) mod=0;
+
+  l = utilvserver_fmt_ulong(tmp, val);
+  if (mod!=0) {
+    tmp[l++] = '.';
+    l += utilvserver_fmt_ulong(tmp+l, mod);
+  }
+  i = 7-l-strlen(suffix);
+  
+  memcpy(buf+i,   tmp, l);
+  memcpy(buf+i+l, suffix, strlen(suffix));
+}
+
+static void
+shortenTime(char *buf, uint64_t t)
+{
+  char		tmp[32];
+  char		*ptr = tmp;
+
+  unsigned long	hh, mm, ss, ms;
+
+  ms = t % 1000;
+  t /= 1000;
+
+  ss = t%60;
+  t /= 60;
+  mm = t%60;
+  t /= 60;
+  hh = t%24;
+  t /= 24;
+
+  if (t>999*999) {
+    memcpy(ptr, "INVALID", 7);
+    ptr   += 7;
+  }
+  else if (t>999) {
+    ptr   += utilvserver_fmt_ulong(ptr, t/365);
+    *ptr++ = 'y';
+    ptr   += fillUintZero(ptr, t%365, 2);
+    *ptr++ = 'd';
+    ptr   += fillUintZero(ptr, hh, 2);
+  }    
+  else if (t>0) {
+    ptr   += utilvserver_fmt_ulong(ptr, t);
+    *ptr++ = 'd';
+    ptr   += fillUintZero(ptr, hh, 2);
+    *ptr++ = 'h';
+    ptr   += fillUintZero(ptr, mm, 2);
+  }
+  else if (hh>0) {
+    ptr   += utilvserver_fmt_ulong(ptr, hh);
+    *ptr++ = 'h';
+    ptr   += fillUintZero(ptr, mm, 2);
+    *ptr++ = 'm';
+    ptr   += fillUintZero(ptr, ss, 2);    
+  }
+  else {
+    ptr   += utilvserver_fmt_ulong(ptr, mm);
+    *ptr++ = 'm';
+    ptr   += fillUintZero(ptr, ss, 2);
+    *ptr++ = 's';
+    ptr   += fillUintZero(ptr, ms, 2);
+  }
+
+  *ptr = ' ';
+  memcpy(buf+10-(ptr-tmp), tmp, ptr-tmp);
+}
+
+static char *
+formatName(char *dst, vcCfgStyle style, char const *name)
+{
+  size_t		len;
+  
+  if (name==0) name = "";
+  len = strlen(name);
+
+  switch (style) {
+    case vcCFG_LEGACY	:
+      len    = MIN(len, 18);
+      *dst++ = '[';
+      memcpy(dst, name, len);
+      dst   += len;
+      *dst++ = ']';
+      break;
+
+    default		:
+      len    = MIN(len, 20);
+      memcpy(dst, name, len);
+      dst   += len;
+      break;
+  }
+
+  return dst;
+}
+
+static void
+showContexts(struct Vector const *vec)
+{
+  uint64_t			uptime  = getUptime();
+  struct XidData const *	ptr     = Vector_begin_const(vec);
+  struct XidData const * const	end_ptr = Vector_end_const(vec);
+  
+
+  WRITE_MSG(1, "CTX   PROC    VSZ    RSS  userTIME   sysTIME    UPTIME NAME\n");
+  for (; ptr<end_ptr; ++ptr) {
+    char	buf[sizeof(xid_t)*3 + 512];
+    char	tmp[sizeof(int)*3 + 2];
+    size_t	l;
+
+    memset(buf, ' ', sizeof(buf));
+    l = utilvserver_fmt_long(buf, ptr->xid);
+    l = utilvserver_fmt_long(tmp, ptr->process_count);
+    memcpy(buf+10-l, tmp, l);
+
+    shortenMem (buf+10, ptr->VmSize_total);
+    shortenMem (buf+17, ptr->VmRSS_total*pagesize);
+    shortenTime(buf+24, ptr->utime_total);
+    shortenTime(buf+34, ptr->stime_total);
+    //printf("%llu, %llu\n", uptime, ptr->start_time_oldest);
+    shortenTime(buf+44, uptime - ptr->start_time_oldest);
+
+    formatName(buf+55, ptr->cfgstyle, ptr->name)[0] = '\0';
+
+    Vwrite(1, buf, strlen(buf));
+    Vwrite(1, "\n", 1);
+  }
+}
+
+static void
+fillName(void *obj_v, void UNUSED * a)
+{
+  struct XidData *	obj = obj_v;
+
+  switch (obj->xid) {
+    case 0		:
+      obj->cfgstyle = vcCFG_NONE;
+      obj->name     = strdup("root server");
+      break;
+
+    case 1		:
+      obj->cfgstyle = vcCFG_NONE;
+      obj->name     = strdup("monitoring server");
+      break;
+
+    default		: {
+      char *		cfgpath;
+
+      if ((cfgpath   = vc_getVserverByCtx(obj->xid, &obj->cfgstyle, 0))==0 ||
+	  (obj->name = vc_getVserverName(cfgpath, obj->cfgstyle))==0) {
+	obj->name     = 0;
+	obj->cfgstyle = vcCFG_NONE;
+      }
+
+      free(cfgpath);
+
+      break;
+    }
+  }
+}
+
+static void UNUSED
+freeXidData(void *obj_v, void UNUSED * a)
+{
+  struct XidData *	obj = obj_v;
+
+  free(const_cast(char *)(obj->name));
 }
 
 int main(int argc, char **argv)
 {
-	DIR *proc_dir;
-	struct dirent *dir_entry;
-	pid_t my_pid;
+  DIR *			proc_dir;
+  struct dirent*	dir_entry;
+  pid_t			my_pid;
+  struct Vector		xid_data;
+  char const *		errptr;
 
-	// for error msg
-	process_name = argv[0];
+  while (1) {
+    int		c = getopt_long(argc, argv, "+O:", CMDLINE_OPTIONS, 0);
+    if (c==-1) break;
 
-	if (argc > 1)
-	{
-		usage();
-		return 0;
-	}
+    switch (c) {
+      case CMD_HELP	:  showHelp(argv[0]);
+      case CMD_VERSION	:  showVersion();
+      case 'O'		:  break;
+      default		:
+	WRITE_MSG(2, "Try '");
+	WRITE_STR(2, argv[0]);
+	WRITE_MSG(2, " --help\" for more information.\n");
+	return EXIT_FAILURE;
+	break;
+    }
+  }
+    
+  if (optind!=argc) {
+    WRITE_MSG(2, "Unknown parameter, use '--help' for more information\n");
+    return EXIT_FAILURE;
+  }
 
-	// do not include own stat
-	my_pid = getpid();
+  if (hertz==0x42)    initHertz();
+  if (pagesize==0x42) initPageSize();
+  
+  my_pid = getpid();
 
-	// try to switch in context 1
-	if (vc_new_s_context(1,0, 0) < 0)
-	{
-		fprintf(stderr, "%s: unable to switch in context security #1\n", process_name);
-		return -1;
-	}
+  if (!switchToWatchXid(&errptr)) {
+    perror(errptr);
+    exit(1);
+  }
 
-	// create the fist...
-	my_ctx_list = insert_ctx(0, NULL);
-	// init with the default name for the context 0
-	strncpy(my_ctx_list->name, "root server", CTX_NAME_MAX_LEN);
+  if (access("/proc/uptime",R_OK)==-1 && errno==ENOENT)
+    WRITE_MSG(2,
+	      "WARNING: can not access /proc/uptime. Usually, this is caused by\n"
+	      "         procfs-security. Please read the FAQ for more details\n"
+	      "         http://www.linux-vserver.org/index.php?page=Linux-Vserver+FAQ\n");
 
-	// open the /proc dir
-	if ((proc_dir = opendir(PROC_DIR_NAME)) == NULL)
-	{
-		fprintf(stderr, "%s: %s\n", process_name, strerror(errno));
-		return -1;
-	}
-	
-	chdir(PROC_DIR_NAME);
-	while ((dir_entry = readdir(proc_dir)) != NULL)
-	{
-		// select only process file
-		if (!isdigit(*dir_entry->d_name))
-			continue;
+  Vector_init(&xid_data, sizeof(struct XidData));
 
-		if (atoi(dir_entry->d_name) != my_pid)
-			count_ctx(my_ctx_list, get_process_info(dir_entry->d_name));
-		
-	}
-	closedir(proc_dir);
+  Echdir(PROC_DIR_NAME);
+  proc_dir = Eopendir(".");
+  while ((dir_entry = readdir(proc_dir)) != NULL)
+  {
+      // select only process file
+    if (!isdigit(*dir_entry->d_name))
+      continue;
 
-	// output the ctx_list	
-	show_ctx(my_ctx_list);
+    if (atoi(dir_entry->d_name) != my_pid) {
+      struct process_info *	info = get_process_info(dir_entry->d_name);
+      if (info)
+	registerXid(&xid_data, info);
+    }
+  }
+  closedir(proc_dir);
 
-	// free the ctx_list
-	free_ctx(my_ctx_list);
+  Vector_foreach(&xid_data, fillName, 0);
 
-	return 0;
+    // output the ctx_list	
+  showContexts(&xid_data);
+
+#ifndef NDEBUG
+  Vector_foreach(&xid_data, freeXidData, 0);
+  Vector_free(&xid_data);
+#endif
+  
+  return 0;
 }

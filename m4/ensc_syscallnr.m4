@@ -1,4 +1,4 @@
-dnl $Id: ensc_syscallnr.m4,v 1.1.2.5 2004/03/09 04:16:21 ensc Exp $
+dnl $Id: ensc_syscallnr.m4,v 1.6 2004/03/08 19:55:28 ensc Exp $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

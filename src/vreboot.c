@@ -1,4 +1,4 @@
-// $Id: vreboot.c,v 1.1 2003/09/29 22:01:57 ensc Exp $
+// $Id: vreboot.c,v 1.2 2003/09/30 20:16:53 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vreboot.cc by Jacques Gelinas
@@ -21,6 +21,10 @@
 	Used to send a reboot message to the reboot manager. It opens /dev/reboot
 	and write "reboot\n".
 */
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
