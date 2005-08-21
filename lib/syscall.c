@@ -1,4 +1,4 @@
-// $Id: syscall.c,v 1.1.4.6 2003/12/30 13:45:57 ensc Exp $    --*- c++ -*--
+// $Id: syscall.c,v 1.10 2004/04/08 06:04:41 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,11 +19,18 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
+#include "compat.h"
 #include "vserver.h"
-#include "vserver-internal.h"
+#include "internal.h"
+
+#define _LINUX_TYPES_H 1
 #include "linuxvirtual.h"
+
+#if defined(VC_ENABLE_API_COMPAT) && defined(VC_ENABLE_API_LEGACY)
+#  define VC_MULTIVERSION_SYSCALL	1
+#endif
+#include "vserver-internal.h"
 
 #ifdef VC_ENABLE_API_COMPAT    
 #  include "syscall-compat.hc"
@@ -36,9 +43,10 @@
 #include <stdbool.h>
 #include <errno.h>
 
+
 #if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
 
-int
+xid_t
 vc_new_s_context(xid_t ctx, unsigned int remove_cap, unsigned int flags)
 {
   CALL_VC(CALL_VC_COMPAT(vc_new_s_context, ctx, remove_cap, flags),
@@ -52,4 +60,5 @@ vc_set_ipv4root(uint32_t  bcast, size_t nb, struct vc_ip_mask_pair const *ips)
 	  CALL_VC_LEGACY(vc_set_ipv4root, bcast, nb, ips));
 }
 
+LINK_WARNING("vc_new_s_context", "warning: vc_new_s_context() is obsoleted; use vc_create_context() instead of");
 #endif

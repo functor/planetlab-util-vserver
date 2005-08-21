@@ -1,4 +1,4 @@
-// $Id: ifspec.c,v 1.1.4.1 2003/11/21 16:01:09 ensc Exp $
+// $Id: ifspec.c,v 1.4 2004/02/20 16:59:40 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on ifspec.cc by Jacques Gelinas
@@ -24,6 +24,10 @@
 	NETMASK=
 	BCAST=
 */
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,7 +124,7 @@ int ifconfig_print (
 			ret = 0;
 		}
 		else {
-		  perror("ioctl(SIOCGIFADDR)");
+		  perror("ifspec: ioctl(SIOCGIFADDR)");
 		}
 		
 		if (maskstr != NULL && maskstr[0] != '\0'){
@@ -138,7 +142,7 @@ int ifconfig_print (
 			ret = 0;
 		}
 		else {
-		  perror("ioctl(SIOCGIFNETMASK)");
+		  perror("ifspec: ioctl(SIOCGIFNETMASK)");
 		}
 		
 		if (bcaststr != NULL && bcaststr[0] != '\0'){

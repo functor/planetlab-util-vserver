@@ -1,4 +1,4 @@
-dnl $Id: ensc_e2fscheck.m4,v 1.1.2.2 2004/02/19 22:56:27 ensc Exp $
+dnl $Id: ensc_e2fscheck.m4,v 1.3 2004/02/19 22:31:04 ensc Exp $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

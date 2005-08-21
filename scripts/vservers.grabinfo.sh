@@ -18,14 +18,14 @@
 
 # Produce some XML statistics about vservers
 
-: ${UTIL_VSERVER_VARS:=$(dirname $0)/util-vserver-vars}
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
 test -e "$UTIL_VSERVER_VARS" || {
-    echo "Can not find util-vserver installation; aborting..."
+    echo $"Can not find util-vserver installation (the file '$UTIL_VSERVER_VARS' would be expected); aborting..." >&2
     exit 1
 }
 . "$UTIL_VSERVER_VARS"
 
-cd $VROOTDIR
+cd $__DEFAULT_VSERVERDIR
 for vserv in *
 do
 	if [ -f /etc/vservers/$vserv.conf ] ; then
@@ -43,7 +43,7 @@ do
 			esac
 		done
 		echo "  <status>"
-		$SBINDIR/vserver $vserv status
+		$_VSERVER $vserv status
 		echo "  </status>"
 		echo "</m:vserver>"
 	fi

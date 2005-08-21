@@ -1,4 +1,4 @@
-// $Id: syscall_kill-v11.hc,v 1.1.2.5 2004/01/26 18:20:18 ensc Exp $    --*- c++ -*--
+// $Id: syscall_kill-v11.hc,v 1.4 2004/02/02 18:55:52 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,9 +23,9 @@
 static inline ALWAYSINLINE int
 vc_ctx_kill_v11(xid_t ctx, pid_t pid, int sig)
 {
-  struct vcmd_ctx_kill_v0	param = { 0,0 };
+  struct vcmd_ctx_kill_v0	param = { .pid = 0 };
   param.pid = pid;
   param.sig = sig;
 
-  return vserver(VC_CMD(PROCTRL, 1, 0), ctx, &param);
+  return vserver(VCMD_ctx_kill, CTX_USER2KERNEL(ctx), &param);
 }

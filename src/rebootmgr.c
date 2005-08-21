@@ -1,4 +1,4 @@
-// $Id: rebootmgr.c,v 1.1.2.1.2.3 2003/10/30 15:16:30 ensc Exp $
+// $Id: rebootmgr.c,v 1.8 2004/02/17 19:55:54 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on rebootmgr.cc by Jacques Gelinas
@@ -40,12 +40,13 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
+#include "pathconfig.h"
 
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <limits.h>
 #include <errno.h>
 #include <syslog.h>
 #include <sys/stat.h>
@@ -66,7 +67,7 @@ static int rebootmgr_opensocket (const char *vname)
 	int ret = -1;
 	char sockn[PATH_MAX];
 	int fd =  socket (AF_UNIX,SOCK_STREAM,0);
-	sprintf (sockn,"%s/%s/dev/reboot",VROOTDIR, vname);
+	sprintf (sockn, DEFAULT_VSERVERDIR "/%s/dev/reboot",vname);
 	unlink (sockn);
 	if (fd == -1){
 		fprintf (stderr,"Can't create a unix domain socket (%s)\n"
@@ -104,13 +105,13 @@ static int rebootmgr_process (int fd, const char *vname)
 		if (strcmp(buf,"reboot\n")==0){
 			char cmd[1000];
 			syslog (LOG_NOTICE,"reboot vserver %s\n",vname);
-			snprintf (cmd,sizeof(cmd)-1,"%s/vserver %s restart >>/var/log/boot.log 2>&1",SBINDIR, vname);
+			snprintf (cmd,sizeof(cmd)-1, SBINDIR "/vserver %s restart >>/var/log/boot.log 2>&1", vname);
 			system (cmd);
 			ret = 0;
 		}else if (strcmp(buf,"halt\n")==0){
 			char cmd[1000];
 			syslog (LOG_NOTICE,"halt vserver %s\n",vname);
-			snprintf (cmd,sizeof(cmd)-1,"%s/vserver %s stop >>/var/log/boot.log 2>&1",SBINDIR, vname);
+			snprintf (cmd,sizeof(cmd)-1, SBINDIR "/vserver %s stop >>/var/log/boot.log 2>&1", vname);
 			system (cmd);
 			ret = 0;
 		}else{

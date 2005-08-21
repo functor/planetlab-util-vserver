@@ -1,4 +1,4 @@
-// $Id: getversion.c,v 1.1.2.3 2004/01/26 18:19:24 ensc Exp $    --*- c++ -*--
+// $Id: getversion.c,v 1.5 2004/01/29 11:00:41 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,8 +19,8 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
+#include "vserver-internal.h"
 #include "getversion-internal.hc"
 
 int

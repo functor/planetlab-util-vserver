@@ -1,4 +1,4 @@
-// $Id: listdevip.c,v 1.1 2003/09/29 22:01:57 ensc Exp $
+// $Id: listdevip.c,v 1.3 2004/02/20 16:59:40 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on listdevip.cc by Jacques Gelinas
@@ -21,6 +21,11 @@
 	Print the list of all network (IP) devices. Print the IP
 	in fact, including all aliases.
 */
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+#include "compat.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +52,7 @@ static int devlist_read2_2()
 	int ret = -1;
 	int skfd = socket (AF_INET,SOCK_DGRAM,0);
 	if (skfd < 0) {
-		perror ("socket");
+		perror ("listdevip: socket()");
 	}else{
 		struct ifconf ifc;
 		int numreqs = 30;
@@ -58,7 +63,7 @@ static int devlist_read2_2()
 			ifc.ifc_buf = (char*)realloc(ifc.ifc_buf, ifc.ifc_len);
 
 			if (ioctl(skfd, SIOCGIFCONF, &ifc) < 0) {
-				perror("SIOCGIFCONF");
+				perror("listdevip: SIOCGIFCONF");
 				ret = -1;
 				break;
 			}
@@ -99,7 +104,7 @@ static int devlist_read2_2()
 	return ret;
 }
 
-int main (int argc, char *argv[])
+int main (int UNUSED argc, char UNUSED *argv[])
 {
 	devlist_read2_2();
 	return 0;

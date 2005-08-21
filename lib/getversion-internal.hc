@@ -1,4 +1,4 @@
-// $Id: getversion-internal.hc,v 1.1.2.3 2003/12/26 00:16:48 uid68581 Exp $    --*- c++ -*--
+// $Id: getversion-internal.hc,v 1.6 2004/01/22 21:35:36 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,15 +22,14 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
-#include "vserver-internal.h"
+#define _LINUX_TYPES_H 1
 #include "linuxvirtual.h"
 
-static inline ALWAYSINLINE int
+static inline ALWAYSINLINE UNUSED int
 vc_get_version_internal(int cat)
 {
-  return vserver(VC_CMD(VERSION, 0, 0), cat, 0);
+  return vserver(VCMD_get_version, cat, 0);
 }
 
 #endif	//  H_UTIL_VSERVER_LIB_GETVERSION_INTERNAL_H

@@ -1,4 +1,4 @@
-// $Id: syscall_kill.c,v 1.1.2.2 2003/12/30 13:45:57 ensc Exp $    --*- c++ -*--
+// $Id: syscall_kill.c,v 1.3 2004/01/21 18:55:12 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,21 +19,30 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
 
 #include "vserver.h"
 #include "vserver-internal.h"
 #include "linuxvirtual.h"
 
-#ifdef VC_ENABLE_API_V11
+#if defined(VC_ENABLE_API_V11) || defined(VC_ENABLE_API_V13)
 #  include "syscall_kill-v11.hc"
 #endif
+
+#ifdef VC_ENABLE_API_V13
+#  define vc_ctx_kill_v13	vc_ctx_kill_v11
+#endif
+
+
+#if defined(VC_ENABLE_API_V11) || defined(VC_ENABLE_API_V13)
+
+  // NOTICE: the reverse order of V11 -> V13 is correct here since these are
+  // the same syscalls
 
 int
 vc_ctx_kill(xid_t ctx, pid_t pid, int sig)
 {
-  CALL_VC(CALL_VC_V11(vc_ctx_kill, ctx, pid, sig));
+  CALL_VC(CALL_VC_V11(vc_ctx_kill, ctx, pid, sig),
+	  CALL_VC_V13(vc_ctx_kill, ctx, pid, sig));
 }
 
-#if defined (VC_ENABLE_API_V11)
 #endif

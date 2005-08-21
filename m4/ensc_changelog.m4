@@ -1,4 +1,4 @@
-dnl $Id: ensc_changelog.m4,v 1.1.2.1 2003/11/03 23:11:11 ensc Exp $
+dnl $Id: ensc_changelog.m4,v 1.2 2003/11/04 01:31:56 ensc Exp $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

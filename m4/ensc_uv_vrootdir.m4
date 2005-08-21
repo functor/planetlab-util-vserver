@@ -1,4 +1,4 @@
-dnl $Id: ensc_uv_vrootdir.m4,v 1.1.2.2 2004/01/26 18:21:28 ensc Exp $
+dnl $Id: ensc_uv_vrootdir.m4,v 1.2 2003/12/26 00:22:49 uid68581 Exp $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

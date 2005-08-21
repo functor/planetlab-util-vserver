@@ -1,4 +1,4 @@
-dnl $Id: ensc_syscall.m4,v 1.2.2.2 2004/03/04 03:12:34 ensc Exp $
+dnl $Id: ensc_syscall.m4,v 1.6 2005/05/19 18:04:12 ensc Exp $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -17,9 +17,31 @@ dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 dnl Usage: ENSC_SYSCALL
 
+AC_DEFUN([ENSC_SYSCALL_ALTERNATIVE],
+[
+	AC_MSG_CHECKING([whether to use alternative _syscallX macros])
+	AC_ARG_ENABLE([alternative-syscalls],
+		      [AC_HELP_STRING([--disable-alternative-syscalls],
+				      [do not use the alternative _syscallX macros
+				       provided by Herbert Poetzl (default: use them)])],
+		      [case $enableval in
+		           (yes|no)   ensc_use_alternative_syscall_macros=$enableval;;
+			   (*)	      AC_MSG_ERROR(['$enableval' is not a valid value for '--disable-alternative-syscalls']);;
+		       esac],
+                      [ensc_use_alternative_syscall_macros=yes])
+
+	case $ensc_use_alternative_syscall_macros in
+		(yes)	AC_DEFINE(ENSC_USE_ALTERNATIVE_SYSCALL_MACROS, 1, [Use alternative _syscallX macros]);;
+	esac
+
+	AC_MSG_RESULT([$ensc_use_alternative_syscall_macros])
+])
+
 AC_DEFUN([ENSC_SYSCALL],
 [
 	AC_REQUIRE([ENSC_KERNEL_HEADERS])
+	AC_REQUIRE([ENSC_SYSCALL_ALTERNATIVE])
+
         AC_MSG_CHECKING([for syscall(2) invocation method])
         AC_ARG_WITH([syscall],
         	    [AC_HELP_STRING([--with-syscall=METHOD],
@@ -29,14 +51,14 @@ AC_DEFUN([ENSC_SYSCALL],
         AC_MSG_RESULT([$with_syscall])
         
         case x"$with_syscall" in
-            xauto)
+            (xauto)
 		AC_CACHE_CHECK([which syscall(2) invocation works], [ensc_cv_test_syscall],
 			       [
 				AC_LANG_PUSH(C)
-				AC_COMPILE_IFELSE([
-#include <asm/unistd.h>
-#include <syscall.h>
+				AC_COMPILE_IFELSE(AC_LANG_SOURCE([
+#include "$srcdir/lib/syscall-wrap.h"
 #include <errno.h>
+
 #define __NR_foo0	300
 #define __NR_foo1	301
 #define __NR_foo2	302
@@ -58,7 +80,7 @@ int main() {
          foo4(1,2,3,4) || \
 	 foo5(1,2,3,4,5);
 }
-				],
+				]),
 				[ensc_cv_test_syscall=fast],
 				[ensc_cv_test_syscall=traditional])
 
@@ -66,12 +88,16 @@ int main() {
 		])
 		with_syscall=$ensc_cv_test_syscall
         	;;
-            xfast|xtraditional)
+            (xfast|xtraditional)
         	;;
             *)
         	AC_MSG_ERROR(['$with_syscall' is not a valid value for '--with-syscall'])
         	;;
         esac
+
+	if test x"$with_syscall $ensc_use_alternative_syscall_macros" = 'xfast yes'; then
+	    with_syscall='alternative'
+        fi
 
         if test x"$with_syscall" = xtraditional; then
             AC_DEFINE(ENSC_SYSCALL_TRADITIONAL,  1, [Define to 1 when the fast syscall(2) invocation does not work])

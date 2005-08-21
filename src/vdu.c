@@ -1,4 +1,4 @@
-// $Id: vdu.c,v 1.1 2003/09/29 22:01:57 ensc Exp $
+// $Id: vdu.c,v 1.2 2003/09/30 20:16:53 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vdu.cc by Jacques Gelinas
@@ -16,6 +16,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>

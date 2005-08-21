@@ -1,4 +1,4 @@
-// $Id: safechroot-internal.hc,v 1.1.2.1 2003/10/14 15:19:14 ensc Exp $    --*- c++ -*--
+// $Id: safechroot-internal.hc,v 1.2 2003/10/14 15:40:50 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
