@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.1.4.2 2003/10/30 15:16:30 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files,v 1.8 2004/03/24 01:44:43 ensc Exp $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -17,45 +17,53 @@
 ## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 ##  
 
-sysv_XTRAS		=  sysv/rebootmgr.subst \
-			   sysv/v_gated.subst \
-			   sysv/v_httpd.subst \
-			   sysv/v_named.subst \
-			   sysv/v_portmap.subst \
-			   sysv/v_sendmail.subst \
-			   sysv/v_smb.subst \
-			   sysv/v_sshd.subst \
-			   sysv/v_xinetd.subst \
-			   sysv/vcached.subst \
-			   sysv/vservers.subst
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT +=	\
+			$(sysv_src_SCRPTS) \
+			$(sysv_gen_SCRPTS)
 
-sysv_GENSCRPTS		=  sysv/rebootmgr \
-			   sysv/v_gated \
-			   sysv/v_httpd \
-			   sysv/v_named \
-			   sysv/v_portmap \
-			   sysv/v_sendmail \
-			   sysv/v_smb \
-			   sysv/v_sshd \
-			   sysv/v_xinetd \
-			   sysv/vcached \
-			   sysv/vservers
+sysv_src_SCRPTS =	sysv/rebootmgr \
+			sysv/vprocunhide \
+			sysv/vservers-default \
+			sysv/vservers-legacy
+sysv_gen_SCRPTS =	sysv/v_gated \
+			sysv/v_httpd \
+			sysv/v_named \
+			sysv/v_portmap \
+			sysv/v_sendmail \
+			sysv/v_smb \
+			sysv/v_sshd \
+			sysv/v_xinetd
+sysv_conf_DTA =		sysv/vservers.conf
 
-sysv_SCRPTS		=  $(sysv_GENSCRPTS)
+sysconf_DATA +=		$(sysv_conf_DTA)
+EXTRA_DIST +=		sysv/v_gated.subst \
+			sysv/v_httpd.subst \
+			sysv/v_named.subst \
+			sysv/v_portmap.subst \
+			sysv/v_sendmail.subst \
+			sysv/v_smb.subst \
+			sysv/v_sshd.subst \
+			sysv/v_xinetd.subst \
+			$(sysv_src_SCRPTS) \
+			$(sysv_conf_DTA)
 
-sysv_CFG		=  sysv/vservers.conf sysv/vcached.conf
+initrd_SCRIPTS +=	$(sysv_src_SCRPTS) \
+			$(sysv_gen_SCRPTS)
 
+CLEANFILES +=		$(sysv_gen_SCRPTS)
+
+sysv_SUBSTRULE =	s!/usr/lib/util-vserver!$(pkglibdir)!g; \
+			s!^USR_SBIN=/usr/sbin$$!USR_SBIN=$(sbindir)!g; \
+                        s!^DEFAULT_VSERVERDIR=/vservers$$!DEFAULT_VSERVERDIR=$(vserverdir)!g
 
 sysv/%:			sysv/%.subst
 			@mkdir -p $$(dirname '$@')
-			sed -e 's!/usr/lib/util-vserver!$(pkglibdir)!g; \
-				s!^USR_SBIN=/usr/sbin$$!USR_SBIN=$(sbindir)!g; \
-                                s!^VROOTDIR=/vservers$$!VROOTDIR=$(vserverdir)!g; \
-			       ' '$<' >'$@.tmp'
-			if cmp -s '$<' '$@.tmp'; then \
+			sed -e '$(sysv_SUBSTRULE)' '$<' >'$@.tmp'
+			@rm -f '$@'
+			@if cmp -s '$<' '$@.tmp'; then \
 				cp -p '$<' '$@'; \
 			else \
 				mv -f '$@.tmp' '$@'; \
 			fi
-			-rm -f '$@.tmp'
+			@rm -f '$@.tmp'
 			@chmod a-w '$@'
