@@ -30,7 +30,7 @@
 #endif
 
 #ifndef EXT2_IMMUTABLE_LINK_FL
-#  define EXT2_IMMUTABLE_LINK_FL	0x00008000
+#  define EXT2_IMMUTABLE_LINK_FL	0x08008000
 #endif
 
 static inline ALWAYSINLINE int
