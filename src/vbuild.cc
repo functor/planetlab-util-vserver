@@ -1,4 +1,4 @@
-// $Id: vbuild.cc,v 1.1.4.1 2004/02/09 22:55:00 ensc Exp $
+// $Id: vbuild.cc,v 1.4 2003/10/21 13:55:35 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vbuild.cc by Jacques Gelinas
@@ -22,6 +22,10 @@
 	It uses hard link whenever possible instead of duplicating files.
 	Once done, it sets the immutable bits.
 */
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -34,6 +38,8 @@
 #include <vector>
 #include <list>
 #include <set>
+#include <cassert>
+
 #include "vutil.h"
 
 using namespace std;
@@ -51,7 +57,7 @@ struct EXCLDIR{
 static vector<EXCLDIR> excldirs;
 
 
-static int  ext2flags = EXT2_IMMUTABLE_FL | EXT2_IUNLINK_FL;
+static int  ext2flags = EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL;
 static struct {
 	int nblink;
 	int nbcopy;
@@ -211,6 +217,12 @@ static int vbuild_copy (
 	return ret;
 }
 
+static void
+prepareVserver(Vserver const UNUSED &src, char const UNUSED *dst)
+{
+  assert(false);
+}
+
 int main (int argc, char *argv[])
 {
 	int ret = -1;
@@ -228,9 +240,9 @@ int main (int argc, char *argv[])
 		}else if (strcmp(arg,"--noflags")==0){
 			ext2flags = 0;
 		}else if (strcmp(arg,"--immutable")==0){
-			ext2flags |= EXT2_IMMUTABLE_FL;
+			ext2flags |= EXT2_IMMUTABLE_FILE_FL;
 		}else if (strcmp(arg,"--immutable-mayunlink")==0){
-			ext2flags |= EXT2_IUNLINK_FL;
+			ext2flags |= EXT2_IMMUTABLE_LINK_FL;
 		}else if (strcmp(arg,"--excldir")==0){
 			i++;
 			excldirs.push_back (EXCLDIR(argv[i]));
@@ -241,32 +253,32 @@ int main (int argc, char *argv[])
 	if (i!=argc-2){
 		usage();
 	}else{
-		string refserv = argv[i++];
-		string newserv = argv[i];
-		list<PACKAGE> packages;
+	        Vserver		refserv(argv[i++]);
+
+		prepareVserver(refserv, argv[i]);
+		Vserver		newserv(argv[i]);
+		list<Package> packages;
 		// Load the files which are not configuration files from
 		// the packages
 		vutil_loadallpkg (refserv,packages);
 		set<string> files;
-		for (list<PACKAGE>::iterator it=packages.begin(); it!=packages.end(); it++){
+		for (list<Package>::iterator it=packages.begin(); it!=packages.end(); it++){
 			(*it).loadfiles(refserv,files);
 		}
 		// Now, we do a recursive copy of refserv into newserv
 		umask (0);
-		mkdir (newserv.c_str(),0755);
-		setext2flag(newserv.c_str(), false, 0);
 		// Check if it is on the same volume
 		struct stat refst,newst;
-		if (vutil_lstat(refserv,refst)!=-1
-			&& vutil_lstat(newserv,newst)!=1){
+		if (vutil_lstat(refserv.getName().c_str(),refst)!=-1
+		    && vutil_lstat(newserv.getName().c_str(),newst)!=1){
 			if (refst.st_dev != newst.st_dev){
-				fprintf (stderr,"Can't vbuild %s because it is not on the same volume as %s\n"
-					,newserv.c_str(),refserv.c_str());
+			  fprintf (stderr,"Can't vbuild %s because it is not on the same volume as %s\n",
+				   newserv.getName().c_str(),refserv.getName().c_str());
 			}else{
 				stats.nbdir = stats.nblink = stats.nbcopy = stats.nbsymlink = 0;
 				stats.nbspc = 0;
 				stats.size_copy = 0;
-				ret = vbuild_copy (refserv,newserv,refst.st_dev,"",files);
+				ret = vbuild_copy (refserv.getName(),newserv.getName(),refst.st_dev,"",files);
 				if (statistics){
 					printf ("Directory created: %d\n",stats.nbdir);
 					printf ("Files copied     : %d\n",stats.nbcopy);
