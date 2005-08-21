@@ -1,4 +1,4 @@
-// $Id: vutil.cc,v 1.1.4.2 2003/11/18 22:30:44 ensc Exp $
+// $Id: vutil.cc,v 1.5 2004/02/06 17:42:53 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vutil.cc by Jacques Gelinas
@@ -18,13 +18,9 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #pragma implementation
-
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
-#include "compat.h"
-
-#undef PACKAGE
 
 #include <stdio.h>
 #include <errno.h>
@@ -36,9 +32,9 @@
 #include <utime.h>
 #include "vutil.h"
 #include <sys/ioctl.h>
-
 #include "ext2fs.h"
 
+#include <pathconfig.h>
 
 bool testmode;
 int debug;
@@ -216,7 +212,7 @@ int vbuild_file_copy(
 /*
 	Load the list of all packages in a vserver
 */
-void vutil_loadallpkg (string &refserver, list<PACKAGE> &packages)
+void vutil_loadallpkg (Vserver const &refserver, list<Package> &packages)
 {
 	FILE *fin = vutil_execdistcmd (K_PKGVERSION,refserver,NULL);
 	if (fin != NULL){
@@ -224,7 +220,7 @@ void vutil_loadallpkg (string &refserver, list<PACKAGE> &packages)
 		while (fgets(line,sizeof(line)-1,fin)!=NULL){
 			int last = strlen(line)-1;
 			if (last >= 0 && line[last] == '\n') line[last] = '\0';
-			packages.push_back (PACKAGE(line));
+			packages.push_back (Package(line));
 		}
 		pclose (fin);
 	}
@@ -245,10 +241,10 @@ const char K_PKGVERSION[]="pkgversion";
 const char K_DUMPFILES[]="dumpfiles";
 const char K_UNIFILES[]="unifiles";
 
-FILE *vutil_execdistcmd (const char *key, const string &vserver, const char *args)
+FILE *vutil_execdistcmd (const char *key, Vserver const &vserver, const char *args)
 {
-	string cmd = PKGLIBDIR "/distrib-info ";
-	cmd += vserver;
+	string cmd = PKGLIBDIR "/legacy/distrib-info ";
+	cmd += vserver.getName();
 	cmd += " ";
 	cmd += key;
 	if (args != NULL){
@@ -272,4 +268,3 @@ FILE *vutil_execdistcmd (const char *key, const string &vserver, const char *arg
 	}
 	return ret;
 }
-
