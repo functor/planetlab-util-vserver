@@ -39,10 +39,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 //--------------------------------------------------------------------
-#include "linuxcaps.h"
 #include "vserver.h"
+
+#undef CONFIG_VSERVER_LEGACY
 
 /* Null byte made explicit */
 #define NULLBYTE_SIZE                    1
@@ -50,15 +52,33 @@
 /* Base for all vserver roots for chroot */
 #define VSERVER_ROOT_BASE       "/vservers"
 
+static int
+_PERROR(const char *format, char *file, int line, int _errno, ...)
+{
+	va_list ap;
+
+	va_start(ap, _errno);
+	fprintf(stderr, "%s:%d: ", file, line);
+	vfprintf(stderr, format, ap);
+	if (_errno)
+		fprintf(stderr, ": %s (%d)", strerror(_errno), _errno);
+	fputs("\n", stderr);
+	fflush(stderr);
+
+	return _errno;
+}
+
+#define PERROR(format, args...) _PERROR(format, __FILE__, __LINE__, errno, ## args)
+
 /* Change to root:root (before entering new context) */
 static int setuidgid_root()
 {
 	if (setgid(0) < 0) {
-		fprintf(stderr, "setgid error\n");
+		PERROR("setgid(0)");
 		return -1;
 	}
 	if (setuid(0) < 0) {
-		fprintf(stderr, "setuid error\n");
+		PERROR("setuid(0)");
 		return -1;
 	}
 	return 0;
@@ -70,7 +90,7 @@ static void compute_new_root(char *base, char **root, uid_t uid)
 	struct passwd   *pwd;
 
 	if ((pwd = getpwuid(uid)) == NULL) {
-		perror("vserver: getpwuid error ");
+		PERROR("getpwuid(%d)", uid);
 		exit(1);
 	}
 
@@ -79,7 +99,7 @@ static void compute_new_root(char *base, char **root, uid_t uid)
 		strlen(pwd->pw_name)      + NULLBYTE_SIZE;
 	(*root) = (char *)malloc(root_len);
 	if ((*root) == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", root_len);
 		exit(1);
 	}
     
@@ -96,7 +116,7 @@ static int sandbox_file_exists(char *sandbox_root, char *relpath)
 
 	len = strlen(sandbox_root) + strlen(relpath) + NULLBYTE_SIZE;
 	if ((file = (char *)malloc(len)) == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", len);
 		exit(1);
 	}
 	sprintf(file, "%s%s", sandbox_root, relpath);
@@ -120,7 +140,7 @@ static int devpts_mounted(char *sandbox_root)
 	return sandbox_file_exists(sandbox_root, "/dev/pts/0");
 }
 
-static void mount_proc(char *sandbox_root,uid_t uid)
+static void mount_proc(char *sandbox_root)
 {
 	char        *source = "/proc";
 	char        *target;
@@ -128,7 +148,7 @@ static void mount_proc(char *sandbox_root,uid_t uid)
 
 	len = strlen(sandbox_root) + strlen("/") + strlen("proc") + NULLBYTE_SIZE;
 	if ((target = (char *)malloc(len)) == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", len);
 		exit(1);
 	}
 
@@ -148,7 +168,7 @@ static void mount_devpts(char *sandbox_root)
     
 	len = strlen(sandbox_root) + strlen("/") + strlen("dev/pts") + NULLBYTE_SIZE;
 	if ((target = (char *)malloc(len)) == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", len);
 		exit(1);
 	}
 
@@ -165,229 +185,65 @@ static int sandbox_chroot(uid_t uid)
 	char *sandbox_root = NULL;
 
 	compute_new_root(VSERVER_ROOT_BASE,&sandbox_root, uid);
-	mount_proc(sandbox_root,uid);
+	mount_proc(sandbox_root);
 	mount_devpts(sandbox_root);
 	if (chroot(sandbox_root) < 0) {
-		fprintf(stderr,"vserver: chroot error (%s): ",sandbox_root);
-		perror("");
+		PERROR("chroot(%s)", sandbox_root);
 		exit(1);
 	}
 	if (chdir("/") < 0) {
-		perror("vserver: chdir error ");
+		PERROR("chdir(/)");
 		exit(1);
 	}
 	return 0;
 }
 
-#ifndef CAP_CONTEXT
-#  define CAP_CONTEXT	29
-#endif
-
-static struct {
-	const char *option;
-	int bit;
-}tbcap[]={
-	// The following capabilities are normally available
-	// to vservers administrator, but are place for
-	// completeness
-	{"CAP_CHOWN",CAP_CHOWN},
-	{"CAP_DAC_OVERRIDE",CAP_DAC_OVERRIDE},
-	{"CAP_DAC_READ_SEARCH",CAP_DAC_READ_SEARCH},
-	{"CAP_FOWNER",CAP_FOWNER},
-	{"CAP_FSETID",CAP_FSETID},
-	{"CAP_KILL",CAP_KILL},
-	{"CAP_SETGID",CAP_SETGID},
-	{"CAP_SETUID",CAP_SETUID},
-	{"CAP_SETPCAP",CAP_SETPCAP},
-	{"CAP_SYS_TTY_CONFIG",CAP_SYS_TTY_CONFIG},
-	{"CAP_LEASE",CAP_LEASE},
-	{"CAP_SYS_CHROOT",CAP_SYS_CHROOT},
-
-	// Those capabilities are not normally available
-	// to vservers because they are not needed and
-	// may represent a security risk
-	{"CAP_LINUX_IMMUTABLE",CAP_LINUX_IMMUTABLE},
-	{"CAP_NET_BIND_SERVICE",CAP_NET_BIND_SERVICE},
-	{"CAP_NET_BROADCAST",CAP_NET_BROADCAST},
-	{"CAP_NET_ADMIN",	CAP_NET_ADMIN},
-	{"CAP_NET_RAW",	CAP_NET_RAW},
-	{"CAP_IPC_LOCK",	CAP_IPC_LOCK},
-	{"CAP_IPC_OWNER",	CAP_IPC_OWNER},
-	{"CAP_SYS_MODULE",CAP_SYS_MODULE},
-	{"CAP_SYS_RAWIO",	CAP_SYS_RAWIO},
-	{"CAP_SYS_PACCT",	CAP_SYS_PACCT},
-	{"CAP_SYS_ADMIN",	CAP_SYS_ADMIN},
-	{"CAP_SYS_BOOT",	CAP_SYS_BOOT},
-	{"CAP_SYS_NICE",	CAP_SYS_NICE},
-	{"CAP_SYS_RESOURCE",CAP_SYS_RESOURCE},
-	{"CAP_SYS_TIME",	CAP_SYS_TIME},
-	{"CAP_MKNOD",		CAP_MKNOD},
-	{"CAP_CONTEXT",		CAP_CONTEXT},
-	{NULL,0}
-};
-
-#define VSERVERCONF "/etc/vservers/"
-static unsigned get_remove_cap(char *name) {
-	FILE     *fb;
-	unsigned remove_cap;
-
-	char *vserverconf;
-	int vserverconflen;
-
-	remove_cap = /* NOTE: keep in sync with chcontext.c */
-		(1<<CAP_LINUX_IMMUTABLE)|
-		(1<<CAP_NET_BIND_SERVICE)|
-		(1<<CAP_NET_BROADCAST)|
-		(1<<CAP_NET_ADMIN)|
-		(1<<CAP_NET_RAW)|
-		(1<<CAP_IPC_LOCK)|
-		(1<<CAP_IPC_OWNER)|
-		(1<<CAP_SYS_MODULE)|
-		(1<<CAP_SYS_RAWIO)|
-		(1<<CAP_SYS_PACCT)|
-		(1<<CAP_SYS_ADMIN)|
-		(1<<CAP_SYS_BOOT)|
-		(1<<CAP_SYS_NICE)|
-		(1<<CAP_SYS_RESOURCE)|
-		(1<<CAP_SYS_TIME)|
-		(1<<CAP_MKNOD)|
-		(1<<CAP_CONTEXT)|
-		0
-		;
-
-	/*
-	 * find out which capabilities to put back in by reading the conf file 
-	 */
-
-	/* construct the pathname to the conf file */
-	vserverconflen = strlen(VSERVERCONF) + strlen(name) + strlen(".conf") + NULLBYTE_SIZE;
-	vserverconf    = (char *)malloc(vserverconflen);	
-	sprintf(vserverconf, "%s%s.conf", VSERVERCONF, name);
-	
-	/* open the conf file for reading */
-	fb = fopen(vserverconf,"r");
-	if (fb != NULL) {
-		unsigned cap;
-		size_t index;
-		size_t len;
-		char buffer[1000], *p;
-
-		/* the conf file file exist */ 
-		while((p=fgets(buffer,sizeof(buffer)-1,fb))!=NULL) {
-
-			/* walk past leading spaces */
-			index = 0;
-			len = strnlen(buffer,sizeof(buffer)-1);
-			while(isspace((int)buffer[index])) {
-				if (index < len) {
-					index++;
-				} else {
-					goto out;
-				}
-			}
-
-			if (buffer[index] == '#') continue;
-				
-			/* check if it is the S_CAPS */
-			if ((p=strstr(&buffer[index],"S_CAPS"))!=NULL) {
-				int j;
-				cap = 0;
-
-				/* what follows is a bunch of error
-				   checking to parse the S_CAPS="..."
-				   string */
-
-				/* adjust index into buffer */
-				index+= (p-&buffer[index])+strlen("S_CAPS");
-
-				/* skip over whitespace */
-				while(isspace((int)buffer[index])) {
-					if (index < len) {
-						index++;
-					} else {
-					/* parse error */
-						goto out;
-					}
-				}
-
-				/* expecting to see = sign */
-				if (buffer[index++]!='=') {
-					/* parse error */
-					goto out;
-				}
-
-				/* skip over whitespace */
-				while(isspace((int)buffer[index])) {
-					if (index < len) {
-						index++;
-					} else {
-						/* parse error */
-						goto out;
-					}
-				}
-
-				/* expecting to see the opening " */
-				if (buffer[index]!='"') {
-					/* parse error */
-					goto out;
-				}
-
-				/* check to see that we are still within bounds */
-				if (index < len) {
-					index++;
-				} else {
-					/* parse error */
-					goto out;
-				}
-
-				/* search for the closing " */
-				if((p=strstr(&buffer[index],"\""))==NULL) {
-					/* parse error */
-					goto out;
-				}
-
-				/* ok... we should now have a bunch of
-				   CAP keys words within the quotes */
-
-				for (j=0; tbcap[j].option != NULL; j++){
-					if ((p=strstr(buffer,tbcap[j].option))!=NULL){
-						len = strlen(tbcap[j].option);
-						if (((isspace(*(p-1))) || (*(p-1)=='"')) &&
-						    ((isspace(*(p+len))) || (*(p+len)=='"'))) {
-							cap |= (1<<tbcap[j].bit);
-						} else {
-							/* parse error */
-							goto out;
-						}
-					}
-				}
-				remove_cap &= ~cap;
-				break;
-			}
-		}
- out:
-		/* close the conf file */
-		fclose(fb);
-	}
-	return remove_cap;
-}
-
-static int sandbox_processes(uid_t uid, unsigned remove_cap)
+static int sandbox_processes(xid_t xid)
 {
-	int      context;
-	int      flags;
-
-	/* Unique context */
-	context = uid;
+#ifdef CONFIG_VSERVER_LEGACY
+	int	flags;
 
 	flags = 0;
 	flags |= 1; /* VX_INFO_LOCK -- cannot request a new vx_id */
 	/* flags |= 4; VX_INFO_NPROC -- limit number of procs in a context */
 
-	if (vc_new_s_context(context,remove_cap,flags) < 0) {
-		perror("vserver: new_s_context error ");
+	(void) vc_new_s_context(xid, 0, flags);
+
+	/* use legacy dirty hack for capremove */
+	if (vc_new_s_context(VC_SAMECTX, vc_get_insecurebcaps(), flags) == VC_NOCTX) {
+		PERROR("vc_new_s_context(%u, 0x%16ullx, 0x%08x)",
+		       VC_SAMECTX, vc_get_insecurebcaps(), flags);
 		exit(1);
 	}
+#else
+	struct vc_ctx_caps caps;
+	struct vc_ctx_flags flags;
+
+	caps.ccaps = ~vc_get_insecureccaps();
+	caps.cmask = ~0ull;
+	caps.bcaps = ~vc_get_insecurebcaps();
+	caps.bmask = ~0ull;
+
+	flags.flagword = VC_VXF_INFO_LOCK;
+	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
+
+	if (vc_ctx_create(xid) == VC_NOCTX) {
+		PERROR("vc_ctx_create(%d)", xid);
+		exit(1);
+	}
+
+	if (vc_set_ccaps(xid, &caps) == -1) {
+		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)\n",
+		       xid, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
+		exit(1);
+	}
+
+	if (vc_set_cflags(xid, &flags) == -1) {
+		PERROR("vc_set_cflags(%d, 0x%16llx/0x%16llx)\n",
+		       xid, flags.flagword, flags.mask);
+		exit(1);
+	}
+#endif
 	return 0;
 }
 
@@ -404,34 +260,34 @@ void runas_slice_user(char *username)
 
 	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
 	if (pwdBuffer_len == -1) {
-		perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+		PERROR("sysconf(_SC_GETPW_R_SIZE_MAX)");
 		exit(1);
 	}
 
 	pwdBuffer = (char*)malloc(pwdBuffer_len);
 	if (pwdBuffer == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", pwdBuffer_len);
 		exit(1);
 	}
 
 	errno = 0;
 	if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
-		perror("vserver: getpwnam error ");
+		PERROR("getpwnam_r(%s)", username);
 		exit(1);
 	}
 
 	if (setgid(pwd->pw_gid) < 0) {
-		perror("vserver: setgid error ");
+		PERROR("setgid(%d)", pwd->pw_gid);
 		exit(1);
 	}
 
 	if (setuid(pwd->pw_uid) < 0) {
-		perror("vserver: setuid error ");
+		PERROR("setuid(%d)", pwd->pw_uid);
 		exit(1);
 	}
 
 	if (chdir(pwd->pw_dir) < 0) {
-		perror("vserver: chdir error ");
+		PERROR("chdir(%s)", pwd->pw_dir);
 		exit(1);
 	}
 
@@ -453,7 +309,7 @@ void runas_slice_user(char *username)
 	    (mail_env    == NULL)  ||
 	    (shell_env   == NULL)  ||
 	    (user_env    == NULL)) {
-		perror("vserver: malloc error ");
+		PERROR("malloc");
 		exit(1);
 	}
 
@@ -481,7 +337,7 @@ void runas_slice_user(char *username)
 	    (putenv(mail_env)    < 0) ||
 	    (putenv(shell_env)   < 0) ||
 	    (putenv(user_env)    < 0)) {
-		perror("vserver: putenv error ");
+		PERROR("vserver: putenv error ");
 		exit(1);
 	}
 }
@@ -496,45 +352,43 @@ void slice_enter(char *context)
 
 	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
 	if (pwdBuffer_len == -1) {
-		perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+		PERROR("sysconf(_SC_GETPW_R_SIZE_MAX)");
 		exit(1);
 	}
 
 	pwdBuffer = (char*)malloc(pwdBuffer_len);
 	if (pwdBuffer == NULL) {
-		perror("vserver: malloc error ");
+		PERROR("malloc(%d)", pwdBuffer_len);
 		exit(1);
 	}
 
 	errno = 0;
 	if ((getpwnam_r(context,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
-		fprintf(stderr,"vserver: getpwname(%s) failed",context);
-		perror("");
+		PERROR("getpwnam_r(%s)", context);
 		exit(2);
 	}
 
 	context = (char*)malloc(strlen(pwd->pw_name)+NULLBYTE_SIZE);
 	if (!context) {
-		perror("vserver: malloc failed");
+		PERROR("malloc(%d)");
 		exit(2);
 	}
 	strcpy(context,pwd->pw_name);
 
 	if (setuidgid_root() < 0) { /* For chroot, new_s_context */
-		fprintf(stderr,"vserver: Could not setuid/setguid to root:root\n");
+		fprintf(stderr, "vsh: Could not become root, check that SUID flag is set on binary\n");
 		exit(2);
 	}
-
-	remove_cap = get_remove_cap(context);
 
 	uid = pwd->pw_uid;
+
 	if (sandbox_chroot(uid) < 0) {
-		fprintf(stderr, "vserver: Could not chroot to vserver root\n");
+		fprintf(stderr, "vsh: Could not chroot\n");
 		exit(2);
 	}
 
-	if (sandbox_processes(uid, remove_cap) < 0) {
-		fprintf(stderr, "vserver: Could not sandbox processes in vserver\n");
+	if (sandbox_processes((xid_t) uid) < 0) {
+		fprintf(stderr, "vsh: Could not change context to %d\n", uid);
 		exit(2);
 	}
 }
@@ -566,13 +420,13 @@ int main(int argc, char **argv)
 
     uid = getuid();
     if ((pwd = getpwuid(uid)) == NULL) {
-      fprintf(stderr,"vsh: getpwnam error failed for %d\n",uid); 
+      PERROR("getpwuid(%d)", uid);
       exit(1);
     }
 
     context = (char*)strdup(pwd->pw_name);
     if (!context) {
-      perror("vsh: strdup failed");
+      PERROR("strdup");
       exit(2);
     }
 
@@ -592,18 +446,18 @@ int main(int argc, char **argv)
 
     pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (pwdBuffer_len == -1) {
-	    perror("vserver: _SC_GETPW_R_SIZE_MAX not defined ");
+	    PERROR("sysconf(_SC_GETPW_R_SIZE_MAX");
 	    exit(1);
     }
     pwdBuffer = (char*)malloc(pwdBuffer_len);
     if (pwdBuffer == NULL) {
-	    perror("vserver: malloc error ");
+	    PERROR("malloc(%d)", pwdBuffer_len);
 	    exit(1);
     }
 
     errno = 0;
     if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
-        fprintf(stderr,"vsh: getpwnam error failed for %s\n",username); 
+        PERROR("getpwnam_r(%s)", username);
         exit(1);
     }
 
@@ -614,7 +468,7 @@ int main(int argc, char **argv)
 
     shell = (char *)strdup(pwd->pw_shell);
     if (!shell) {
-      perror("vsh: strdup failed");
+      PERROR("strdup");
       exit(2);
     }
 
@@ -626,7 +480,8 @@ int main(int argc, char **argv)
       char **args;
       args = (char**)malloc(sizeof(char*)*(argc+2));
       if (!args) {
-	perror("vsh: malloc failed");
+	PERROR("malloc(%d)", sizeof(char*)*(argc+2));
+	exit(1);
       }
       args[0] = argv[0];
       args[1] = "-l";
