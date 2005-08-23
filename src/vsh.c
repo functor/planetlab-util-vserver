@@ -227,7 +227,7 @@ static int sandbox_processes(xid_t xid)
 	flags.flagword = VC_VXF_INFO_LOCK;
 	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
 
-	if (vc_ctx_create(xid) == VC_NOCTX) {
+	if ((vc_ctx_create(xid) == VC_NOCTX) && (errno != EEXIST)) {
 		PERROR("vc_ctx_create(%d)", xid);
 		exit(1);
 	}
