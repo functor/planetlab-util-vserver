@@ -30,7 +30,7 @@ URL: http://cvs.planet-lab.org/cvs/util-vserver
 Summary:	Linux virtual server utilities
 Name:		util-vserver
 Version:	0.30.208
-Release:	%release_func 0
+Release:	%{release}
 License:	GPL
 Group:		System Environment/Base
 #URL:		http://savannah.nongnu.org/projects/util-vserver/
