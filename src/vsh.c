@@ -198,7 +198,75 @@ static int sandbox_chroot(uid_t uid)
 	return 0;
 }
 
-static int sandbox_processes(xid_t xid)
+#define WHITESPACE(buffer,index,len)     \
+  while(isspace((int)buffer[index])) \
+	if (index < len) index++; else goto out;
+
+struct resources {
+	char *name;
+	int *limit;
+};
+
+#define VSERVERCONF "/etc/vservers/"
+static void get_limits(char *context, int *cpu, int *mem, int *task) {
+	FILE *fb;
+	size_t len = strlen(VSERVERCONF) + strlen(context) + strlen(".conf") + NULLBYTE_SIZE;
+	char *conf = (char *)malloc(len);	
+	struct resources list[] = 
+		{{"MEMLIMIT", mem},
+		 {"CPULIMIT", cpu},
+		 {"TASKLIMIT", task},
+		 {0,0}};
+	struct resources *r;
+
+	sprintf(conf, "%s%s.conf", VSERVERCONF, context);
+
+	/* open the conf file for reading */
+	fb = fopen(conf,"r");
+	if (fb != NULL) {
+		size_t index;
+		char *buffer = malloc(1000);
+		char *p;
+
+		/* the conf file exist */ 
+		while((p=fgets(buffer,1000-1,fb))!=NULL) {
+			index = 0;
+			len = strnlen(buffer,1000);
+			WHITESPACE(buffer,index,len);
+			if (buffer[index] == '#') 
+				continue;
+
+			for (r=list; r->name; r++)
+				if ((p=strstr(&buffer[index],r->name))!=NULL) {
+					/* adjust index into buffer */
+					index+= (p-&buffer[index])+strlen(r->name);
+
+					/* skip over whitespace */
+					WHITESPACE(buffer,index,len);
+
+					/* expecting to see = sign */
+					if (buffer[index++]!='=') goto out;
+
+					/* skip over whitespace */
+					WHITESPACE(buffer,index,len);
+
+					/* expecting to see a digit for number */
+					if (!isdigit((int)buffer[index])) goto out;
+
+					*r->limit = atoi(&buffer[index]);
+					break;
+				}
+		}
+	out:
+		free(buffer);
+	} else {
+		fprintf(stderr,"cannot open %s\n",conf);
+	}
+	free(conf);
+}
+
+
+static int sandbox_processes(xid_t xid, char *context)
 {
 #ifdef CONFIG_VSERVER_LEGACY
 	int	flags;
@@ -218,6 +286,11 @@ static int sandbox_processes(xid_t xid)
 #else
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
+	int cpu = VC_LIM_KEEP;
+	int mem = VC_LIM_KEEP;
+	int task = VC_LIM_KEEP;
+	get_limits(context,&cpu, &mem, &task);
+	(void) (sandbox_chroot(xid));
 
 	caps.ccaps = ~vc_get_insecureccaps();
 	caps.cmask = ~0ull;
@@ -227,11 +300,35 @@ static int sandbox_processes(xid_t xid)
 	flags.flagword = VC_VXF_INFO_LOCK;
 	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
 
+	errno = 0;
 	if ((vc_ctx_create(xid) == VC_NOCTX) && (errno != EEXIST)) {
 		PERROR("vc_ctx_create(%d)", xid);
 		exit(1);
 	}
 
+	if (errno != EEXIST) {
+		struct vc_rlimit limits;
+		/* The context did not exist before, which requires that we set the various limit */
+
+		/* CPU    */
+		/* not yet */
+
+		/* MEM    */
+		limits.min  = VC_LIM_KEEP;
+		limits.soft = VC_LIM_KEEP;
+		limits.hard = mem;
+		if (vc_set_rlimit(xid, 5, &limits)) {
+		}
+	
+		/* TASK   */
+		limits.min  = VC_LIM_KEEP;
+		limits.soft = VC_LIM_KEEP;
+		limits.hard = task;
+		if (vc_set_rlimit(xid, 6, &limits)) {
+			/* setting limit failed */
+		}
+	}
+	
 	if (vc_set_ccaps(xid, &caps) == -1) {
 		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)\n",
 		       xid, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
@@ -347,7 +444,6 @@ void slice_enter(char *context)
 	struct passwd pwdd, *pwd = &pwdd, *result;
 	char          *pwdBuffer;
 	long          pwdBuffer_len;
-	unsigned remove_cap;
 	uid_t uid;
 
 	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
@@ -367,27 +463,18 @@ void slice_enter(char *context)
 		PERROR("getpwnam_r(%s)", context);
 		exit(2);
 	}
-
-	context = (char*)malloc(strlen(pwd->pw_name)+NULLBYTE_SIZE);
-	if (!context) {
-		PERROR("malloc(%d)");
-		exit(2);
-	}
-	strcpy(context,pwd->pw_name);
+	uid = pwd->pw_uid;
 
 	if (setuidgid_root() < 0) { /* For chroot, new_s_context */
 		fprintf(stderr, "vsh: Could not become root, check that SUID flag is set on binary\n");
 		exit(2);
 	}
 
-	uid = pwd->pw_uid;
+#ifdef CONFIG_VSERVER_LEGACY
+	(void) (sandbox_chroot(uid));
+#endif
 
-	if (sandbox_chroot(uid) < 0) {
-		fprintf(stderr, "vsh: Could not chroot\n");
-		exit(2);
-	}
-
-	if (sandbox_processes((xid_t) uid) < 0) {
+	if (sandbox_processes((xid_t) uid, context) < 0) {
 		fprintf(stderr, "vsh: Could not change context to %d\n", uid);
 		exit(2);
 	}
