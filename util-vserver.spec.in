@@ -200,6 +200,7 @@ automake --add-missing
 %__make %{?_smp_mflags} all
 %__make %{?_smp_mflags} doc
 
+%__make -C python
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -211,14 +212,12 @@ MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
-%if 0
-# build python bindings
-%__make -C python INSTALL_ROOT=$RPM_BUILD_ROOT install
-%endif
+# install python bindings
+%__make -C python DESTDIR="$RPM_BUILD_ROOT" install
 
 
 %check || :
-%__make check
+#%__make check
 
 
 %clean

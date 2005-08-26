@@ -99,12 +99,12 @@ Group:			Development/Libraries
 Requires:		pkgconfig
 Requires:		%name-lib = %version-%release
 
-%if 0
-%package py23
+%package python
 Summary:		Python modules for manipulating vservers
 Group:			Applications/System
-Requires:		python %pkglibdir/util-vserver-vars util-python
-%endif
+Requires:		python util-python
+# Backward compatibility
+Provides:		util-vserver-py23
 
 
 %description
@@ -180,12 +180,10 @@ This package contains header files and libraries which are needed to
 develop VServer related applications.
 
 
-%if 0
-%description py23
+%description python
 Python modules for manipulating vservers.  Provides a superset of the
 functionality of the vserver script (at least will do in the future),
 but more readily accessible from Python code.
-%endif
 
 
 %prep
@@ -202,6 +200,7 @@ automake --add-missing
 %__make %{?_smp_mflags} all
 %__make %{?_smp_mflags} doc
 
+%__make -C python
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -213,14 +212,12 @@ MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
-%if 0
-# build python bindings
-%__make -C python INSTALL_ROOT=$RPM_BUILD_ROOT install
-%endif
+# install python bindings
+%__make -C python DESTDIR="$RPM_BUILD_ROOT" install
 
 
 %check || :
-%__make check
+#%__make check
 
 
 %clean
@@ -379,22 +376,15 @@ done
 %doc lib/apidoc/html
 
 
-%if 0
-%files py23
+%files python
 %defattr(0644,root,root)
-/usr/lib/python2.3/site-packages/bwlimit.py
-/usr/lib/python2.3/site-packages/bwlimit.pyc
-/usr/lib/python2.3/site-packages/cpulimit.py
-/usr/lib/python2.3/site-packages/cpulimit.pyc
-/usr/lib/python2.3/site-packages/util_vserver_vars.py
-/usr/lib/python2.3/site-packages/vduimpl.so
-/usr/lib/python2.3/site-packages/vserver.py
-/usr/lib/python2.3/site-packages/vserver.pyc
-/usr/lib/python2.3/site-packages/vserverimpl.so
-%endif
+%_libdir/python2.3/site-packages/*
 
 
 %changelog
+* Thu Aug 21 2005 Mark Huang <mlhuang@cs.princeton.edu>
+- restore build of python modules
+
 * Sat Aug 20 2005 Mark Huang <mlhuang@cs.princeton.edu>
 - upgrade to util-vserver-0.30.208
 - forward-port vbuild and legacy support until we can find a suitable
