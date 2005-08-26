@@ -247,7 +247,6 @@ install-exec-hook:
 	cd $(DESTDIR)/bin && $(LN_S) ../$(sbindir)/vsh
 
 install-data-hook:
-	cd $(DESTDIR)$(sysvdir) && $(LN_S) vservers vserver-init
 	install -D -m 644 scripts/vcached.logrotate $(DESTDIR)/$(sysconfdir)/logrotate.d/vcached
 	install -D -m 644 scripts/vcached.cron $(DESTDIR)/$(sysconfdir)/cron.d/vcached
 
