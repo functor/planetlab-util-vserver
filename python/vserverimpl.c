@@ -153,21 +153,6 @@ vserver_setsched(PyObject *self, PyObject *args)
 #define VCMD_set_dlimit		VC_CMD(DLIMIT, 5, 0)
 #define VCMD_get_dlimit		VC_CMD(DLIMIT, 6, 0)
 
-struct  vcmd_ctx_dlimit_base_v0 {
-	char *name;
-	uint32_t flags;
-};
-
-struct  vcmd_ctx_dlimit_v0 {
-	char *name;
-	uint32_t space_used;			/* used space in kbytes */
-	uint32_t space_total;			/* maximum space in kbytes */
-	uint32_t inodes_used;			/* used inodes */
-	uint32_t inodes_total;			/* maximum inodes */
-	uint32_t reserved;			/* reserved for root in % */
-	uint32_t flags;
-};
-
 #define CDLIM_UNSET             (0ULL)
 #define CDLIM_INFINITY          (~0ULL)
 #define CDLIM_KEEP              (~1ULL)
