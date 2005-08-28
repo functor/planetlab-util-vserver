@@ -83,10 +83,10 @@ class VServer:
 
     def __do_chroot(self):
 
-        return os.chroot("%s/%s" % (__DEFAULT_VSERVERDIR, self.name))
+        return os.chroot("%s/%s" % (DEFAULT_VSERVERDIR, self.name))
 
     def set_disklimit(self, blocktotal):
-        path = "%s/%s" % (__DEFAULT_VSERVERDIR, self.name)
+        path = "%s/%s" % (DEFAULT_VSERVERDIR, self.name)
         inodes, blockcount, size = vduimpl.vdu(path)
         blockcount = blockcount >> 1
 
@@ -98,7 +98,7 @@ class VServer:
             print "block limit (%d) ignored for vserver %s" %(blocktotal,self.name)
 
     def get_disklimit(self):
-        path = "%s/%s" % (__DEFAULT_VSERVERDIR, self.name)
+        path = "%s/%s" % (DEFAULT_VSERVERDIR, self.name)
         try:
             blocksused, blocktotal, inodesused, inodestotal, reserved = \
                         vserverimpl.getdlimit(path,self.ctx)
