@@ -103,8 +103,7 @@ Requires:		%name-lib = %version-%release
 Summary:		Python modules for manipulating vservers
 Group:			Applications/System
 Requires:		python util-python
-# Backward compatibility
-Provides:		util-vserver-py23
+Obsoletes:		util-vserver-py23
 
 
 %description
