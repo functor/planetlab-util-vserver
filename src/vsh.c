@@ -37,6 +37,7 @@
 #include <sys/mount.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/resource.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -284,8 +285,10 @@ static int sandbox_processes(xid_t xid, char *context)
 		exit(1);
 	}
 #else
+	struct vc_rlimit limits;
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
+	int ctx;
 	int cpu = VC_LIM_KEEP;
 	int mem = VC_LIM_KEEP;
 	int task = VC_LIM_KEEP;
@@ -300,44 +303,52 @@ static int sandbox_processes(xid_t xid, char *context)
 	flags.flagword = VC_VXF_INFO_LOCK;
 	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
 
-	errno = 0;
-	if ((vc_ctx_create(xid) == VC_NOCTX) && (errno != EEXIST)) {
+ 	ctx = vc_ctx_create(xid); 
+	if (ctx == VC_NOCTX && errno != EEXIST) {
 		PERROR("vc_ctx_create(%d)", xid);
 		exit(1);
 	}
 
-	if (errno != EEXIST) {
-		struct vc_rlimit limits;
-		/* The context did not exist before, which requires that we set the various limit */
+	/* (re)set the various limits on the (possibly new) context */
 
-		/* CPU    */
-		/* not yet */
+	/* CPU    */
+	/* not yet */
 
-		/* MEM    */
-		limits.min  = VC_LIM_KEEP;
-		limits.soft = VC_LIM_KEEP;
-		limits.hard = mem;
-		if (vc_set_rlimit(xid, 5, &limits)) {
-		}
+	/* MEM    */
+	limits.min  = VC_LIM_KEEP;
+	limits.soft = VC_LIM_KEEP;
+	limits.hard = mem;
+	if (vc_set_rlimit(xid, RLIMIT_RSS, &limits)) {
+		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
+		       xid, RLIMIT_RSS, limits.min, limits.soft, limits.hard);
+		exit(1);
+	}
 	
-		/* TASK   */
-		limits.min  = VC_LIM_KEEP;
-		limits.soft = VC_LIM_KEEP;
-		limits.hard = task;
-		if (vc_set_rlimit(xid, 6, &limits)) {
-			/* setting limit failed */
-		}
+	/* TASK   */
+	limits.min  = VC_LIM_KEEP;
+	limits.soft = VC_LIM_KEEP;
+	limits.hard = task;
+	if (vc_set_rlimit(xid, RLIMIT_NPROC, &limits)) {
+		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
+		       xid, RLIMIT_NPROC, limits.min, limits.soft, limits.hard);
+		exit(1);
 	}
 	
 	if (vc_set_ccaps(xid, &caps) == -1) {
-		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)\n",
+		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)",
 		       xid, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
 		exit(1);
 	}
 
 	if (vc_set_cflags(xid, &flags) == -1) {
-		PERROR("vc_set_cflags(%d, 0x%16llx/0x%16llx)\n",
+		PERROR("vc_set_cflags(%d, 0x%16llx/0x%16llx)",
 		       xid, flags.flagword, flags.mask);
+		exit(1);
+	}
+
+	/* context already exists, migrate to it */
+	if (ctx == VC_NOCTX && vc_ctx_migrate(xid) == -1) {
+		PERROR("vc_ctx_migrate(%d)", xid);
 		exit(1);
 	}
 #endif
