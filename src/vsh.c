@@ -209,15 +209,10 @@ struct resources {
 };
 
 #define VSERVERCONF "/etc/vservers/"
-static void get_limits(char *context, unsigned long long *cpu, unsigned long long *mem, unsigned long long *task) {
+static void get_limits(char *context, struct resources *list){
 	FILE *fb;
 	size_t len = strlen(VSERVERCONF) + strlen(context) + strlen(".conf") + NULLBYTE_SIZE;
 	char *conf = (char *)malloc(len);	
-	struct resources list[] = 
-		{{"MEMLIMIT", mem},
-		 {"CPULIMIT", cpu},
-		 {"TASKLIMIT", task},
-		 {0,0}};
 	struct resources *r;
 
 	sprintf(conf, "%s%s.conf", VSERVERCONF, context);
@@ -293,7 +288,15 @@ static int sandbox_processes(xid_t xid, char *context)
 	unsigned long long cpu = VC_LIM_KEEP;
 	unsigned long long mem = VC_LIM_KEEP;
 	unsigned long long task = VC_LIM_KEEP;
-	get_limits(context,&cpu, &mem, &task);
+	unsigned long long cpuguaranteed = 0;
+	struct resources list[] = 
+		{{"MEMLIMIT", &mem},
+		 {"CPULIMIT", &cpu},
+		 {"CPUGUARANTEED", &cpuguaranteed},
+		 {"TASKLIMIT", &task},
+		 {0,0}};
+
+	get_limits(context,list);
 	(void) (sandbox_chroot(xid));
 
 	caps.ccaps = ~vc_get_insecureccaps();
@@ -321,8 +324,12 @@ static int sandbox_processes(xid_t xid, char *context)
 		 * configuration.
 		 */
 #define VC_VXF_SCHED_SHARE       0x00000800ull
-		flags.flagword |= VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE;
-		flags.mask |= VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE;
+		flags.flagword |= VC_VXF_SCHED_HARD;
+		flags.mask |= VC_VXF_SCHED_HARD;
+		if (cpuguaranteed) {
+			flags.flagword |= VC_VXF_SCHED_SHARE;
+			flags.mask |= VC_VXF_SCHED_SHARE;
+		}
 
 		/* CPULIMIT value from /etc/vservers/xyz.conf */
 		sched.fill_rate = cpu;
