@@ -205,11 +205,11 @@ static int sandbox_chroot(uid_t uid)
 
 struct resources {
 	char *name;
-	int *limit;
+	unsigned long long *limit;
 };
 
 #define VSERVERCONF "/etc/vservers/"
-static void get_limits(char *context, int *cpu, int *mem, int *task) {
+static void get_limits(char *context, unsigned long long *cpu, unsigned long long *mem, unsigned long long *task) {
 	FILE *fb;
 	size_t len = strlen(VSERVERCONF) + strlen(context) + strlen(".conf") + NULLBYTE_SIZE;
 	char *conf = (char *)malloc(len);	
@@ -288,10 +288,11 @@ static int sandbox_processes(xid_t xid, char *context)
 	struct vc_rlimit limits;
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
-	int ctx;
-	int cpu = VC_LIM_KEEP;
-	int mem = VC_LIM_KEEP;
-	int task = VC_LIM_KEEP;
+
+	xid_t ctx;
+	unsigned long long cpu = VC_LIM_KEEP;
+	unsigned long long mem = VC_LIM_KEEP;
+	unsigned long long task = VC_LIM_KEEP;
 	get_limits(context,&cpu, &mem, &task);
 	(void) (sandbox_chroot(xid));
 
@@ -303,16 +304,49 @@ static int sandbox_processes(xid_t xid, char *context)
 	flags.flagword = VC_VXF_INFO_LOCK;
 	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
 
- 	ctx = vc_ctx_create(xid); 
+	ctx = vc_ctx_create(xid);
 	if (ctx == VC_NOCTX && errno != EEXIST) {
 		PERROR("vc_ctx_create(%d)", xid);
 		exit(1);
 	}
 
-	/* (re)set the various limits on the (possibly new) context */
-
 	/* CPU    */
-	/* not yet */
+	if (cpu != VC_LIM_KEEP) {
+		struct vc_set_sched sched = {
+			.set_mask = 0
+		};
+
+		/* Need to distinguish between guarantee (hard) and
+		 * best effort (share) from the vserver
+		 * configuration.
+		 */
+#define VC_VXF_SCHED_SHARE       0x00000800ull
+		flags.flagword |= VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE;
+		flags.mask |= VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE;
+
+		/* CPULIMIT value from /etc/vservers/xyz.conf */
+		sched.fill_rate = cpu;
+		sched.set_mask |= VC_VXSM_FILL_RATE;
+
+		sched.interval  = 1000; /* Andy's default value */
+		sched.set_mask |= VC_VXSM_INTERVAL;
+
+		/* set base token value for new contexts */
+		if (ctx != VC_NOCTX) {
+			sched.tokens = 100; /* Andy's default value */
+			sched.set_mask |= VC_VXSM_TOKENS;
+		}
+
+		sched.tokens_min = 50; /* Andy's default value */
+		sched.tokens_max = 100; /* Andy's default value */
+		sched.set_mask |= VC_VXSM_TOKENS_MIN;
+		sched.set_mask |= VC_VXSM_TOKENS_MAX;
+
+		if (vc_set_sched(xid, &sched)==-1) {
+			PERROR("vc_set_sched()");
+			exit(1);
+		}
+	}
 
 	/* MEM    */
 	limits.min  = VC_LIM_KEEP;
