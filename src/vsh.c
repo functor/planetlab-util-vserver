@@ -326,7 +326,7 @@ static int sandbox_processes(xid_t xid, char *context)
 #define VC_VXF_SCHED_SHARE       0x00000800ull
 		flags.flagword |= VC_VXF_SCHED_HARD;
 		flags.mask |= VC_VXF_SCHED_HARD;
-		if (cpuguaranteed) {
+		if (cpuguaranteed==0) {
 			flags.flagword |= VC_VXF_SCHED_SHARE;
 			flags.mask |= VC_VXF_SCHED_SHARE;
 		}
