@@ -135,3 +135,5 @@ WORKAROUND_106057=1
 # %_dbpath variable therefore
 # http://distro2.conectiva.com.br/pipermail/apt-rpm/2003-October/001985.html
 WORKAROUND_APT_DBPATH=1
+# XXX Backward compatibility
+VROOTDIR=$__DEFAULT_VSERVERDIR
