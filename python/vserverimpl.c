@@ -58,16 +58,40 @@ POSSIBILITY OF SUCH DAMAGE.
 static PyObject *
 vserver_chcontext(PyObject *self, PyObject *args)
 {
-  unsigned  xid;
-  unsigned  caps_remove = 0;
+	struct vc_ctx_caps caps;
+	struct vc_ctx_flags flags;
+	xid_t ctx;
 
-  if (!PyArg_ParseTuple(args, "I|I", &xid, &caps_remove))
-    return NULL;
+	caps.ccaps = ~vc_get_insecureccaps();
+	caps.cmask = ~0ull;
+	caps.bcaps = ~vc_get_insecurebcaps();
+	caps.bmask = ~0ull;
 
-  if (vc_new_s_context(xid, caps_remove, 0) < 0)
-    return PyErr_SetFromErrno(PyExc_OSError);
+	flags.flagword = VC_VXF_INFO_LOCK;
+	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
 
-  return Py_None;
+	if (!PyArg_ParseTuple(args, "I", &ctx))
+		return NULL;
+
+	ctx = vc_ctx_create(ctx);
+	if (ctx == VC_NOCTX && errno != EEXIST) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
+
+	if (vc_set_ccaps(ctx, &caps) == -1) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
+
+	if (vc_set_cflags(ctx, &flags) == -1) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
+
+	/* context already exists, migrate to it */
+	if (ctx == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
+
+	return Py_None;
 }
 
 static PyObject *
@@ -122,23 +146,40 @@ vserver_get_rlimit(PyObject *self, PyObject *args) {
 static PyObject *
 vserver_setsched(PyObject *self, PyObject *args)
 {
-  unsigned  xid;
+  xid_t  xid;
   struct vc_set_sched sched;
+  struct vc_ctx_flags flags;
+  unsigned cpuguaranteed = 0;
 
   sched.set_mask = (VC_VXSM_FILL_RATE | 
 		    VC_VXSM_INTERVAL | 
 		    VC_VXSM_TOKENS_MIN | 
 		    VC_VXSM_TOKENS_MAX);
 
-  if (!PyArg_ParseTuple(args, "I|I|I|I|I", &xid, 
+  if (!PyArg_ParseTuple(args, "I|I|I|I|I|I", &xid, 
 			&sched.fill_rate,
 			&sched.interval,
 			&sched.tokens_min,
-			&sched.tokens_max))
+			&sched.tokens_max,
+			&cpuguaranteed))
     return NULL;
 
+  flags.flagword = VC_VXF_INFO_LOCK;
+  flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
+  flags.flagword |= VC_VXF_SCHED_HARD;
+  flags.mask |= VC_VXF_SCHED_HARD;
+#define VC_VXF_SCHED_SHARE       0x00000800ull
+  if (cpuguaranteed==0) {
+	  flags.flagword |= VC_VXF_SCHED_SHARE;
+	  flags.mask |= VC_VXF_SCHED_SHARE;
+  }
+
+  if (vc_set_cflags(xid, &flags) == -1) {
+	  return PyErr_SetFromErrno(PyExc_OSError);
+  }
+
   if (vc_set_sched(xid, &sched) == -1)
-    return PyErr_SetFromErrno(PyExc_OSError);
+	  return PyErr_SetFromErrno(PyExc_OSError);
 
   return Py_None;
 }
