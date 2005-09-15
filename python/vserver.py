@@ -137,7 +137,8 @@ class VServer:
                 fillrate = shares
 
             try:
-                vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax)
+                cpuguaranteed = 0 # need to set this from the conf file
+                vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax,cpuguaranteed)
             except OSError, ex:
                 if ex.errno == 22:
                     print "kernel does not support vserver scheduler"
@@ -237,7 +238,7 @@ class VServer:
 
     def __do_chcontext(self, state_file = None):
 
-        vserverimpl.chcontext(self.ctx, self.remove_caps)
+        vserverimpl.chcontext(self.ctx)
         if not state_file:
             return
         print >>state_file, "S_CONTEXT=%d" % self.ctx
