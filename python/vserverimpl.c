@@ -60,7 +60,7 @@ vserver_chcontext(PyObject *self, PyObject *args)
 {
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
-	xid_t ctx;
+	xid_t ctx, xid;
 
 	caps.ccaps = ~vc_get_insecureccaps();
 	caps.cmask = ~0ull;
@@ -73,8 +73,8 @@ vserver_chcontext(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "I", &ctx))
 		return NULL;
 
-	ctx = vc_ctx_create(ctx);
-	if (ctx == VC_NOCTX && errno != EEXIST) {
+	xid = vc_ctx_create(ctx);
+	if (xid == VC_NOCTX && errno != EEXIST) {
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
 
@@ -87,7 +87,7 @@ vserver_chcontext(PyObject *self, PyObject *args)
 	}
 
 	/* context already exists, migrate to it */
-	if (ctx == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
+	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
 
