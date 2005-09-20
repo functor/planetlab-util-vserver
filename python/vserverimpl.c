@@ -53,14 +53,32 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "virtual.h"
 
 /*
- * chcontext
+ * context create
  */
 static PyObject *
-vserver_chcontext(PyObject *self, PyObject *args)
+vserver_create(PyObject *self, PyObject *args)
+{
+	xid_t ctx, xid;
+
+	if (!PyArg_ParseTuple(args, "I", &ctx))
+		return NULL;
+
+	xid = vc_ctx_create(ctx);
+	if (xid == VC_NOCTX && errno != EEXIST) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
+	return Py_None;
+}
+
+/*
+ * set flags
+ */
+static PyObject *
+vserver_flags(PyObject *self, PyObject *args)
 {
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
-	xid_t ctx, xid;
+	xid_t ctx;
 
 	caps.ccaps = ~vc_get_insecureccaps();
 	caps.cmask = ~0ull;
@@ -73,11 +91,6 @@ vserver_chcontext(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "I", &ctx))
 		return NULL;
 
-	xid = vc_ctx_create(ctx);
-	if (xid == VC_NOCTX && errno != EEXIST) {
-		return PyErr_SetFromErrno(PyExc_OSError);
-	}
-
 	if (vc_set_ccaps(ctx, &caps) == -1) {
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
@@ -85,12 +98,27 @@ vserver_chcontext(PyObject *self, PyObject *args)
 	if (vc_set_cflags(ctx, &flags) == -1) {
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
+	return Py_None;
+}
 
-	/* context already exists, migrate to it */
-	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
+/*
+ * enter
+ */
+static PyObject *
+vserver_enter(PyObject *self, PyObject *args)
+{
+	xid_t ctx, xid;
+	if (!PyArg_ParseTuple(args, "I", &ctx))
+		return NULL;
+
+	xid = vc_ctx_create(ctx);
+	if (xid == VC_NOCTX && errno != EEXIST) {
 		return PyErr_SetFromErrno(PyExc_OSError);
 	}
 
+	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
+		return PyErr_SetFromErrno(PyExc_OSError);
+	}
 	return Py_None;
 }
 
@@ -156,9 +184,10 @@ vserver_setsched(PyObject *self, PyObject *args)
 		    VC_VXSM_TOKENS_MIN | 
 		    VC_VXSM_TOKENS_MAX);
 
-  if (!PyArg_ParseTuple(args, "I|I|I|I|I|I", &xid, 
+  if (!PyArg_ParseTuple(args, "I|I|I|I|I|I|I", &xid, 
 			&sched.fill_rate,
 			&sched.interval,
+			&sched.tokens,
 			&sched.tokens_min,
 			&sched.tokens_max,
 			&cpuguaranteed))
@@ -265,8 +294,12 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef  methods[] = {
-  { "chcontext", vserver_chcontext, METH_VARARGS,
-    "Change to the given vserver context" },
+  { "create", vserver_create, METH_VARARGS,
+    "Create a new vserver context" },
+  { "flags", vserver_flags, METH_VARARGS,
+    "Set the default flags and caps" },
+  { "enter", vserver_flags, METH_VARARGS,
+    "Enter the vserver context" },
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,

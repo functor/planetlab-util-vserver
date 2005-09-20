@@ -46,6 +46,8 @@ FLAGS_NAMESPACE = 128
 # default values for new vserver scheduler
 SCHED_TOKENS_MIN = 50
 SCHED_TOKENS_MAX = 100
+SCHED_TOKENS = 100
+SCHED_INTERVAL = 1000
 
               
 class VServer:
@@ -110,7 +112,7 @@ class VServer:
 
         return blocktotal
 
-    def set_sched(self, shares, besteffort = True):
+    def set_sched(self, shares = 32, besteffort = True):
         # for the old CKRM scheduler
         if cpulimit.checkckrm() is True:
             cpulimit.cpuinit()
@@ -124,21 +126,20 @@ class VServer:
 
         # for the new vserver scheduler
         else:
-            global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX
+            global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX, SCHED_TOKENS, SCHED_INTERVAL
             tokensmin = SCHED_TOKENS_MIN
             tokensmax = SCHED_TOKENS_MAX
+            tokens    = SCHED_TOKENS
+            interval  = SCHED_INTERVAL
+            fillrate = shares
 
             if besteffort is True:
-                # magic "interval" value for Andy's scheduler to denote besteffort
-                interval = 1000
-                fillrate = shares
+                cpuguaranteed = 0
             else:
-                interval = 1001
-                fillrate = shares
+                cpuguaranteed = 1
 
             try:
-                cpuguaranteed = 0 # need to set this from the conf file
-                vserverimpl.setsched(self.ctx,fillrate,interval,tokensmin,tokensmax,cpuguaranteed)
+                vserverimpl.setsched(self.ctx,fillrate,interval,tokens,tokensmin,tokensmax,cpuguaranteed)
             except OSError, ex:
                 if ex.errno == 22:
                     print "kernel does not support vserver scheduler"
@@ -238,7 +239,11 @@ class VServer:
 
     def __do_chcontext(self, state_file = None):
 
-        vserverimpl.chcontext(self.ctx)
+        vserverimpl.create(self.ctx)
+        vserverimpl.flags(self.ctx)
+        self.set_sched()
+        vserverimpl.enter(self.ctx)
+
         if not state_file:
             return
         print >>state_file, "S_CONTEXT=%d" % self.ctx
