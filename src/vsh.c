@@ -262,7 +262,7 @@ static void get_limits(char *context, struct resources *list){
 }
 
 
-static int sandbox_processes(xid_t xid, char *context)
+static int sandbox_processes(xid_t ctx, char *context)
 {
 #ifdef CONFIG_VSERVER_LEGACY
 	int	flags;
@@ -271,7 +271,7 @@ static int sandbox_processes(xid_t xid, char *context)
 	flags |= 1; /* VX_INFO_LOCK -- cannot request a new vx_id */
 	/* flags |= 4; VX_INFO_NPROC -- limit number of procs in a context */
 
-	(void) vc_new_s_context(xid, 0, flags);
+	(void) vc_new_s_context(ctx, 0, flags);
 
 	/* use legacy dirty hack for capremove */
 	if (vc_new_s_context(VC_SAMECTX, vc_get_insecurebcaps(), flags) == VC_NOCTX) {
@@ -283,8 +283,9 @@ static int sandbox_processes(xid_t xid, char *context)
 	struct vc_rlimit limits;
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
+	struct vc_vx_info vc;
 
-	xid_t ctx;
+	xid_t xid;
 	unsigned long long cpu = VC_LIM_KEEP;
 	unsigned long long mem = VC_LIM_KEEP;
 	unsigned long long task = VC_LIM_KEEP;
@@ -297,22 +298,23 @@ static int sandbox_processes(xid_t xid, char *context)
 		 {0,0}};
 
 	get_limits(context,list);
-	(void) (sandbox_chroot(xid));
+	(void) (sandbox_chroot(ctx));
 
 	caps.ccaps = ~vc_get_insecureccaps();
 	caps.cmask = ~0ull;
 	caps.bcaps = ~vc_get_insecurebcaps();
 	caps.bmask = ~0ull;
+	flags.mask = flags.flagword = VC_VXF_STATE_SETUP;
 
-	flags.flagword = VC_VXF_INFO_LOCK;
-	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
-
-	ctx = vc_ctx_create(xid);
-	if (ctx == VC_NOCTX && errno != EEXIST) {
-		PERROR("vc_ctx_create(%d)", xid);
-		exit(1);
+	xid = VC_NOCTX;
+	if (vc_get_vx_info(ctx,&vc) != 0) {
+		xid = vc_ctx_create(ctx);
+		if (xid == VC_NOCTX && errno != EEXIST){
+			PERROR("vc_ctx_create(%d)", xid);
+			exit(1);
+		}
 	}
-
+		
 	/* CPU    */
 	if (cpu != VC_LIM_KEEP) {
 		struct vc_set_sched sched = {
@@ -339,7 +341,7 @@ static int sandbox_processes(xid_t xid, char *context)
 		sched.set_mask |= VC_VXSM_INTERVAL;
 
 		/* set base token value for new contexts */
-		if (ctx != VC_NOCTX) {
+		if (xid != VC_NOCTX) {
 			sched.tokens = 100; /* Andy's default value */
 			sched.set_mask |= VC_VXSM_TOKENS;
 		}
@@ -349,7 +351,7 @@ static int sandbox_processes(xid_t xid, char *context)
 		sched.set_mask |= VC_VXSM_TOKENS_MIN;
 		sched.set_mask |= VC_VXSM_TOKENS_MAX;
 
-		if (vc_set_sched(xid, &sched)==-1) {
+		if (vc_set_sched(ctx, &sched)==-1) {
 			PERROR("vc_set_sched()");
 			exit(1);
 		}
@@ -359,9 +361,9 @@ static int sandbox_processes(xid_t xid, char *context)
 	limits.min  = VC_LIM_KEEP;
 	limits.soft = VC_LIM_KEEP;
 	limits.hard = mem;
-	if (vc_set_rlimit(xid, RLIMIT_RSS, &limits)) {
+	if (vc_set_rlimit(ctx, RLIMIT_RSS, &limits)) {
 		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
-		       xid, RLIMIT_RSS, limits.min, limits.soft, limits.hard);
+		       ctx, RLIMIT_RSS, limits.min, limits.soft, limits.hard);
 		exit(1);
 	}
 	
@@ -369,26 +371,26 @@ static int sandbox_processes(xid_t xid, char *context)
 	limits.min  = VC_LIM_KEEP;
 	limits.soft = VC_LIM_KEEP;
 	limits.hard = task;
-	if (vc_set_rlimit(xid, RLIMIT_NPROC, &limits)) {
+	if (vc_set_rlimit(ctx, RLIMIT_NPROC, &limits)) {
 		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
-		       xid, RLIMIT_NPROC, limits.min, limits.soft, limits.hard);
+		       ctx, RLIMIT_NPROC, limits.min, limits.soft, limits.hard);
 		exit(1);
 	}
 	
-	if (vc_set_ccaps(xid, &caps) == -1) {
+	if (vc_set_ccaps(ctx, &caps) == -1) {
 		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)",
-		       xid, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
+		       ctx, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
 		exit(1);
 	}
 
-	if (vc_set_cflags(xid, &flags) == -1) {
+	if (vc_set_cflags(ctx, &flags) == -1) {
 		PERROR("vc_set_cflags(%d, 0x%16llx/0x%16llx)",
-		       xid, flags.flagword, flags.mask);
+		       ctx, flags.flagword, flags.mask);
 		exit(1);
 	}
 
 	/* context already exists, migrate to it */
-	if (ctx == VC_NOCTX && vc_ctx_migrate(xid) == -1) {
+	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
 		PERROR("vc_ctx_migrate(%d)", xid);
 		exit(1);
 	}
