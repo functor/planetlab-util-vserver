@@ -52,97 +52,45 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "sched_cmd.h"
 #include "virtual.h"
 
+#define MEF_DEBUG 1
 /*
  * context create
  */
 static PyObject *
-vserver_create(PyObject *self, PyObject *args)
+vserver_chcontext(PyObject *self, PyObject *args)
 {
-	xid_t ctx, xid;
-
-	if (!PyArg_ParseTuple(args, "I", &ctx))
-		return NULL;
-
-	xid = vc_ctx_create(ctx);
-#ifdef MEF_DEBUG
-	printf("vserver_create xid = %d\n",xid);
-#endif
-	if (xid == VC_NOCTX && errno != EEXIST)
-		return PyErr_SetFromErrno(PyExc_OSError);
-	return Py_None;
-}
-
-/*
- * set flags
- */
-static PyObject *
-vserver_flags(PyObject *self, PyObject *args)
-{
+	xid_t xid, ctx;
 	struct vc_ctx_caps caps;
 	struct vc_ctx_flags flags;
-#ifdef MEF_DEBUG
-	xid_t xid;
-#endif
-	xid_t ctx;
+	struct vc_vx_info vc;
+	unsigned long long v;
+
+	v = VC_VXF_STATE_SETUP;
+	if (!PyArg_ParseTuple(args, "I|K", &ctx, &v))
+		return NULL;
 
 	caps.ccaps = ~vc_get_insecureccaps();
 	caps.cmask = ~0ull;
 	caps.bcaps = ~vc_get_insecurebcaps();
 	caps.bmask = ~0ull;
 
-	flags.flagword = VC_VXF_STATE_SETUP| VC_VXF_INFO_LOCK;
-	flags.mask = VC_VXF_STATE_SETUP | VC_VXF_INFO_LOCK;
-
-	if (!PyArg_ParseTuple(args, "I", &ctx))
-		return NULL;
-
-#ifdef MEF_DEBUG
-	xid = vc_get_task_xid(0);
-	printf("vserver_flags xid = %d, ctx = %d\n",xid,ctx);
-#endif
-
-	if (vc_set_ccaps(ctx, &caps) == -1)
-		return PyErr_SetFromErrno(PyExc_OSError);
-
-#ifdef MEF_DEBUG
-	xid = vc_get_task_xid(0);
-	printf("vserver_flags xid = %d, ctx = %d\n",xid,ctx);
-#endif
-
-	if (vc_set_cflags(ctx, &flags) == -1)
-		return PyErr_SetFromErrno(PyExc_OSError);
-
-#ifdef MEF_DEBUG
-	xid = vc_get_task_xid(0);
-	printf("vserver_flags xid = %d, ctx = %d\n",xid,ctx);
-#endif
-
-
-	return Py_None;
-}
-
-/*
- * enter
- */
-static PyObject *
-vserver_enter(PyObject *self, PyObject *args)
-{
-	xid_t ctx, xid;
-	if (!PyArg_ParseTuple(args, "I", &ctx))
-		return NULL;
-
-	xid = vc_get_task_xid(0);
-#ifdef MEF_DEBUG
-	printf("vserver_enter xid = %d\n",xid);
-#endif
-	if (xid != ctx) {
-		if (xid!=0) {
-			errno=EPERM;
-			return PyErr_SetFromErrno(PyExc_OSError);
-		} else if (vc_ctx_migrate(ctx) == -1)
+	xid = VC_NOCTX;
+	if (vc_get_vx_info(ctx,&vc) != 0) {
+		xid = vc_ctx_create(ctx);
+		if (xid == VC_NOCTX && errno != EEXIST)
 			return PyErr_SetFromErrno(PyExc_OSError);
 	}
 
+	flags.mask = flags.flagword = v;
+	if (vc_set_cflags(ctx, &flags) == -1)
+		return PyErr_SetFromErrno(PyExc_OSError);
+
+	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1)
+		return PyErr_SetFromErrno(PyExc_OSError);
+
+#ifdef MEF_DEBUG
+	printf("vserver_create xid = %d(%d)\n",xid,ctx);
+#endif
 	return Py_None;
 }
 
@@ -219,9 +167,7 @@ vserver_setsched(PyObject *self, PyObject *args)
 			&cpuguaranteed))
     return NULL;
 
-  flags.flagword = VC_VXF_INFO_LOCK;
-  flags.mask = VC_VXF_INFO_LOCK;
-  flags.flagword |= VC_VXF_SCHED_HARD;
+  flags.flagword = VC_VXF_SCHED_HARD;
   flags.mask |= VC_VXF_SCHED_HARD;
 #define VC_VXF_SCHED_SHARE       0x00000800ull
   if (cpuguaranteed==0) {
@@ -319,12 +265,8 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 }
 
 static PyMethodDef  methods[] = {
-  { "create", vserver_create, METH_VARARGS,
-    "Create a new vserver context" },
-  { "flags", vserver_flags, METH_VARARGS,
-    "Set the default flags and caps" },
-  { "enter", vserver_enter, METH_VARARGS,
-    "Enter the vserver context" },
+  { "chcontext", vserver_chcontext, METH_VARARGS,
+    "chcontext to vserver with provided flags" },
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,

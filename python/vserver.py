@@ -239,10 +239,7 @@ class VServer:
 
     def __do_chcontext(self, state_file = None):
 
-        vserverimpl.create(self.ctx)
-        vserverimpl.flags(self.ctx)
-        self.set_sched()
-        vserverimpl.enter(self.ctx)
+        vserverimpl.chcontext(self.ctx)
 
         if not state_file:
             return
