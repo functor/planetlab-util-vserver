@@ -59,10 +59,6 @@ class VServer:
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         self.ctx = int(self.config["S_CONTEXT"])
 
-    def __str__(self):
-
-        return self.name
-
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
     def __read_config_file(self, filename):
@@ -104,7 +100,9 @@ class VServer:
         f.close()
 
         # 'copy' original file, rename new to original
-        os.link(filename, filename + ".old")
+        backup = filename + ".old"
+        os.unlink(backup)
+        os.link(filename, backup)
         os.rename(newfile, filename)
 
     def __do_chroot(self):
@@ -329,6 +327,9 @@ class VServer:
 
     def start(self, wait, runlevel = 3):
 
+        # XXX - temporary hack
+        self.set_disklimit(self.config.get("DISKLIMIT", 5000000))
+
         child_pid = os.fork()
         if child_pid == 0:
             # child process
@@ -346,6 +347,7 @@ class VServer:
                 self.__do_chroot()
                 log = open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
+                # XXX - close all other fds
 
                 print >>log, ("%s: starting the virtual server %s" %
                               (time.asctime(time.gmtime()), self.name))
@@ -356,6 +358,7 @@ class VServer:
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
                 cmd_pid = 0
+                first_child = True
                 for cmd in self.INITSCRIPTS + [None]:
                     # wait for previous command to terminate, unless it
                     # is the last one and the caller has specified to wait
@@ -398,8 +401,15 @@ class VServer:
 
     def update_resources(self, resources):
 
+        self.config.update(resources)
+
         # write new values to configuration file
         self.__update_config_file(self.config_file, resources)
+
+        # disklimit can be applied without a process in context
+        disklimit = resources.get("DISKLIMIT", 0)
+        if disklimit:
+            self.set_disklimit(disklimit)
 
         #
         # Figure out if any processes are active in context, apply new
