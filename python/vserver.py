@@ -9,27 +9,12 @@ import time
 import traceback
 
 import mountimpl
-import linuxcaps
 import passfdimpl
 import utmp
 import vserverimpl, vduimpl
 import cpulimit, bwlimit
 
-from util_vserver_vars import *
 
-CAP_SAFE = (linuxcaps.CAP_CHOWN |
-            linuxcaps.CAP_DAC_OVERRIDE |
-            linuxcaps.CAP_DAC_READ_SEARCH |
-            linuxcaps.CAP_FOWNER |
-            linuxcaps.CAP_FSETID |
-            linuxcaps.CAP_KILL |
-            linuxcaps.CAP_SETGID |
-            linuxcaps.CAP_SETUID |
-            linuxcaps.CAP_SETPCAP |
-            linuxcaps.CAP_SYS_TTY_CONFIG |
-            linuxcaps.CAP_LEASE |
-            linuxcaps.CAP_SYS_CHROOT |
-            linuxcaps.CAP_SYS_PTRACE)
 
 #
 # these are the flags taken from the kernel linux/vserver/legacy.h
@@ -58,17 +43,25 @@ class VServer:
     def __init__(self, name):
 
         self.name = name
+        self.config_file = "/etc/vservers/%s.conf" % name
+        self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
+        if not (os.path.isdir(self.dir) and
+                os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
+            raise Exception, "no such vserver: " + name
         self.config = self.__read_config_file("/etc/vservers.conf")
-        self.config.update(self.__read_config_file("/etc/vservers/%s.conf" %
-                                                   self.name))
+        self.config.update(self.__read_config_file(self.config_file))
         self.flags = 0
         flags = self.config["S_FLAGS"].split(" ")
         if "lock" in flags:
             self.flags |= FLAGS_LOCK
         if "nproc" in flags:
             self.flags |= FLAGS_NPROC
-        self.remove_caps = ~CAP_SAFE
+        self.remove_caps = ~vserverimpl.CAP_SAFE;
         self.ctx = int(self.config["S_CONTEXT"])
+
+    def __str__(self):
+
+        return self.name
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -83,29 +76,70 @@ class VServer:
             config[key] = val.strip('"')
         return config
 
+    def __update_config_file(self, filename, newvars):
+
+        # read old file, apply changes
+        f = open(filename, "r")
+        data = f.read()
+        f.close()
+        todo = newvars.copy()
+        changed = False
+        for m in self.config_var_re.finditer(data):
+            (key, val) = m.groups()
+            newval = todo.pop(key, None)
+            if newval != None:
+                data = data[:m.start(2)] + newval + data[m.end(2):]
+                changed = True
+        for (newkey, newval) in todo.items():
+            data += "%s=%s\n" % (newkey, newval)
+            changed = True
+
+        if not changed:
+            return
+
+        # write new file
+        newfile = filename + ".new"
+        f = open(newfile, "w")
+        f.write(data)
+        f.close()
+
+        # 'copy' original file, rename new to original
+        os.link(filename, filename + ".old")
+        os.rename(newfile, filename)
+
     def __do_chroot(self):
 
-        return os.chroot("%s/%s" % (DEFAULT_VSERVERDIR, self.name))
+        return os.chroot(self.dir)
 
-    def set_disklimit(self, blocktotal):
-        path = "%s/%s" % (DEFAULT_VSERVERDIR, self.name)
-        inodes, blockcount, size = vduimpl.vdu(path)
-        blockcount = blockcount >> 1
+    def set_disklimit(self, block_limit):
 
-        if blocktotal > blockcount:
-            vserverimpl.setdlimit(path, self.ctx, blockcount>>1, \
-                                  blocktotal, inodes, -1, 2)
+        # block_limit is in kB, get_disk_usage() must have been called
+        if self.disk_usage_set:
+            block_usage = vserverimpl.DLIMIT_KEEP
+            inode_usage = vserverimpl.DLIMIT_KEEP
         else:
-            # should raise some error value
-            print "block limit (%d) ignored for vserver %s" %(blocktotal,self.name)
+            block_usage = self.disk_blocks
+            inode_usage = self.disk_inodes
+            if block_limit < block_usage:
+                raise Exception, ("%s disk usage (%u blocks) > limit (%u)" %
+                                  (self.name, block_usage, block_limit))
+            self.disk_usage_set = True
+
+        vserverimpl.setdlimit(self.dir,
+                              self.ctx,
+                              block_usage,
+                              block_limit,
+                              inode_usage,
+                              -1,  # inode limit
+                              2)   # %age reserved for root
 
     def get_disklimit(self):
-        path = "%s/%s" % (DEFAULT_VSERVERDIR, self.name)
+
         try:
             blocksused, blocktotal, inodesused, inodestotal, reserved = \
-                        vserverimpl.getdlimit(path,self.ctx)
+                        vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
-            if ex.errno == 3:
+            if ex.errno == errno.ESRCH:
                 # get here if no vserver disk limit has been set for xid
                 # set blockused to -1 to indicate no limit
                 blocktotal = -1
@@ -361,3 +395,20 @@ class VServer:
 
         # parent process
         return child_pid
+
+    def update_resources(self, resources):
+
+        # write new values to configuration file
+        self.__update_config_file(self.config_file, resources)
+
+        #
+        # Figure out if any processes are active in context, apply new
+        # values if there are.
+        #
+
+    def init_disk_info(self):
+
+        (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
+        self.disk_usage_set = False
+
+        return size

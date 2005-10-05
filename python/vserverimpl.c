@@ -47,6 +47,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <stdint.h>
 
+#include "pathconfig.h"
 #include "vserver.h"
 #include "vserver-internal.h"
 #include "sched_cmd.h"
@@ -188,16 +189,6 @@ vserver_setsched(PyObject *self, PyObject *args)
  * setsched
  */
 
-/*  inode vserver commands */
-#define VCMD_add_dlimit		VC_CMD(DLIMIT, 1, 0)
-#define VCMD_rem_dlimit		VC_CMD(DLIMIT, 2, 0)
-#define VCMD_set_dlimit		VC_CMD(DLIMIT, 5, 0)
-#define VCMD_get_dlimit		VC_CMD(DLIMIT, 6, 0)
-
-#define CDLIM_UNSET             (0ULL)
-#define CDLIM_INFINITY          (~0ULL)
-#define CDLIM_KEEP              (~1ULL)
-
 static PyObject *
 vserver_get_dlimit(PyObject *self, PyObject *args)
 {
@@ -236,7 +227,6 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 	unsigned xid;
 	struct vcmd_ctx_dlimit_base_v0 init;
 	struct vcmd_ctx_dlimit_v0 data;
-	int r;
 
 	memset(&data,0,sizeof(data));
 	if (!PyArg_ParseTuple(args, "siiiiii", &path,
@@ -255,12 +245,10 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 	init.name = path;
 	init.flags = 0;
 
-	r = vserver(VCMD_rem_dlimit, xid, &init);
-	if (r<0){}
-	r = vserver(VCMD_add_dlimit, xid, &init);
-	if (r<0){}
-	r = vserver(VCMD_set_dlimit, xid, &data);
-	if (r<0){}
+	if ((vserver(VCMD_add_dlimit, xid, &init) && errno != EEXIST) ||
+            vserver(VCMD_set_dlimit, xid, &data))
+          return PyErr_SetFromErrno(PyExc_OSError);
+
 	return Py_None;	
 }
 
@@ -283,5 +271,16 @@ static PyMethodDef  methods[] = {
 PyMODINIT_FUNC
 initvserverimpl(void)
 {
-  Py_InitModule("vserverimpl", methods);
+  PyObject  *mod;
+
+  mod = Py_InitModule("vserverimpl", methods);
+
+  /* export the set of 'safe' capabilities */
+  PyModule_AddIntConstant(mod, "CAP_SAFE", ~vc_get_insecurebcaps());
+
+  /* export the default vserver directory */
+  PyModule_AddStringConstant(mod, "VSERVER_BASEDIR", DEFAULT_VSERVERDIR);
+
+  /* export a constant to indicate unchanged disk quota values */
+  PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)CDLIM_KEEP);
 }
