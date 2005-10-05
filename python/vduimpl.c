@@ -537,6 +537,7 @@ do_vdu(PyObject *self, PyObject *args)
 	int res;
 	struct stats s;
 	HashTable tbl;
+	int  cwd_fd;
 
 	if (!PyArg_ParseTuple(args, "s", &path))
 		return Py_None;
@@ -545,7 +546,9 @@ do_vdu(PyObject *self, PyObject *args)
 	s.inodes = s.blocks = s.size = 0;
 	(void) Init(&tbl,0,0);
 
+	cwd_fd = open(".", O_RDONLY);
 	res = vdu_onedir(&tbl, &s, path);
+	fchdir(cwd_fd);
 
 	/* deallocate whatever has been added to tbl */
 	Dispose(&tbl);
