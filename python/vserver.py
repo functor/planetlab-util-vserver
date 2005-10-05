@@ -101,7 +101,11 @@ class VServer:
 
         # 'copy' original file, rename new to original
         backup = filename + ".old"
-        os.unlink(backup)
+        try:
+            os.unlink(backup)
+        except OSError, ex:
+            if ex.errno != errno.ENOENT:
+                raise
         os.link(filename, backup)
         os.rename(newfile, filename)
 
