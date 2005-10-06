@@ -332,7 +332,7 @@ class VServer:
     def start(self, wait, runlevel = 3):
 
         # XXX - temporary hack
-        self.set_disklimit(self.config.get("DISKLIMIT", 5000000))
+        self.set_disklimit(int(self.config.get("DISKLIMIT", 5000000)))
 
         child_pid = os.fork()
         if child_pid == 0:
