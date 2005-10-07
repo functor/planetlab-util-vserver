@@ -84,7 +84,7 @@ class VServer:
             (key, val) = m.groups()
             newval = todo.pop(key, None)
             if newval != None:
-                data = data[:m.start(2)] + newval + data[m.end(2):]
+                data = data[:m.start(2)] + str(newval) + data[m.end(2):]
                 changed = True
         for (newkey, newval) in todo.items():
             data += "%s=%s\n" % (newkey, newval)
