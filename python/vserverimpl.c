@@ -53,7 +53,8 @@ vserver_chcontext(PyObject *self, PyObject *args)
   xid_t  ctx;
   uint32_t  flags = 0;
   uint32_t  bcaps = ~vc_get_insecurebcaps();
-  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, 4 };
+  /* XXX - use appropriate resource values here */
+  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
 
   if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
     return NULL;
