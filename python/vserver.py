@@ -111,7 +111,8 @@ class VServer:
 
     def __do_chroot(self):
 
-        return os.chroot(self.dir)
+        os.chroot(self.dir)
+        os.chdir("/")
 
     def set_disklimit(self, block_limit):
 
