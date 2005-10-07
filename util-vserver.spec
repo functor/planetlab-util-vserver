@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 1.planetlab%{?date:.%{date}}
+%define release 2.planetlab%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -381,6 +381,10 @@ done
 
 
 %changelog
+* Fri Oct  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- create common function to be used for entering a vserver and applying
+  resource limits
+
 * Thu Aug 21 2005 Mark Huang <mlhuang@cs.princeton.edu>
 - restore build of python modules
 
