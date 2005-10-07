@@ -44,6 +44,7 @@
 
 //--------------------------------------------------------------------
 #include "vserver.h"
+#include "planetlab.h"
 
 #undef CONFIG_VSERVER_LEGACY
 
@@ -280,12 +281,7 @@ static int sandbox_processes(xid_t ctx, char *context)
 		exit(1);
 	}
 #else
-	struct vc_rlimit limits;
-	struct vc_ctx_caps caps;
-	struct vc_ctx_flags flags;
-	struct vc_vx_info vc;
-
-	xid_t xid;
+        rspec_t  rspec;
 	unsigned long long cpu = VC_LIM_KEEP;
 	unsigned long long mem = VC_LIM_KEEP;
 	unsigned long long task = VC_LIM_KEEP;
@@ -300,100 +296,16 @@ static int sandbox_processes(xid_t ctx, char *context)
 	get_limits(context,list);
 	(void) (sandbox_chroot(ctx));
 
-	caps.ccaps = ~vc_get_insecureccaps();
-	caps.cmask = ~0ull;
-	caps.bcaps = ~vc_get_insecurebcaps();
-	caps.bmask = ~0ull;
-	flags.mask = flags.flagword = VC_VXF_STATE_SETUP;
-
-	xid = VC_NOCTX;
-	if (vc_get_vx_info(ctx,&vc) != 0) {
-		xid = vc_ctx_create(ctx);
-		if (xid == VC_NOCTX && errno != EEXIST){
-			PERROR("vc_ctx_create(%d)", xid);
-			exit(1);
-		}
-	}
-		
-	/* CPU    */
-	if (cpu != VC_LIM_KEEP) {
-		struct vc_set_sched sched = {
-			.set_mask = 0
-		};
-
-		/* Need to distinguish between guarantee (hard) and
-		 * best effort (share) from the vserver
-		 * configuration.
-		 */
-#define VC_VXF_SCHED_SHARE       0x00000800ull
-		flags.flagword |= VC_VXF_SCHED_HARD;
-		flags.mask |= VC_VXF_SCHED_HARD;
-		if (cpuguaranteed==0) {
-			flags.flagword |= VC_VXF_SCHED_SHARE;
-			flags.mask |= VC_VXF_SCHED_SHARE;
-		}
-
-		/* CPULIMIT value from /etc/vservers/xyz.conf */
-		sched.fill_rate = cpu;
-		sched.set_mask |= VC_VXSM_FILL_RATE;
-
-		sched.interval  = 1000; /* Andy's default value */
-		sched.set_mask |= VC_VXSM_INTERVAL;
-
-		/* set base token value for new contexts */
-		if (xid != VC_NOCTX) {
-			sched.tokens = 100; /* Andy's default value */
-			sched.set_mask |= VC_VXSM_TOKENS;
-		}
-
-		sched.tokens_min = 50; /* Andy's default value */
-		sched.tokens_max = 100; /* Andy's default value */
-		sched.set_mask |= VC_VXSM_TOKENS_MIN;
-		sched.set_mask |= VC_VXSM_TOKENS_MAX;
-
-		if (vc_set_sched(ctx, &sched)==-1) {
-			PERROR("vc_set_sched()");
-			exit(1);
-		}
-	}
-
-	/* MEM    */
-	limits.min  = VC_LIM_KEEP;
-	limits.soft = VC_LIM_KEEP;
-	limits.hard = mem;
-	if (vc_set_rlimit(ctx, RLIMIT_RSS, &limits)) {
-		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
-		       ctx, RLIMIT_RSS, limits.min, limits.soft, limits.hard);
-		exit(1);
-	}
-	
-	/* TASK   */
-	limits.min  = VC_LIM_KEEP;
-	limits.soft = VC_LIM_KEEP;
-	limits.hard = task;
-	if (vc_set_rlimit(ctx, RLIMIT_NPROC, &limits)) {
-		PERROR("vc_set_rlimit(%d, %d, %d/%d/%d)",
-		       ctx, RLIMIT_NPROC, limits.min, limits.soft, limits.hard);
-		exit(1);
-	}
-	
-	if (vc_set_ccaps(ctx, &caps) == -1) {
-		PERROR("vc_set_ccaps(%d, 0x%16ullx/0x%16ullx, 0x%16ullx/0x%16ullx)",
-		       ctx, caps.ccaps, caps.cmask, caps.bcaps, caps.bmask);
-		exit(1);
-	}
-
-	if (vc_set_cflags(ctx, &flags) == -1) {
-		PERROR("vc_set_cflags(%d, 0x%16llx/0x%16llx)",
-		       ctx, flags.flagword, flags.mask);
-		exit(1);
-	}
-
-	/* context already exists, migrate to it */
-	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1) {
-		PERROR("vc_ctx_migrate(%d)", xid);
-		exit(1);
-	}
+        rspec.cpu_share = cpu;
+        rspec.cpu_sched_flags = (VC_VXF_SCHED_HARD |
+                                 (cpuguaranteed ? 0 : VC_VXF_SCHED_SHARE));
+        rspec.mem_limit = mem;
+        rspec.task_limit = task;
+        if (pl_chcontext(ctx, 0, ~vc_get_insecurebcaps(), &rspec))
+          {
+            PERROR("pl_chcontext(%u)", ctx);
+            exit(1);
+          }
 #endif
 	return 0;
 }
