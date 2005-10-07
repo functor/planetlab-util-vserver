@@ -33,66 +33,35 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <Python.h>
 
-#include "config.h"
-#include "compat.h"
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <stdint.h>
+#include <unistd.h>
 
+#include "config.h"
 #include "pathconfig.h"
+#include "planetlab.h"
+#include "virtual.h"
 #include "vserver.h"
 #include "vserver-internal.h"
-#include "sched_cmd.h"
-#include "virtual.h"
 
-#define MEF_DEBUG 1
 /*
  * context create
  */
 static PyObject *
 vserver_chcontext(PyObject *self, PyObject *args)
 {
-	xid_t xid, ctx;
-	struct vc_ctx_caps caps;
-	struct vc_ctx_flags flags;
-	struct vc_vx_info vc;
-	unsigned long long v;
+  xid_t  ctx;
+  uint32_t  flags = 0;
+  uint32_t  bcaps = ~vc_get_insecurebcaps();
+  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, 4 };
 
-	v = VC_VXF_STATE_SETUP;
-	if (!PyArg_ParseTuple(args, "I|K", &ctx, &v))
-		return NULL;
+  if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
+    return NULL;
 
-	caps.ccaps = ~vc_get_insecureccaps();
-	caps.cmask = ~0ull;
-	caps.bcaps = ~vc_get_insecurebcaps();
-	caps.bmask = ~0ull;
+  if (pl_chcontext(ctx, flags, bcaps, &rspec))
+    PyErr_SetFromErrno(PyExc_OSError);
 
-	xid = VC_NOCTX;
-	if (vc_get_vx_info(ctx,&vc) != 0) {
-		xid = vc_ctx_create(ctx);
-		if (xid == VC_NOCTX && errno != EEXIST)
-			return PyErr_SetFromErrno(PyExc_OSError);
-	}
-
-	flags.mask = flags.flagword = v;
-	if (vc_set_cflags(ctx, &flags) == -1)
-		return PyErr_SetFromErrno(PyExc_OSError);
-
-	if (xid == VC_NOCTX && vc_ctx_migrate(ctx) == -1)
-		return PyErr_SetFromErrno(PyExc_OSError);
-
-#ifdef MEF_DEBUG
-	printf("vserver_create xid = %d(%d)\n",xid,ctx);
-#endif
-	return Py_None;
+  return Py_None;
 }
 
 static PyObject *
@@ -143,6 +112,7 @@ vserver_get_rlimit(PyObject *self, PyObject *args) {
 	return ret;
 }
 
+#if 0
 /*
  * setsched
  */
@@ -188,6 +158,7 @@ vserver_setsched(PyObject *self, PyObject *args)
 /*
  * setsched
  */
+#endif
 
 static PyObject *
 vserver_get_dlimit(PyObject *self, PyObject *args)
@@ -255,8 +226,10 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
+#if 0
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
+#endif
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,
     "Set disk limits for given vserver context" },
   { "getdlimit", vserver_get_dlimit, METH_VARARGS,
@@ -281,6 +254,7 @@ initvserverimpl(void)
   /* export the default vserver directory */
   PyModule_AddStringConstant(mod, "VSERVER_BASEDIR", DEFAULT_VSERVERDIR);
 
-  /* export a constant to indicate unchanged disk quota values */
+  /* export limit-related constants */
   PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)CDLIM_KEEP);
+  PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)CDLIM_INFINITY);
 }
