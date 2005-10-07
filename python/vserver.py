@@ -40,7 +40,7 @@ class VServer:
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name):
+    def __init__(self, name, disk_usage_set = False):
 
         self.name = name
         self.config_file = "/etc/vservers/%s.conf" % name
@@ -58,6 +58,7 @@ class VServer:
             self.flags |= FLAGS_NPROC
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         self.ctx = int(self.config["S_CONTEXT"])
+        self.disk_usage_set = disk_usage_set
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -116,11 +117,12 @@ class VServer:
 
     def set_disklimit(self, block_limit):
 
-        # block_limit is in kB, get_disk_usage() must have been called
+        # block_limit is in kB
         if self.disk_usage_set:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
         else:
+            # init_disk_info() must have been called to get usage values
             block_usage = self.disk_blocks
             inode_usage = self.disk_inodes
             if block_limit < block_usage:
@@ -424,6 +426,5 @@ class VServer:
     def init_disk_info(self):
 
         (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
-        self.disk_usage_set = False
 
         return size
