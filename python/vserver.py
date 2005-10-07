@@ -133,7 +133,7 @@ class VServer:
                               block_usage,
                               block_limit,
                               inode_usage,
-                              -1,  # inode limit
+                              vserverimpl.DLIMIT_INF,  # inode limit
                               2)   # %age reserved for root
 
     def get_disklimit(self):
