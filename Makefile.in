@@ -200,17 +200,17 @@ am__lib_libvserver_a_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/personalitytype.c lib/syscall-syscall.c \
 	lib/val2text-t2v-uint32.c lib/val2text-t2v-uint64.c \
 	lib/val2text-v2t-uint32.c lib/val2text-v2t-uint64.c \
-	lib/parselimit.c lib/getprocentry-legacy.c lib/cflags-compat.c \
-	lib/cflags_list-compat.c lib/createskeleton.c \
-	lib/getvserverbyctx.c lib/getvserverbyctx-compat.hc \
-	lib/getvserverbyctx-v13.hc lib/getvservercfgstyle.c \
-	lib/getvserverappdir.c lib/getvservercfgdir.c \
-	lib/getvserverctx.c lib/getvservername.c lib/getvservervdir.c \
-	lib/xidopt2xid.c lib/syscall_rlimit.c \
-	lib/syscall_rlimit-v11.hc lib/syscall_kill.c \
-	lib/syscall_kill-v11.hc lib/syscall_ctxcreate.c \
-	lib/syscall_ctxcreate-v13.hc lib/syscall_ctxmigrate.c \
-	lib/syscall_ctxmigrate-v13.hc \
+	lib/parselimit.c lib/planetlab.c lib/getprocentry-legacy.c \
+	lib/cflags-compat.c lib/cflags_list-compat.c \
+	lib/createskeleton.c lib/getvserverbyctx.c \
+	lib/getvserverbyctx-compat.hc lib/getvserverbyctx-v13.hc \
+	lib/getvservercfgstyle.c lib/getvserverappdir.c \
+	lib/getvservercfgdir.c lib/getvserverctx.c \
+	lib/getvservername.c lib/getvservervdir.c lib/xidopt2xid.c \
+	lib/syscall_rlimit.c lib/syscall_rlimit-v11.hc \
+	lib/syscall_kill.c lib/syscall_kill-v11.hc \
+	lib/syscall_ctxcreate.c lib/syscall_ctxcreate-v13.hc \
+	lib/syscall_ctxmigrate.c lib/syscall_ctxmigrate-v13.hc \
 	lib/syscall_cleanupnamespace-v13.hc \
 	lib/syscall_cleanupnamespace.c \
 	lib/syscall_enternamespace-v13.hc lib/syscall_enternamespace.c \
@@ -337,7 +337,8 @@ am__objects_8 = lib/lib_libvserver_a-syscall.$(OBJEXT) \
 	lib/lib_libvserver_a-val2text-t2v-uint64.$(OBJEXT) \
 	lib/lib_libvserver_a-val2text-v2t-uint32.$(OBJEXT) \
 	lib/lib_libvserver_a-val2text-v2t-uint64.$(OBJEXT) \
-	lib/lib_libvserver_a-parselimit.$(OBJEXT) $(am__objects_1) \
+	lib/lib_libvserver_a-parselimit.$(OBJEXT) \
+	lib/lib_libvserver_a-planetlab.$(OBJEXT) $(am__objects_1) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
 	$(am__objects_6) $(am__objects_7)
 am_lib_libvserver_a_OBJECTS = $(am__objects_8)
@@ -544,17 +545,17 @@ am__lib_libvserver_la_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/personalitytype.c lib/syscall-syscall.c \
 	lib/val2text-t2v-uint32.c lib/val2text-t2v-uint64.c \
 	lib/val2text-v2t-uint32.c lib/val2text-v2t-uint64.c \
-	lib/parselimit.c lib/getprocentry-legacy.c lib/cflags-compat.c \
-	lib/cflags_list-compat.c lib/createskeleton.c \
-	lib/getvserverbyctx.c lib/getvserverbyctx-compat.hc \
-	lib/getvserverbyctx-v13.hc lib/getvservercfgstyle.c \
-	lib/getvserverappdir.c lib/getvservercfgdir.c \
-	lib/getvserverctx.c lib/getvservername.c lib/getvservervdir.c \
-	lib/xidopt2xid.c lib/syscall_rlimit.c \
-	lib/syscall_rlimit-v11.hc lib/syscall_kill.c \
-	lib/syscall_kill-v11.hc lib/syscall_ctxcreate.c \
-	lib/syscall_ctxcreate-v13.hc lib/syscall_ctxmigrate.c \
-	lib/syscall_ctxmigrate-v13.hc \
+	lib/parselimit.c lib/planetlab.c lib/getprocentry-legacy.c \
+	lib/cflags-compat.c lib/cflags_list-compat.c \
+	lib/createskeleton.c lib/getvserverbyctx.c \
+	lib/getvserverbyctx-compat.hc lib/getvserverbyctx-v13.hc \
+	lib/getvservercfgstyle.c lib/getvserverappdir.c \
+	lib/getvservercfgdir.c lib/getvserverctx.c \
+	lib/getvservername.c lib/getvservervdir.c lib/xidopt2xid.c \
+	lib/syscall_rlimit.c lib/syscall_rlimit-v11.hc \
+	lib/syscall_kill.c lib/syscall_kill-v11.hc \
+	lib/syscall_ctxcreate.c lib/syscall_ctxcreate-v13.hc \
+	lib/syscall_ctxmigrate.c lib/syscall_ctxmigrate-v13.hc \
 	lib/syscall_cleanupnamespace-v13.hc \
 	lib/syscall_cleanupnamespace.c \
 	lib/syscall_enternamespace-v13.hc lib/syscall_enternamespace.c \
@@ -679,7 +680,8 @@ am__objects_24 = lib/lib_libvserver_la-syscall.lo \
 	lib/lib_libvserver_la-val2text-t2v-uint64.lo \
 	lib/lib_libvserver_la-val2text-v2t-uint32.lo \
 	lib/lib_libvserver_la-val2text-v2t-uint64.lo \
-	lib/lib_libvserver_la-parselimit.lo $(am__objects_17) \
+	lib/lib_libvserver_la-parselimit.lo \
+	lib/lib_libvserver_la-planetlab.lo $(am__objects_17) \
 	$(am__objects_18) $(am__objects_19) $(am__objects_20) \
 	$(am__objects_22) $(am__objects_23)
 am_lib_libvserver_la_OBJECTS = $(am__objects_24)
@@ -1110,6 +1112,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-personalityflag.Po \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-personalityflag_list.Po \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-personalitytype.Po \
+@AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-syscall-syscall.Po \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-syscall.Po \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_a-syscall_adddlimit.Po \
@@ -1190,6 +1193,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-personalityflag.Plo \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-personalityflag_list.Plo \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-personalitytype.Plo \
+@AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-planetlab.Plo \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-syscall-syscall.Plo \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-syscall.Plo \
 @AMDEP_TRUE@	lib/$(DEPDIR)/lib_libvserver_la-syscall_adddlimit.Plo \
@@ -1727,6 +1731,7 @@ lib/syscall-compat.hc \
 				lib/syscall-alternative.h \
 				lib/syscall-wrap.h \
 				lib/utils-legacy.h \
+				lib/planetlab.h \
 				lib/vserver-internal.h\
 src/capability-compat.h \
 			src/util.h \
@@ -2139,6 +2144,7 @@ lib_SRCS = lib/syscall.c \
 				lib/val2text-v2t-uint32.c \
 				lib/val2text-v2t-uint64.c \
 				lib/parselimit.c \
+				lib/planetlab.c \
 				$(lib_legacy_SRCS) \
 				$(lib_compat_SRCS) \
 				$(lib_management_SRCS) \
@@ -2747,6 +2753,8 @@ lib/lib_libvserver_a-val2text-v2t-uint64.$(OBJEXT):  \
 	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-parselimit.$(OBJEXT): lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-planetlab.$(OBJEXT): lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-getprocentry-legacy.$(OBJEXT):  \
 	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-cflags-compat.$(OBJEXT): lib/$(am__dirstamp) \
@@ -3338,6 +3346,8 @@ lib/lib_libvserver_la-val2text-v2t-uint32.lo: lib/$(am__dirstamp) \
 lib/lib_libvserver_la-val2text-v2t-uint64.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-parselimit.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-planetlab.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-getprocentry-legacy.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
@@ -4278,6 +4288,7 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_a-personalityflag.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-personalityflag_list.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-personalitytype.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-planetlab.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall-syscall.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_adddlimit.$(OBJEXT)
@@ -4398,6 +4409,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-personalityflag_list.lo
 	-rm -f lib/lib_libvserver_la-personalitytype.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-personalitytype.lo
+	-rm -f lib/lib_libvserver_la-planetlab.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-planetlab.lo
 	-rm -f lib/lib_libvserver_la-syscall-syscall.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall-syscall.lo
 	-rm -f lib/lib_libvserver_la-syscall.$(OBJEXT)
@@ -4733,6 +4746,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-personalityflag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-personalityflag_list.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-personalitytype.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall-syscall.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_adddlimit.Po@am__quote@
@@ -4813,6 +4827,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-personalityflag.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-personalityflag_list.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-personalitytype.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-planetlab.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall-syscall.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_adddlimit.Plo@am__quote@
@@ -5633,6 +5648,30 @@ lib/lib_libvserver_a-parselimit.lo: lib/parselimit.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_a-parselimit.Plo' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_a-parselimit.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-parselimit.lo `test -f 'lib/parselimit.c' || echo '$(srcdir)/'`lib/parselimit.c
+
+lib/lib_libvserver_a-planetlab.o: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-planetlab.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" -c -o lib/lib_libvserver_a-planetlab.o `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_a-planetlab.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-planetlab.o `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c
+
+lib/lib_libvserver_a-planetlab.obj: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-planetlab.obj -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" -c -o lib/lib_libvserver_a-planetlab.obj `if test -f 'lib/planetlab.c'; then $(CYGPATH_W) 'lib/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/lib/planetlab.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_a-planetlab.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.Po' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-planetlab.obj `if test -f 'lib/planetlab.c'; then $(CYGPATH_W) 'lib/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/lib/planetlab.c'; fi`
+
+lib/lib_libvserver_a-planetlab.lo: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-planetlab.lo -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" -c -o lib/lib_libvserver_a-planetlab.lo `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Plo"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_a-planetlab.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.Plo' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_a-planetlab.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-planetlab.lo `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c
 
 lib/lib_libvserver_a-getprocentry-legacy.o: lib/getprocentry-legacy.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-getprocentry-legacy.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-getprocentry-legacy.Tpo" -c -o lib/lib_libvserver_a-getprocentry-legacy.o `test -f 'lib/getprocentry-legacy.c' || echo '$(srcdir)/'`lib/getprocentry-legacy.c; \
@@ -10313,6 +10352,30 @@ lib/lib_libvserver_la-parselimit.lo: lib/parselimit.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_la-parselimit.Plo' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_la-parselimit.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-parselimit.lo `test -f 'lib/parselimit.c' || echo '$(srcdir)/'`lib/parselimit.c
+
+lib/lib_libvserver_la-planetlab.o: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-planetlab.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" -c -o lib/lib_libvserver_la-planetlab.o `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_la-planetlab.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.Po' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-planetlab.o `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c
+
+lib/lib_libvserver_la-planetlab.obj: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-planetlab.obj -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" -c -o lib/lib_libvserver_la-planetlab.obj `if test -f 'lib/planetlab.c'; then $(CYGPATH_W) 'lib/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/lib/planetlab.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_la-planetlab.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.Po' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-planetlab.obj `if test -f 'lib/planetlab.c'; then $(CYGPATH_W) 'lib/planetlab.c'; else $(CYGPATH_W) '$(srcdir)/lib/planetlab.c'; fi`
+
+lib/lib_libvserver_la-planetlab.lo: lib/planetlab.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-planetlab.lo -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" -c -o lib/lib_libvserver_la-planetlab.lo `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo" "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Plo"; else rm -f "lib/$(DEPDIR)/lib_libvserver_la-planetlab.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/planetlab.c' object='lib/lib_libvserver_la-planetlab.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.Plo' tmpdepfile='lib/$(DEPDIR)/lib_libvserver_la-planetlab.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-planetlab.lo `test -f 'lib/planetlab.c' || echo '$(srcdir)/'`lib/planetlab.c
 
 lib/lib_libvserver_la-getprocentry-legacy.o: lib/getprocentry-legacy.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-getprocentry-legacy.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-getprocentry-legacy.Tpo" -c -o lib/lib_libvserver_la-getprocentry-legacy.o `test -f 'lib/getprocentry-legacy.c' || echo '$(srcdir)/'`lib/getprocentry-legacy.c; \
