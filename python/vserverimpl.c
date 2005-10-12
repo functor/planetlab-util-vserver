@@ -53,11 +53,15 @@ vserver_chcontext(PyObject *self, PyObject *args)
   xid_t  ctx;
   uint32_t  flags = 0;
   uint32_t  bcaps = ~vc_get_insecurebcaps();
-  /* XXX - use appropriate resource values here */
   rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
+  PyObject  *resources;
+  PyObject  *cpu_share;
 
-  if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
+  if (!PyArg_ParseTuple(args, "IO!|K", &ctx, &PyDict_Type, &resources, &flags))
     return NULL;
+  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
+      (cpu_share = PyNumber_Int(cpu_share)))
+    rspec.cpu_share = PyInt_AsLong(cpu_share);
 
   if (pl_chcontext(ctx, flags, bcaps, &rspec))
     PyErr_SetFromErrno(PyExc_OSError);
