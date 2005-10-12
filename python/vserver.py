@@ -28,11 +28,6 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
-# default values for new vserver scheduler
-SCHED_TOKENS_MIN = 50
-SCHED_TOKENS_MAX = 100
-SCHED_TOKENS = 100
-SCHED_INTERVAL = 1000
 
               
 class VServer:
@@ -40,7 +35,7 @@ class VServer:
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name, disk_usage_set = False):
+    def __init__(self, name, vm_running = False, resources = {}):
 
         self.name = name
         self.config_file = "/etc/vservers/%s.conf" % name
@@ -58,7 +53,8 @@ class VServer:
             self.flags |= FLAGS_NPROC
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         self.ctx = int(self.config["S_CONTEXT"])
-        self.disk_usage_set = disk_usage_set
+        self.vm_running = vm_running
+        self.resources = resources
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -118,7 +114,7 @@ class VServer:
     def set_disklimit(self, block_limit):
 
         # block_limit is in kB
-        if self.disk_usage_set:
+        if self.vm_running:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
         else:
@@ -128,7 +124,6 @@ class VServer:
             if block_limit < block_usage:
                 raise Exception, ("%s disk usage (%u blocks) > limit (%u)" %
                                   (self.name, block_usage, block_limit))
-            self.disk_usage_set = True
 
         vserverimpl.setdlimit(self.dir,
                               self.ctx,
@@ -151,39 +146,14 @@ class VServer:
 
         return blocktotal
 
-    def set_sched(self, shares = 32, besteffort = True):
-        # for the old CKRM scheduler
-        if cpulimit.checkckrm() is True:
-            cpulimit.cpuinit()
-            cpulimit.vs2ckrm_on(self.name)
-            try:
-                cpulimit.cpulimit(self.name,shares)
-            except OSError, ex:
-                if ex.errno == 22:
-                    print "invalid shares argument"
-                    # should re-raise exception?!
+    def set_sched(self, cpu_share):
 
-        # for the new vserver scheduler
-        else:
-            global SCHED_TOKENS_MIN, SCHED_TOKENS_MAX, SCHED_TOKENS, SCHED_INTERVAL
-            tokensmin = SCHED_TOKENS_MIN
-            tokensmax = SCHED_TOKENS_MAX
-            tokens    = SCHED_TOKENS
-            interval  = SCHED_INTERVAL
-            fillrate = shares
+        if cpu_share == int(self.config.get("CPULIMIT", -1)):
+            return
 
-            if besteffort is True:
-                cpuguaranteed = 0
-            else:
-                cpuguaranteed = 1
-
-            try:
-                vserverimpl.setsched(self.ctx,fillrate,interval,tokens,tokensmin,tokensmax,cpuguaranteed)
-            except OSError, ex:
-                if ex.errno == 22:
-                    print "kernel does not support vserver scheduler"
-                else:
-                    raise ex
+        self.__update_config_file(self.config_file, { "CPULIMIT": cpu_share })
+        if self.vm_running:
+            vserverimpl.setsched(self.ctx, cpu_share, True)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
@@ -276,9 +246,9 @@ class VServer:
 
         return os.fdopen(fd, mode, bufsize)
 
-    def __do_chcontext(self, state_file = None):
+    def __do_chcontext(self, state_file):
 
-        vserverimpl.chcontext(self.ctx)
+        vserverimpl.chcontext(self.ctx, self.resources)
 
         if not state_file:
             return
@@ -334,8 +304,7 @@ class VServer:
 
     def start(self, wait, runlevel = 3):
 
-        # XXX - temporary hack
-        self.set_disklimit(int(self.config.get("DISKLIMIT", 5000000)))
+        self.vm_running = True
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -412,16 +381,6 @@ class VServer:
 
         # write new values to configuration file
         self.__update_config_file(self.config_file, resources)
-
-        # disklimit can be applied without a process in context
-        disklimit = resources.get("DISKLIMIT", 0)
-        if disklimit:
-            self.set_disklimit(disklimit)
-
-        #
-        # Figure out if any processes are active in context, apply new
-        # values if there are.
-        #
 
     def init_disk_info(self):
 
