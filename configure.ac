@@ -28,7 +28,7 @@ AC_INIT(util-vserver, 0.30.208, enrico.scholz@informatik.tu-chemnitz.de)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
-AM_INIT_AUTOMAKE([1.9 gnits dist-bzip2 subdir-objects])
+AM_INIT_AUTOMAKE([1.8.3 gnits dist-bzip2 subdir-objects])
 AM_MAINTAINER_MODE
 
 AC_CANONICAL_BUILD
@@ -42,6 +42,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_PROG_CC_C_O
+AM_PATH_PYTHON(2.3)
 ENSC_CXXCOMPILER
 ENSC_C99COMPILER
 

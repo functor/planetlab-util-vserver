@@ -1,4 +1,4 @@
-// $Id: syscall_setsched-v13.hc,v 1.4 2004/10/19 21:04:23 ensc Exp $    --*- c -*--
+// $Id$    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: vdu.c,v 1.2 2003/09/30 20:16:53 ensc Exp $
+// $Id: vdu-new.c,v 1.2 2004/08/17 14:44:14 mef-pl_kernel Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vdu.cc by Jacques Gelinas
@@ -17,6 +17,8 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#define _LARGEFILE64_SOURCE
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -30,89 +32,229 @@
 #include <dirent.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/ioctl.h>
+
+#include <assert.h>
+
+#include "vdu.h"
+
+HashTable tbl;
+
+static int // boolean
+INOPut(PHashTable tbl, ino64_t* key, struct stat64 **val){
+    return Put(tbl, key, val);
+}
 
 __extension__ typedef long long		longlong;
+//__extension__ typedef long		longlong;
 
-static int vdu_onedir (char const *path, longlong *size)
-{
-	int ret = -1;
-	int dirfd = open (path,O_RDONLY);	// A handle to speed up
-												// chdir
-	if (dirfd == -1){
-		fprintf (stderr,"Can't open directory %s (%s)\n",path
-			,strerror(errno));
-	}else{
-	        DIR *dir;
+static longlong inodes;
+static longlong blocks;
+static longlong size;
 
-		fchdir (dirfd);
-		dir = opendir (".");
-		if (dir == NULL){
-			fprintf (stderr,"Can't open (opendir) directory %s (%s)\n",path
-				,strerror(errno));
-		}else{
-			struct stat dirst;
-			struct dirent *ent;
-			longlong dirsize = 0;
+static short verbose = 0;
 
-			ret = 0;
-			lstat (".",&dirst);
-			while ((ent=readdir(dir))!=NULL){
-				struct stat st;
-				if (lstat(ent->d_name,&st)==-1){
-					fprintf (stderr,"Can't stat %s/%s (%s)\n",path
-						,ent->d_name,strerror(errno));
-					ret = -1;
-					break;
-				}else if (S_ISREG(st.st_mode)){
-					if (st.st_nlink == 1){
-						dirsize += st.st_size;
-					}
-				}else if (S_ISDIR(st.st_mode) && st.st_dev == dirst.st_dev){
-					if (strcmp(ent->d_name,".")!=0
-						&& strcmp(ent->d_name,"..")!=0){
-					        char	*tmp = malloc(strlen(path) + strlen(ent->d_name) + 2);
-						if (tmp==0) ret=-1;
-						else {
-						  strcpy(tmp, path);
-						  strcat(tmp, "/");
-						  strcat(tmp, ent->d_name);
-						  ret = vdu_onedir(tmp,&dirsize);
-						  free(tmp);
-						  fchdir (dirfd);
-						}
-					}
-				}
-			}
-			closedir (dir);
-			*size += dirsize;
-		}
-		close (dirfd);
-	}
-	return ret;
+static inline void warning(char *s) {
+    fprintf(stderr,"%s (%s)\n",s,strerror(errno));    
 }
 
-int main (int argc, char *argv[])
-{
-	int ret = -1;
-	if (argc < 2){
-		fprintf (stderr,"vdu version %s\n",VERSION);
-		fprintf (stderr,"vdu directory ...\n\n");
-		fprintf (stderr
-			,"Compute the size of a directory tree, ignoring files\n"
-			 "with more than one link.\n");
-	}else{
-		int i;
-
-		ret = 0;
-		for (i=1; i<argc && ret != -1; i++){
-			longlong size = 0;
-			long ksize;
-			
-			ret = vdu_onedir (argv[i],&size);
-			ksize = size >> 10;
-			printf ("%s\t%ldK\n",argv[i],ksize);
-		}
-	}
-	return ret;
+void panic(char *s) {
+    warning(s);
+    exit(2);
 }
 
+static void vdu_onedir (char const *path)
+{
+    char const *foo = path;
+    struct stat64 dirst, st;
+    struct dirent *ent;
+    char *name;
+    DIR *dir;
+    int dirfd;
+    longlong dirsize, dirinodes, dirblocks;
+
+    dirsize = dirinodes = dirblocks = 0;
+
+    // A handle to speed up chdir
+    if ((dirfd = open (path,O_RDONLY)) == -1) {
+	fprintf (stderr,"Can't open directory %s\n",path);
+	panic("open failed");
+    }
+
+    if (fchdir (dirfd) == -1) {
+	fprintf (stderr,"Can't fchdir directory %s\n",path);
+	panic("fchdir failed");
+    }
+
+    if (fstat64 (dirfd,&dirst) != 0) {
+	fprintf (stderr,"Can't lstat directory %s\n",path);
+	panic("lstat failed");
+    }
+
+    if ((dir = opendir (".")) == NULL) {
+	fprintf (stderr,"Can't open (opendir) directory %s\n",path);
+	panic("opendir failed");
+    }
+
+
+    /* Walk the directory entries and compute the sum of inodes,
+     * blocks, and disk space used. This code will recursively descend
+     * down the directory structure. 
+     */
+
+    while ((ent=readdir(dir))!=NULL){
+	if (lstat64(ent->d_name,&st)==-1){
+	    fprintf (stderr,"Can't stat %s/%s\n",path,ent->d_name);
+	    warning("lstat failed");
+	    continue;
+	}
+	
+	dirinodes ++;
+
+	if (S_ISREG(st.st_mode)){
+	    if (st.st_nlink > 1){
+		struct stat64 *val;
+		int nlink;
+
+		/* Check hash table if we've seen this inode
+		 * before. Note that the hash maintains a
+		 * (inode,struct stat) key value pair.
+		 */
+
+		val = &st;
+
+		(void) INOPut(&tbl,&st.st_ino,&val);
+
+		/* Note that after the INOPut call "val" refers to the
+		 * value entry in the hash table --- not &st.  This
+		 * means that if the inode has been put into the hash
+		 * table before, val will refer to the first st that
+		 * was put into the hashtable.  Otherwise, if it is
+		 * the first time it is put into the hash table, then
+		 * val will be equal to this &st.
+		 */
+		nlink = val->st_nlink;
+		nlink --;
+
+		/* val refers to value in hash tbale */
+		if (nlink == 0) {
+
+		    /* We saw all hard links to this particular inode
+		     * as part of this sweep of vdu. So account for
+		     * the size and blocks required by the file.
+		     */
+
+		    dirsize += val->st_size;
+		    dirblocks += val->st_blocks;
+
+		    /* Do not delete the (ino,val) tuple from the tbl,
+		     * as we need to handle the case when we are
+		     * double counting a file due to a bind mount.
+		     */
+		    val->st_nlink = 0;
+
+		} else if (nlink > 0) {
+		    val->st_nlink = nlink;
+		} else /* if(nlink < 0) */ {
+		    /* We get here when we are double counting nlinks
+		       due a bind mount. */
+
+		    /* DO NOTHING */
+		}
+	    } else {
+		dirsize += st.st_size;
+		dirblocks += st.st_blocks;
+	    }
+
+	} else if (S_ISDIR(st.st_mode)) {
+	    if ((st.st_dev == dirst.st_dev) &&
+		(strcmp(ent->d_name,".")!=0) &&
+		(strcmp(ent->d_name,"..")!=0)) {
+
+		dirsize += st.st_size;
+		dirblocks += st.st_blocks;
+
+		name = strdup(ent->d_name);
+		if (name==0) {
+		    panic("Out of memory\n");
+		}
+		vdu_onedir(name);
+		free(name);
+		fchdir(dirfd);
+	    }
+	} else {
+	    // dirsize += st.st_size;
+	    // dirblocks += st.st_blocks;
+	}
+    }
+    closedir (dir);
+    close (dirfd);
+    if (verbose)
+	printf("%16lld %16lld %16lld %s\n",dirinodes, dirblocks, dirsize,foo);
+    inodes += dirinodes;
+    blocks += dirblocks;
+    size   += dirsize;
+}
+
+static void
+Count(ino64_t* key, struct stat64* val) {
+    if(val->st_nlink) {
+	blocks += val->st_blocks;
+	size += val->st_size;
+	printf("ino=%16lld nlink=%d\n",val->st_ino, val->st_nlink);
+    }
+}
+
+int
+main (int argc, char **argv)
+{
+    int startdir, i;
+
+    if (argc < 2){
+	fprintf (stderr,"vdu version %s\n",VERSION);
+	fprintf (stderr,"vdu directory ...\n\n");
+	fprintf (stderr,"Compute the size of a directory tree.\n");
+    }else{
+	if ((startdir = open (".",O_RDONLY)) == -1) {
+	    fprintf (stderr,"Can't open current working directory\n");
+	    panic("open failed");
+	}
+
+	/* hash table support for hard link count */
+	(void) Init(&tbl,0,0);
+
+	for (i=1; i<argc; i++){
+	    inodes = blocks = size = 0;
+	    vdu_onedir (argv[i]);
+
+	    printf("%16lld %16lld %16lld %s\n",
+		   inodes, 
+		   blocks>>1, 
+		   size,
+		   argv[i]);
+	    if (fchdir (startdir) == -1) {
+		panic("fchdir failed");
+	    }
+	}
+
+	if(0) {
+	    /* show size & blocks for files with nlinks from outside of dir */
+	    inodes = blocks = size = 0;
+	    Iterate(&tbl,Count);
+	    printf("%16lld %16lld %16lld NOT COUNTED\n",
+		   inodes, 
+		   blocks, 
+		   size);
+	}
+
+	// Dispose(&tbl); this fails to delete all entries 
+	close(startdir);
+    }
+    return 0;
+}
+
+/*
+ * Local variables:
+ *  c-basic-offset: 4
+ * End:
+ */
