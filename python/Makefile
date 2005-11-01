@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2005 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.8 2005/08/27 17:38:57 mlhuang Exp $
+# $Id: Makefile,v 1.9 2005/11/01 21:54:00 smuir Exp $
 #
 
 INCLUDES := -I.. -I../lib
@@ -29,8 +29,8 @@ clean: py-clean
 
 
 
-UTIL_PYTHON = ../../util-python
+UTIL_PYTHON ?= $(wildcard ../../util-python*)
 
--include $(UTIL_PYTHON)/pybuild.mk
+include $(UTIL_PYTHON)/pybuild.mk
 
 .PHONY: all install clean
