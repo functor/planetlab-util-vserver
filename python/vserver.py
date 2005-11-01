@@ -114,7 +114,6 @@ class VServer:
     def set_disklimit(self, block_limit):
 
         # block_limit is in kB
-        over_limit = False
         if self.vm_running:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
@@ -122,8 +121,6 @@ class VServer:
             # init_disk_info() must have been called to get usage values
             block_usage = self.disk_blocks
             inode_usage = self.disk_inodes
-            if block_limit < block_usage:
-                over_limit = True
 
         vserverimpl.setdlimit(self.dir,
                               self.ctx,
@@ -133,10 +130,6 @@ class VServer:
                               vserverimpl.DLIMIT_INF,  # inode limit
                               2)   # %age reserved for root
 
-        if over_limit:
-            raise Exception, ("%s disk usage (%u blocks) > limit (%u)" %
-                              (self.name, block_usage, block_limit))
-
     def get_disklimit(self):
 
         try:
@@ -145,7 +138,6 @@ class VServer:
         except OSError, ex:
             if ex.errno == errno.ESRCH:
                 # get here if no vserver disk limit has been set for xid
-                # set blockused to -1 to indicate no limit
                 blocktotal = -1
 
         return blocktotal
