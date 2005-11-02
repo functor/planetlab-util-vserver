@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 3.planetlab%{?date:.%{date}}
+%define release 4.planetlab%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -381,6 +381,9 @@ done
 
 
 %changelog
+* Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix Python modules to handling scheduling parameters correctly
+
 * Fri Oct 28 2005 Steve Muir <smuir@cs.princeton.edu>
 - raise exception about being over disk limit after setting usage values
 
