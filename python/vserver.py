@@ -149,7 +149,7 @@ class VServer:
 
         self.__update_config_file(self.config_file, { "CPULIMIT": cpu_share })
         if self.vm_running:
-            vserverimpl.setsched(self.ctx, cpu_share, True)
+            vserverimpl.setsched(self.ctx, self.resources)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
