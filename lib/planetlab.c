@@ -47,7 +47,6 @@ create_context(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
 {
   struct vc_ctx_caps  vc_caps;
   struct vc_ctx_flags  vc_flags;
-  struct vc_set_sched  vc_sched;
   struct vc_rlimit  vc_rlimit;
 
   /* create context info */
@@ -69,15 +68,7 @@ create_context(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
 
   /* set scheduler parameters */
   vc_flags.flagword |= rspec->cpu_sched_flags;
-  vc_sched.set_mask = (VC_VXSM_FILL_RATE | VC_VXSM_INTERVAL | VC_VXSM_TOKENS |
-		       VC_VXSM_TOKENS_MIN | VC_VXSM_TOKENS_MAX);
-  vc_sched.fill_rate = rspec->cpu_share;  /* tokens accumulated per interval */
-  vc_sched.interval = 1000;  /* milliseconds */
-  vc_sched.tokens = 100;     /* initial allocation of tokens */
-  vc_sched.tokens_min = 50;  /* need this many tokens to run */
-  vc_sched.tokens_max = 100;  /* max accumulated number of tokens */
-  if (vc_set_sched(ctx, &vc_sched))
-    return -1;
+  pl_setsched(ctx, rspec->cpu_share, rspec->cpu_sched_flags);
 
   /* set resource limits */
   vc_rlimit.min = VC_LIM_KEEP;
@@ -140,4 +131,20 @@ pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
     }
 
   return 0;
+}
+
+int
+pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
+{
+  struct vc_set_sched  vc_sched;
+
+  vc_sched.set_mask = (VC_VXSM_FILL_RATE | VC_VXSM_INTERVAL | VC_VXSM_TOKENS |
+		       VC_VXSM_TOKENS_MIN | VC_VXSM_TOKENS_MAX);
+  vc_sched.fill_rate = cpu_share;  /* tokens accumulated per interval */
+  vc_sched.interval = 1000;  /* milliseconds */
+  vc_sched.tokens = 100;     /* initial allocation of tokens */
+  vc_sched.tokens_min = 50;  /* need this many tokens to run */
+  vc_sched.tokens_max = 100;  /* max accumulated number of tokens */
+
+  return vc_set_sched(ctx, &vc_sched);
 }

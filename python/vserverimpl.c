@@ -57,8 +57,13 @@ vserver_chcontext(PyObject *self, PyObject *args)
   PyObject  *resources;
   PyObject  *cpu_share;
 
-  if (!PyArg_ParseTuple(args, "IO!|K", &ctx, &PyDict_Type, &resources, &flags))
+  if (!PyArg_ParseTuple(args, "IO|K", &ctx, &resources, &flags))
     return NULL;
+  if (!PyMapping_Check(resources))
+    {
+      PyErr_SetString(PyExc_TypeError, "invalid resources object");
+      return NULL;
+    }
   if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
       (cpu_share = PyNumber_Int(cpu_share)))
     rspec.cpu_share = PyInt_AsLong(cpu_share);
@@ -117,53 +122,33 @@ vserver_get_rlimit(PyObject *self, PyObject *args) {
 	return ret;
 }
 
-#if 0
 /*
  * setsched
  */
 static PyObject *
 vserver_setsched(PyObject *self, PyObject *args)
 {
-  xid_t  xid;
-  struct vc_set_sched sched;
-  struct vc_ctx_flags flags;
-  unsigned cpuguaranteed = 0;
+  xid_t  ctx;
+  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
+  PyObject  *resources;
+  PyObject  *cpu_share;
 
-  sched.set_mask = (VC_VXSM_FILL_RATE | 
-		    VC_VXSM_INTERVAL | 
-		    VC_VXSM_TOKENS_MIN | 
-		    VC_VXSM_TOKENS_MAX);
-
-  if (!PyArg_ParseTuple(args, "I|I|I|I|I|I|I", &xid, 
-			&sched.fill_rate,
-			&sched.interval,
-			&sched.tokens,
-			&sched.tokens_min,
-			&sched.tokens_max,
-			&cpuguaranteed))
+  if (!PyArg_ParseTuple(args, "IO", &ctx, &resources))
     return NULL;
+  if (!PyMapping_Check(resources))
+    {
+      PyErr_SetString(PyExc_TypeError, "invalid resources object");
+      return NULL;
+    }
+  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
+      (cpu_share = PyNumber_Int(cpu_share)))
+    rspec.cpu_share = PyInt_AsLong(cpu_share);
 
-  flags.flagword = VC_VXF_SCHED_HARD;
-  flags.mask |= VC_VXF_SCHED_HARD;
-#define VC_VXF_SCHED_SHARE       0x00000800ull
-  if (cpuguaranteed==0) {
-	  flags.flagword |= VC_VXF_SCHED_SHARE;
-	  flags.mask |= VC_VXF_SCHED_SHARE;
-  }
-
-  if (vc_set_cflags(xid, &flags) == -1)
-	  return PyErr_SetFromErrno(PyExc_OSError);
-
-  if (vc_set_sched(xid, &sched) == -1)
-	  return PyErr_SetFromErrno(PyExc_OSError);
+  if (pl_setsched(ctx, rspec.cpu_share, rspec.cpu_sched_flags))
+    PyErr_SetFromErrno(PyExc_OSError);
 
   return Py_None;
 }
-
-/*
- * setsched
- */
-#endif
 
 static PyObject *
 vserver_get_dlimit(PyObject *self, PyObject *args)
@@ -231,10 +216,8 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
-#if 0
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
-#endif
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,
     "Set disk limits for given vserver context" },
   { "getdlimit", vserver_get_dlimit, METH_VARARGS,

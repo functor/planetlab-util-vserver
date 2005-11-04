@@ -44,7 +44,6 @@ typedef struct {
   uint64_t  task_limit;
 } rspec_t;
 
-#define VC_VXF_SCHED_SHARE  0x00000800
 #define VC_VXF_SCHED_FLAGS  (VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE)
 
 int
