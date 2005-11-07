@@ -549,6 +549,7 @@ do_vdu(PyObject *self, PyObject *args)
 	cwd_fd = open(".", O_RDONLY);
 	res = vdu_onedir(&tbl, &s, path);
 	fchdir(cwd_fd);
+	close(cwd_fd);
 
 	/* deallocate whatever has been added to tbl */
 	Dispose(&tbl);
