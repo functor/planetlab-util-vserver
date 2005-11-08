@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 4.planetlab%{?date:.%{date}}
+%define release 5.planetlab%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -377,10 +377,15 @@ done
 
 %files python
 %defattr(0644,root,root)
-%_libdir/python2.3/site-packages/*
+%_libdir/python2.4/site-packages/*
 
 
 %changelog
+* Mon Nov  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix file descriptor leak in vduimpl
+- clean up handling of network parameters
+- don't rely upon /etc/vservers/foo.conf to initialise vserver object
+
 * Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix Python modules to handling scheduling parameters correctly
 
