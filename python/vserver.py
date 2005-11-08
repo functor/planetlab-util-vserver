@@ -50,12 +50,6 @@ class VServer:
             except IOError, ex:
                 if ex.errno != errno.ENOENT:
                     raise
-        self.flags = 0
-        flags = self.config.get("S_FLAGS", "").split(" ")
-        if "lock" in flags:
-            self.flags |= FLAGS_LOCK
-        if "nproc" in flags:
-            self.flags |= FLAGS_NPROC
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         self.ctx = vm_id
         self.vm_running = vm_running
