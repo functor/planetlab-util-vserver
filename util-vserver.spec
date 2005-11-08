@@ -377,7 +377,7 @@ done
 
 %files python
 %defattr(0644,root,root)
-%_libdir/python2.4/site-packages/*
+%_libdir/python2.3/site-packages/*
 
 
 %changelog
