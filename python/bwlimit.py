@@ -80,7 +80,7 @@ def get_defaults(cap_file="/etc/planetlab/bwcap", default_cap="10mbit"):
     return cap, cburst, share, quantum
 
 
-def init(eth):
+def init(eth = "eth0"):
     global TC, OPS
 
     cap, cburst, share, quantum = get_defaults()
