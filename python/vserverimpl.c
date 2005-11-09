@@ -216,8 +216,9 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 static PyObject *
 vserver_unset_dlimit(PyObject *self, PyObject *args)
 {
-  unsigned xid;
-  struct vcmd_ctx_dlimit_base_v0 init;
+  char  *path;
+  unsigned  xid;
+  struct vcmd_ctx_dlimit_base_v0  init;
 
   if (!PyArg_ParseTuple(args, "si", &path, &xid))
     return NULL;
