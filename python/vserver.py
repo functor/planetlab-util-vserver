@@ -113,6 +113,10 @@ class VServer:
     def set_disklimit(self, block_limit):
 
         # block_limit is in kB
+        if block_limit == 0:
+            vserverimpl.unsetdlimit(self.dir, self.ctx)
+            return
+
         if self.vm_running:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
@@ -135,9 +139,10 @@ class VServer:
             blocksused, blocktotal, inodesused, inodestotal, reserved = \
                         vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
-            if ex.errno == errno.ESRCH:
-                # get here if no vserver disk limit has been set for xid
-                blocktotal = -1
+            if ex.errno != errno.ESRCH:
+                raise
+            # get here if no vserver disk limit has been set for xid
+            blocktotal = -1
 
         return blocktotal
 
@@ -170,12 +175,12 @@ class VServer:
         ret = vserverimpl.getrlimit(self.ctx,6)
         return ret
 
-    def set_bwlimit(self, share, minrate, maxrate = None, dev = "eth0"):
+    def set_bwlimit(self, share, minrate = 1, maxrate = None, dev = "eth0"):
 
-        if False:
-            bwlimit.off(self.ctx, dev)
-        else:
+        if share:
             bwlimit.on(self.ctx, dev, share, minrate, maxrate)
+        else:
+            bwlimit.off(self.ctx, dev)
 
     def get_bwlimit(self, eth):
         # not implemented yet

@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 5.planetlab%{?date:.%{date}}
+%define release 6.planetlab%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -381,6 +381,9 @@ done
 
 
 %changelog
+* Wed Nov  9 2005 Steve Muir <smuir@cs.princeton.edu>
+- add support for removing resource limits e.g., when a slice is deleted
+
 * Mon Nov  7 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix file descriptor leak in vduimpl
 - clean up handling of network parameters
