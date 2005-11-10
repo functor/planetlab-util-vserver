@@ -1,0 +1,14 @@
+.X_user_local_etc-up-to-date
+.deps
+.fixups
+.pathconfig.h.pathsubst.stamp
+FEATURES.txt
+Makefile
+autom4te.cache
+config.cache
+config.h
+config.log
+config.status
+libtool
+pathconfig.h
+stamp-h1
