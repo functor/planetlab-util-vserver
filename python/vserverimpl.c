@@ -213,6 +213,26 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 	return Py_None;	
 }
 
+static PyObject *
+vserver_unset_dlimit(PyObject *self, PyObject *args)
+{
+  char  *path;
+  unsigned  xid;
+  struct vcmd_ctx_dlimit_base_v0  init;
+
+  if (!PyArg_ParseTuple(args, "si", &path, &xid))
+    return NULL;
+
+  memset(&init, 0, sizeof(init));
+  init.name = path;
+  init.flags = 0;
+
+  if (vserver(VCMD_rem_dlimit, xid, &init) && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return Py_None;	
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
@@ -220,6 +240,8 @@ static PyMethodDef  methods[] = {
     "Change vserver scheduling attributes for given vserver context" },
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,
     "Set disk limits for given vserver context" },
+  { "unsetdlimit", vserver_unset_dlimit, METH_VARARGS,
+    "Remove disk limits for given vserver context" },
   { "getdlimit", vserver_get_dlimit, METH_VARARGS,
     "Get disk limits for given vserver context" },
   { "setrlimit", vserver_set_rlimit, METH_VARARGS,

@@ -35,7 +35,7 @@ class VServer:
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name, vm_running = False, resources = {}):
+    def __init__(self, name, vm_id, vm_running = False, resources = {}):
 
         self.name = name
         self.config_file = "/etc/vservers/%s.conf" % name
@@ -43,16 +43,15 @@ class VServer:
         if not (os.path.isdir(self.dir) and
                 os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
             raise Exception, "no such vserver: " + name
-        self.config = self.__read_config_file("/etc/vservers.conf")
-        self.config.update(self.__read_config_file(self.config_file))
-        self.flags = 0
-        flags = self.config["S_FLAGS"].split(" ")
-        if "lock" in flags:
-            self.flags |= FLAGS_LOCK
-        if "nproc" in flags:
-            self.flags |= FLAGS_NPROC
+        self.config = {}
+        for config_file in ["/etc/vservers.conf", self.config_file]:
+            try:
+                self.config.update(self.__read_config_file(config_file))
+            except IOError, ex:
+                if ex.errno != errno.ENOENT:
+                    raise
         self.remove_caps = ~vserverimpl.CAP_SAFE;
-        self.ctx = int(self.config["S_CONTEXT"])
+        self.ctx = vm_id
         self.vm_running = vm_running
         self.resources = resources
 
@@ -114,6 +113,10 @@ class VServer:
     def set_disklimit(self, block_limit):
 
         # block_limit is in kB
+        if block_limit == 0:
+            vserverimpl.unsetdlimit(self.dir, self.ctx)
+            return
+
         if self.vm_running:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
@@ -136,9 +139,10 @@ class VServer:
             blocksused, blocktotal, inodesused, inodestotal, reserved = \
                         vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
-            if ex.errno == errno.ESRCH:
-                # get here if no vserver disk limit has been set for xid
-                blocktotal = -1
+            if ex.errno != errno.ESRCH:
+                raise
+            # get here if no vserver disk limit has been set for xid
+            blocktotal = -1
 
         return blocktotal
 
@@ -171,11 +175,12 @@ class VServer:
         ret = vserverimpl.getrlimit(self.ctx,6)
         return ret
 
-    def set_bwlimit(self, eth, limit, cap, minrate, maxrate):
-        if cap == "-1":
-            bwlimit.off(self.ctx,eth)
+    def set_bwlimit(self, share, minrate = 1, maxrate = None, dev = "eth0"):
+
+        if share:
+            bwlimit.on(self.ctx, dev, share, minrate, maxrate)
         else:
-            bwlimit.on(self.ctx, eth, limit, cap, minrate, maxrate)
+            bwlimit.off(self.ctx, dev)
 
     def get_bwlimit(self, eth):
         # not implemented yet

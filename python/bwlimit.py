@@ -80,7 +80,7 @@ def get_defaults(cap_file="/etc/planetlab/bwcap", default_cap="10mbit"):
     return cap, cburst, share, quantum
 
 
-def init(eth):
+def init(eth = "eth0"):
     global TC, OPS
 
     cap, cburst, share, quantum = get_defaults()
@@ -115,16 +115,18 @@ def init(eth):
               (TC, op, eth)
         if run(cmd): break
 
-def on(xid, eth, bwlimit, cap, minrate, maxrate):
+def on(xid, eth, share, minrate, maxrate = None):
     global TC, OPS
 
     default_cap, default_cburst, default_share, default_quantum = get_defaults()
-    quantum = bwlimit * default_quantum
+    if maxrate == None:
+        maxrate = default_cap
+    quantum = share * default_quantum
 
     # Set up the per-vserver token bucket
     for op in OPS:
         cmd = "%s class %s dev %s parent 1:1 classid 1:%d htb rate %s ceil %s quantum %d cburst %d" % \
-              (TC, op, eth, xid, minrate, cap, quantum, default_cburst)
+              (TC, op, eth, xid, minrate, maxrate, quantum, default_cburst)
         if run(cmd): break
 
     # The next command appears to throttle back processes that are
