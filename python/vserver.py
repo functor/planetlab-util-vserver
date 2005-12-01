@@ -4,6 +4,7 @@ import errno
 import fcntl
 import os
 import re
+import signal
 import sys
 import time
 import traceback
@@ -249,13 +250,12 @@ class VServer:
 
     def __do_chcontext(self, state_file):
 
-        vserverimpl.chcontext(self.ctx, self.resources)
+        if state_file:
+            print >>state_file, "S_CONTEXT=%u" % self.ctx
+            print >>state_file, "S_PROFILE="
+            state_file.close()
 
-        if not state_file:
-            return
-        print >>state_file, "S_CONTEXT=%d" % self.ctx
-        print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
-        state_file.close()
+        vserverimpl.chcontext(self.ctx, self.resources)
 
     def __prep(self, runlevel, log):
 
@@ -324,7 +324,6 @@ class VServer:
                 self.__do_chroot()
                 log = open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
-                # XXX - close all other fds
 
                 print >>log, ("%s: starting the virtual server %s" %
                               (time.asctime(time.gmtime()), self.name))
@@ -388,3 +387,8 @@ class VServer:
         (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
 
         return size
+
+    def stop(self, signal = signal.SIGKILL):
+
+        vserverimpl.killall(self.ctx, signal)
+        self.vm_running = False
