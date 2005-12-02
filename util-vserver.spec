@@ -17,10 +17,13 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 6.planetlab%{?date:.%{date}}
+%define release 7.planetlab%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
+
+# don't build debuginfo RPM
+%define debug_package %{nil}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -381,6 +384,11 @@ done
 
 
 %changelog
+* Fri Dec  2 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix bugs in python/vserverimpl.c where exceptions were not raised when
+  they should be and thus occured later at unexpected times
+- add support for stopping a vserver
+
 * Wed Nov  9 2005 Steve Muir <smuir@cs.princeton.edu>
 - add support for removing resource limits e.g., when a slice is deleted
 
