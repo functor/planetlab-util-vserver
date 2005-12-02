@@ -54,11 +54,17 @@ get_rspec(PyObject *resources, rspec_t *rspec)
       PyErr_SetString(PyExc_TypeError, "invalid rspec");
       return -1;
     }
-  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
-      (cpu_share = PyNumber_Int(cpu_share)))
-    rspec->cpu_share = PyInt_AsLong(cpu_share);
+  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")))
+    {
+      if (PyInt_Check(cpu_share))
+	{
+	  rspec->cpu_share = PyInt_AS_LONG(cpu_share);
+	  return 0;
+	}
+      PyErr_SetString(PyExc_TypeError, "nm_cpu_share not an integer");
+    }
 
-  return 0;
+  return -1;
 }
 
 /*
