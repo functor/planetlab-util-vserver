@@ -294,6 +294,14 @@ static int sandbox_processes(xid_t ctx, char *context)
 		 {0,0}};
 
 	get_limits(context,list);
+
+	/* check whether the slice has been disabled */
+	if (!cpu)
+	  {
+	    fprintf(stderr, "*** this slice has been suspended ***\n");
+	    exit(0);
+	  }
+
 	(void) (sandbox_chroot(ctx));
 
         rspec.cpu_share = cpu;
