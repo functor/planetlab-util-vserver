@@ -44,6 +44,29 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vserver.h"
 #include "vserver-internal.h"
 
+static int
+get_rspec(PyObject *resources, rspec_t *rspec)
+{
+  PyObject  *cpu_share;
+
+  if (!PyMapping_Check(resources))
+    {
+      PyErr_SetString(PyExc_TypeError, "invalid rspec");
+      return -1;
+    }
+  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")))
+    {
+      if (PyInt_Check(cpu_share))
+	{
+	  rspec->cpu_share = PyInt_AS_LONG(cpu_share);
+	  return 0;
+	}
+      PyErr_SetString(PyExc_TypeError, "nm_cpu_share not an integer");
+    }
+
+  return -1;
+}
+
 /*
  * context create
  */
@@ -55,21 +78,13 @@ vserver_chcontext(PyObject *self, PyObject *args)
   uint32_t  bcaps = ~vc_get_insecurebcaps();
   rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
   PyObject  *resources;
-  PyObject  *cpu_share;
 
-  if (!PyArg_ParseTuple(args, "IO|K", &ctx, &resources, &flags))
+  if (!PyArg_ParseTuple(args, "IO|K", &ctx, &resources, &flags) ||
+      get_rspec(resources, &rspec))
     return NULL;
-  if (!PyMapping_Check(resources))
-    {
-      PyErr_SetString(PyExc_TypeError, "invalid resources object");
-      return NULL;
-    }
-  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
-      (cpu_share = PyNumber_Int(cpu_share)))
-    rspec.cpu_share = PyInt_AsLong(cpu_share);
 
   if (pl_chcontext(ctx, flags, bcaps, &rspec))
-    PyErr_SetFromErrno(PyExc_OSError);
+    return PyErr_SetFromErrno(PyExc_OSError);
 
   return Py_None;
 }
@@ -131,21 +146,13 @@ vserver_setsched(PyObject *self, PyObject *args)
   xid_t  ctx;
   rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
   PyObject  *resources;
-  PyObject  *cpu_share;
 
-  if (!PyArg_ParseTuple(args, "IO", &ctx, &resources))
+  if (!PyArg_ParseTuple(args, "IO", &ctx, &resources) ||
+      get_rspec(resources, &rspec))
     return NULL;
-  if (!PyMapping_Check(resources))
-    {
-      PyErr_SetString(PyExc_TypeError, "invalid resources object");
-      return NULL;
-    }
-  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")) &&
-      (cpu_share = PyNumber_Int(cpu_share)))
-    rspec.cpu_share = PyInt_AsLong(cpu_share);
 
   if (pl_setsched(ctx, rspec.cpu_share, rspec.cpu_sched_flags))
-    PyErr_SetFromErrno(PyExc_OSError);
+    return PyErr_SetFromErrno(PyExc_OSError);
 
   return Py_None;
 }
@@ -233,6 +240,21 @@ vserver_unset_dlimit(PyObject *self, PyObject *args)
   return Py_None;	
 }
 
+static PyObject *
+vserver_killall(PyObject *self, PyObject *args)
+{
+  xid_t  ctx;
+  int  sig;
+
+  if (!PyArg_ParseTuple(args, "Ii", &ctx, &sig))
+    return NULL;
+
+  if (vc_ctx_kill(ctx, 0, sig) && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return Py_None;
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
@@ -248,6 +270,8 @@ static PyMethodDef  methods[] = {
     "Set resource limits for given resource of a vserver context" },
   { "getrlimit", vserver_get_rlimit, METH_VARARGS,
     "Get resource limits for given resource of a vserver context" },
+  { "killall", vserver_killall, METH_VARARGS,
+    "Send signal to all processes in vserver context" },
   { NULL, NULL, 0, NULL }
 };
 
