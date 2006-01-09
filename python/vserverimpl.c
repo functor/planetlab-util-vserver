@@ -151,7 +151,9 @@ vserver_setsched(PyObject *self, PyObject *args)
       get_rspec(resources, &rspec))
     return NULL;
 
-  if (pl_setsched(ctx, rspec.cpu_share, rspec.cpu_sched_flags))
+  /* ESRCH indicates that there are no processes in the context */
+  if (pl_setsched(ctx, rspec.cpu_share, rspec.cpu_sched_flags) &&
+      errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return Py_None;
