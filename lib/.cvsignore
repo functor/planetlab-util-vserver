@@ -2,3 +2,5 @@
 .dirstamp
 .libs
 *.lo
+libvserver.la
+util-vserver.pc
