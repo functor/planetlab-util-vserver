@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 7.planetlab%{?date:.%{date}}
+%define release 8%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -384,6 +384,11 @@ done
 
 
 %changelog
+* Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
+- fix bug in python/vserverimpl.c where attempting to adjust CPU share
+  for a context that didn't exist would cause an error (it should be a
+  safe no-op)
+
 * Fri Dec  2 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix bugs in python/vserverimpl.c where exceptions were not raised when
   they should be and thus occured later at unexpected times
