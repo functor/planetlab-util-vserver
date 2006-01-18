@@ -137,15 +137,15 @@ class VServer:
     def get_disklimit(self):
 
         try:
-            blocksused, blocktotal, inodesused, inodestotal, reserved = \
-                        vserverimpl.getdlimit(self.dir, self.ctx)
+            (self.disk_blocks, block_limit, self.disk_inodes, inode_limit,
+             reserved) = vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
             if ex.errno != errno.ESRCH:
                 raise
             # get here if no vserver disk limit has been set for xid
-            blocktotal = -1
+            block_limit = -1
 
-        return blocktotal
+        return block_limit
 
     def set_sched(self, cpu_share):
 
