@@ -151,9 +151,13 @@ class VServer:
 
         if cpu_share == int(self.config.get("CPULIMIT", -1)):
             return
-
-        self.__update_config_file(self.config_file, { "CPULIMIT": cpu_share })
+        # XXX - don't want to have to deal with nm_ flags here
+        cpu_guaranteed = int(self.resources.get("nm_sched_flags",
+                                                None) == "guaranteed")
+        cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
+        self.__update_config_file(self.config_file, cpu_config)
         if self.vm_running:
+            # caller must ensure cpu_share is consistent with self.resources
             vserverimpl.setsched(self.ctx, self.resources)
 
     def get_sched(self):
