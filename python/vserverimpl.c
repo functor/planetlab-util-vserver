@@ -44,27 +44,52 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vserver.h"
 #include "vserver-internal.h"
 
+#define NONE  ({ Py_INCREF(Py_None); Py_None; })
+
 static int
 get_rspec(PyObject *resources, rspec_t *rspec)
 {
+  int  result = -1;
   PyObject  *cpu_share;
+  PyObject  *sched_flags = NULL;
 
   if (!PyMapping_Check(resources))
     {
       PyErr_SetString(PyExc_TypeError, "invalid rspec");
       return -1;
     }
-  if ((cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")))
-    {
-      if (PyInt_Check(cpu_share))
-	{
-	  rspec->cpu_share = PyInt_AS_LONG(cpu_share);
-	  return 0;
-	}
-      PyErr_SetString(PyExc_TypeError, "nm_cpu_share not an integer");
-    }
 
-  return -1;
+  /* get CPU share */
+  if (!(cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")))
+    return -1;
+  if (!PyInt_Check(cpu_share))
+    {
+      PyErr_SetString(PyExc_TypeError, "nm_cpu_share not an integer");
+      goto out;
+    }
+  rspec->cpu_share = PyInt_AS_LONG(cpu_share);
+
+  /* check whether this share should be guaranteed */
+  rspec->cpu_sched_flags = VC_VXF_SCHED_FLAGS;
+  result = 0;
+  if ((sched_flags = PyMapping_GetItemString(resources, "nm_sched_flags")))
+    {
+      const char  *flagstr;
+
+      if (!(flagstr = PyString_AsString(sched_flags)))
+	result = -1;
+      else if (!strcmp(flagstr, "guaranteed"))
+	rspec->cpu_sched_flags &= ~VC_VXF_SCHED_SHARE;
+      Py_DECREF(sched_flags);
+    }
+  else
+    /* not an error if nm_sched_flags is missing */
+    PyErr_Clear();
+
+ out:
+  Py_DECREF(cpu_share);
+
+  return result;
 }
 
 /*
@@ -86,7 +111,7 @@ vserver_chcontext(PyObject *self, PyObject *args)
   if (pl_chcontext(ctx, flags, bcaps, &rspec))
     return PyErr_SetFromErrno(PyExc_OSError);
 
-  return Py_None;
+  return NONE;
 }
 
 static PyObject *
@@ -103,7 +128,6 @@ vserver_set_rlimit(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "IiL", &xid, &resource, &limits.hard))
 		return NULL;
 
-	ret = Py_None;
 	if (vc_set_rlimit(xid, resource, &limits)) 
 		ret = PyErr_SetFromErrno(PyExc_OSError);
 	else if (vc_get_rlimit(xid, resource, &limits)==-1)
@@ -128,7 +152,6 @@ vserver_get_rlimit(PyObject *self, PyObject *args) {
 	if (!PyArg_ParseTuple(args, "Ii", &xid, &resource))
 		return NULL;
 
-	ret = Py_None;
 	if (vc_get_rlimit(xid, resource, &limits)==-1)
 		ret = PyErr_SetFromErrno(PyExc_OSError);
 	else
@@ -156,7 +179,7 @@ vserver_setsched(PyObject *self, PyObject *args)
       errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
-  return Py_None;
+  return NONE;
 }
 
 static PyObject *
@@ -219,7 +242,7 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
             vserver(VCMD_set_dlimit, xid, &data))
           return PyErr_SetFromErrno(PyExc_OSError);
 
-	return Py_None;	
+	return NONE;	
 }
 
 static PyObject *
@@ -239,7 +262,7 @@ vserver_unset_dlimit(PyObject *self, PyObject *args)
   if (vserver(VCMD_rem_dlimit, xid, &init) && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
-  return Py_None;	
+  return NONE;	
 }
 
 static PyObject *
@@ -254,7 +277,7 @@ vserver_killall(PyObject *self, PyObject *args)
   if (vc_ctx_kill(ctx, 0, sig) && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
-  return Py_None;
+  return NONE;
 }
 
 static PyMethodDef  methods[] = {

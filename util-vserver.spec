@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 8%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 9%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -384,6 +384,9 @@ done
 
 
 %changelog
+* Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
+- add support for setting guaranteed CPU share flag in rspec
+
 * Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
 - fix bug in python/vserverimpl.c where attempting to adjust CPU share
   for a context that didn't exist would cause an error (it should be a

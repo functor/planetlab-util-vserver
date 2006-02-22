@@ -137,23 +137,27 @@ class VServer:
     def get_disklimit(self):
 
         try:
-            blocksused, blocktotal, inodesused, inodestotal, reserved = \
-                        vserverimpl.getdlimit(self.dir, self.ctx)
+            (self.disk_blocks, block_limit, self.disk_inodes, inode_limit,
+             reserved) = vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
             if ex.errno != errno.ESRCH:
                 raise
             # get here if no vserver disk limit has been set for xid
-            blocktotal = -1
+            block_limit = -1
 
-        return blocktotal
+        return block_limit
 
     def set_sched(self, cpu_share):
 
         if cpu_share == int(self.config.get("CPULIMIT", -1)):
             return
-
-        self.__update_config_file(self.config_file, { "CPULIMIT": cpu_share })
+        # XXX - don't want to have to deal with nm_ flags here
+        cpu_guaranteed = int(self.resources.get("nm_sched_flags",
+                                                None) == "guaranteed")
+        cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
+        self.__update_config_file(self.config_file, cpu_config)
         if self.vm_running:
+            # caller must ensure cpu_share is consistent with self.resources
             vserverimpl.setsched(self.ctx, self.resources)
 
     def get_sched(self):
