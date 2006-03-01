@@ -46,33 +46,33 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.4 2006/02/22 23:46:51 mlhuang Exp $
+# $Id: bwlimit.py,v 1.5 2006/02/27 01:58:09 mlhuang Exp $
 #
 
 import sys, os, re, getopt
 
 
-# Where the tc binary lives.
+# Where the tc binary lives
 TC = "/sbin/tc"
 
-# Default interface.
+# Default interface
 dev = "eth0"
 
 # For backward compatibility, if bwcap is not specified, attempt to
 # get it from here.
 bwcap_file = "/etc/planetlab/bwcap"
 
-# Verbosity level.
+# Verbosity level
 verbose = 0
 
-# guarantee is the minimum rate in bits per second that each slice is
-# guaranteed. The value of this parameter is fairly meaningless, since
-# it is unlikely that every slice will try to transmit full blast
-# simultaneously. It just needs to be small enough so that the total
-# of all outstanding guarantees is less than or equal to the node
-# bandwidth cap (see below). A node with a 500kbit cap (the minimum
-# recommended) can support up to 500kbit/1kbit = 500 slices.
-guarantee = 1000
+# bwmin should be small enough that it can be considered negligibly
+# slow compared to the hardware. 8 bits/second appears to be the
+# smallest value supported by tc.
+bwmin = 8
+
+# bwmax should be large enough that it can be considered at least as
+# fast as the hardware.
+bwmax = 1000*1000*1000
 
 # quantum is the maximum number of bytes that can be borrowed by a
 # share (or slice, if each slice gets 1 share) in one time period
@@ -83,8 +83,9 @@ guarantee = 1000
 # one time period as slices with 1 share, so averaged over time, they
 # will get twice as much of the excess bandwidth. The value should be
 # as small as possible and at least 1 MTU. By default, it would be
-# calculated as guarantee/10, but since we use such small guarantees,
-# it's better to just set it to a value safely above 1 Ethernet MTU.
+# calculated as bwmin/10, but since we use such small a value for
+# bwmin, it's better to just set it to a value safely above 1 Ethernet
+# MTU.
 quantum = 1600
 
 # cburst is the maximum number of bytes that can be burst onto the
@@ -96,10 +97,7 @@ quantum = 1600
 # to borrow enough bandwidth to do so. For now, it's unclear how or if
 # to relate this to the notion of shares, so just let tc set the
 # default.
-
-# bwmax should just be large enough that it can be considered
-# "unlimited".
-bwmax = 1000*1000*1000
+cburst = None
 
 # There is another parameter that controls how bandwidth is allocated
 # between slices on nodes that is outside the scope of HTB. We enforce
@@ -109,24 +107,31 @@ bwmax = 1000*1000*1000
 # node bandwidth cap or 1.5mbit. pl_mom is in charge of enforcing this
 # rule and executes this script to override "ceil".
 
-# We can support multiple bandwidth limits, by reserving the top
-# nibble of the minor classid to be the "subclassid". Theoretically,
-# we could support up to 15 subclasses, but for now, we only define
-# two: the "default" subclass 1:1 that is capped at the node bandwidth
-# cap (in this example, 5mbit) and the "exempt" subclass 1:2 that is
-# capped at the hardware speed (in this example, 1gbit). The "exempt"
-# subclass is entitled to whatever bandwidth is leftover after the
-# node bandwidth cap is reached, and is fairly shared amongst non-root
-# slices.
+# We support multiple bandwidth limits, by reserving the top nibble of
+# the minor classid to be the "subclassid". Theoretically, we could
+# support up to 15 subclasses, but for now, we only define two: the
+# "default" subclass 1:10 that is capped at the node bandwidth cap (in
+# this example, 5mbit) and the "exempt" subclass 1:20 that is capped
+# at bwmax (i.e., not capped). The 1:1 parent class exists only to
+# make the borrowing model work. All bandwidth is fairly shared,
+# subject to the restrictions of the class hierarchy: namely, that the
+# total bandwidth to non-exempt destinations should not exceed the
+# node bandwidth cap. The root slice has a higher priority (0) than
+# the others (1) and can thus request all of the bandwidth of that
+# subclass.
 #
-#                        1:
-# 1:1 (5mbit, 5mbit)            1:2 (1gbit, 1gbit)
-#
-# 1:1000 (1, 5mbit, 5mbit)      1:2000 (1gbit, 1gbit)
-# 1:1001 (1, 1kbit, 5mbit)      1:2001 (1kbit, 1gbit)
-# 1:1002 (1, 1kbit, 5mbit)      1:2002 (1kbit, 1gbit)
+#                            1:
+#                            |
+#                       1:1 (1gbit)
+#              ______________|______________
+#             |                             |
+#    1:10 (8bit, 5mbit)           1:20 (8bit, 1gbit)
+#             |                             |
+# 1:1000 (8bit, 5mbit, 0),     1:2000 (8bit, 1gbit, 0),
+# 1:1001 (8bit, 5mbit, 1),     1:2001 (8bit, 1gbit, 1),
+# 1:1002 (8bit, 5mbit, 1),     1:2002 (8bit, 1gbit, 1),
 # ...                           ...
-# 1:1FFF (1, 1kbit, 5mbit)      1:2FFF (1kbit, 1gbit)
+# 1:1FFF (8bit, 5mbit, 1)      1:2FFF (8bit, 1gbit, 1)
 #
 default_minor = 0x1000
 exempt_minor = 0x2000
@@ -279,34 +284,38 @@ def init(dev = dev, bwcap = None):
     tc("qdisc add dev %s root handle 1: htb default %x" % \
        (dev, default_minor | default_xid))
 
+    # Set up a parent class from which all subclasses borrow.
+    tc("class add dev %s parent 1: classid 1:1 htb rate %dbit" % \
+       (dev, bwmax))
+
     # Set up a subclass that represents the node bandwidth cap. We
     # allow each slice to borrow up to this rate, so it is also
     # usually the "ceil" rate for each slice.
-    tc("class add dev %s parent 1: classid 1:1 htb rate %dbit" % \
-       (dev, bwcap))
+    tc("class add dev %s parent 1:1 classid 1:10 htb rate %dbit ceil %dbit" % \
+       (dev, bwmin, bwcap))
 
     # Set up a subclass that represents "exemption" from the node
-    # bandwidth cap. It gets whatever bandwidth is leftover after
-    # applying the node bandwidth cap to non-exempt packets.
-    tc("class add dev %s parent 1: classid 1:2 htb rate %dbit" % \
-       (dev, bwmax))
+    # bandwidth cap. Once the node bandwidth cap is reached, bandwidth
+    # to exempt destinations can still be fairly shared up to bwmax.
+    tc("class add dev %s parent 1:1 classid 1:20 htb rate %dbit ceil %dbit" % \
+       (dev, bwmin, bwmax))
 
     # Set up the root class (and tell VNET what it is). Packets sent
     # by root end up here and are capped at the node bandwidth
     # cap.
-    on(root_xid, dev, minrate = bwmax, maxrate = bwmax)
+    on(root_xid, dev, prio = 0)
     file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
 
     # Set up the default class. Packets that fail classification end
     # up here.
-    on(default_xid, dev, maxrate = bwcap)
+    on(default_xid, dev)
 
     # Reapply bandwidth caps. If the node bandwidth cap is now lower
     # than it was before, "ceil" for each class will be lowered. If
     # the node bandwidth cap is now higher than it was before, "ceil"
     # for each class should be reapplied.
     for (xid, share, minrate, maxrate) in caps:
-        if xid != 0 and xid != default_xid:
+        if xid != root_xid and xid != default_xid:
             on(xid, dev, share = share, minrate = minrate, maxrate = maxrate)
 
 
@@ -318,10 +327,10 @@ def get(xid = None, dev = dev):
     else:
         ret = None
 
-    # class htb 1:1002 parent 1:1 leaf 1002: prio 0 rate 10Mbit ceil 10Mbit burst 14704b cburst 14704b
+    # class htb 1:1002 parent 1:10 leaf 81b3: prio 1 rate 8bit ceil 5000Kbit burst 1600b cburst 4Kb
     for line in tc("-d class show dev %s" % dev):
-        # Search for child classes of 1:1
-        m = re.match(r"class htb 1:([0-9a-f]+) parent 1:1", line)
+        # Search for child classes of 1:10
+        m = re.match(r"class htb 1:([0-9a-f]+) parent 1:10", line)
         if m is None:
             continue
 
@@ -337,7 +346,7 @@ def get(xid = None, dev = dev):
             share = int(m.group(1)) / quantum
 
         # Parse minrate
-        minrate = guarantee
+        minrate = bwmin
         m = re.search(r"rate (\w+)", line)
         if m is not None:
             minrate = get_tc_rate(m.group(1))
@@ -360,7 +369,7 @@ def get(xid = None, dev = dev):
 
 
 # Apply specified bandwidth limit to the specified slice xid
-def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
+def on(xid, dev = dev, share = None, minrate = None, maxrate = None, prio = 1):
     # Get defaults from current state if available
     cap = get(xid, dev)
     if cap is not None:
@@ -374,8 +383,8 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
     # Figure out what the current node bandwidth cap is
     bwcap = bwmax
     for line in tc("-d class show dev %s" % dev):
-        # Search for 1:1
-        m = re.match(r"class htb 1:1 root .*ceil (\w+)", line)
+        # Search for 1:10
+        m = re.match(r"class htb 1:10.*ceil (\w+)", line)
         if m is not None:
             bwcap = get_tc_rate(m.group(1))
             break
@@ -384,7 +393,7 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
     if share is None:
         share = 1
     if minrate is None:
-        minrate = guarantee
+        minrate = bwmin
     else:
         minrate = get_tc_rate(minrate)
     if maxrate is None:
@@ -392,15 +401,19 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
     else:
         maxrate = get_tc_rate(maxrate)
 
+    # Sanity checks
+    if maxrate > bwcap:
+        maxrate = bwcap
+
     if minrate > maxrate:
         minrate = maxrate
 
-    # Set up subclasses for the slice.
-    tc("class replace dev %s parent 1:1 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
-       (dev, default_minor | xid, min(minrate, bwcap), min(maxrate, bwcap), share * quantum))
+    # Set up subclasses for the slice
+    tc("class replace dev %s parent 1:10 classid 1:%x htb rate %dbit ceil %dbit quantum %d prio %d" % \
+       (dev, default_minor | xid, minrate, maxrate, share * quantum, prio))
 
-    tc("class replace dev %s parent 1:2 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
-       (dev, exempt_minor | xid, min(minrate, bwmax), bwmax, share * quantum))
+    tc("class replace dev %s parent 1:20 classid 1:%x htb rate %dbit ceil %dbit quantum %d prio %d" % \
+       (dev, exempt_minor | xid, minrate, bwmax, share * quantum, prio))
 
     # Attach a FIFO to each subclass, which helps to throttle back
     # processes that are sending faster than the token buckets can
@@ -431,7 +444,6 @@ Usage:
 Options:
 	-d device	Network interface (default: %s)
         -r rate         Node bandwidth cap (default: %s)
-        -g guarantee    Default minimum slice rate (default: %s bits/second)
         -q quantum      Share multiplier (default: %d bytes)
         -h              This message
 
@@ -450,12 +462,12 @@ Commands:
                 Get maxrate for the specified slice
         setcap slice maxrate
                 Set maxrate for the specified slice
-""" % (sys.argv[0], dev, bwcap_description, guarantee, quantum)
+""" % (sys.argv[0], dev, bwcap_description, quantum)
     sys.exit(1)
     
 
 def main():
-    global dev, guarantee, quantum, verbose
+    global dev, quantum, verbose
 
     # Defaults
     bwcap = get_bwcap()
@@ -466,8 +478,6 @@ def main():
             dev = optval
         elif opt == '-r':
             bwcap = get_tc_rate(optval)
-        elif opt == '-g':
-            guarantee = get_tc_rate(optval)
         elif opt == '-q':
             quantum = int(optval)
         elif opt == '-v':
