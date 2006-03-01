@@ -46,10 +46,12 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.6 2006/03/01 16:28:51 mlhuang Exp $
+# $Id: bwlimit.py,v 1.7 2006/03/01 18:54:38 mlhuang Exp $
 #
 
 import sys, os, re, getopt
+from sets import Set
+import plcapi
 
 
 # Where the tc binary lives
@@ -246,18 +248,28 @@ def get_slice(xid_or_name):
     return None
 
 
-# Shortcut for running a tc command
-def tc(cmd):
+# Shortcut for running a command
+def run(cmd, input = None):
     try:
         if verbose:
-            sys.stderr.write("Executing: " + TC + " " + cmd + "\n")
-        fileobj = os.popen(TC + " " + cmd, "r")
-        output = fileobj.readlines()
+            sys.stderr.write("Executing: " + cmd + "\n")
+        if input is None:
+            fileobj = os.popen(cmd, "r")
+            output = fileobj.readlines()
+        else:
+            fileobj = os.popen(cmd, "w")
+            fileobj.write(input)
+            output = None
         if fileobj.close() is None:
             return output
     except Exception, e:
         pass
     return None
+
+
+# Shortcut for running a tc command
+def tc(cmd):
+    return run(TC + " " + cmd)
 
 
 # (Re)initialize the bandwidth limits on this node
@@ -310,6 +322,9 @@ def init(dev = dev, bwcap = None):
     # Set up the default class. Packets that fail classification end
     # up here.
     on(default_xid, dev, share = default_share)
+
+    # Set up exemptions.
+    exempt_init()
 
 
 # Get the bandwidth limits for a particular slice xid as a tuple (xid,
@@ -427,6 +442,48 @@ def off(xid, dev = dev):
         tc("class del dev %s classid 1:%x" % (dev, exempt_minor | xid))
 
 
+def exempt_init():
+    # Who are we?
+    try:
+        node_id = int(file('/etc/planetlab/node_id').readline().strip())
+    except:
+        return False
+
+    api = plcapi.PLCAPI()
+
+    # All nodes that have access to Internet2
+    node_ids = []
+    for node_group in api.AnonAdmGetNodeGroups(api.auth):
+        if node_group['name'] == "Internet2":
+            node_ids += api.AnonAdmGetNodeGroupNodes(api.auth, node_group['nodegroup_id'])
+
+    # Remove duplicates
+    node_ids = list(Set(node_ids))
+
+    # Continue only if we ourselves have access to Internet2
+    if node_id not in node_ids:
+        return True
+
+    # Exempt the following destinations from the node bandwidth cap
+    node_ips = [node['ip'] for node in api.AnonAdmGetNodes(api.auth, node_ids, ['ip'])]
+
+    # Clean up
+    run("/sbin/iptables -t vnet -F POSTROUTING")
+    run("/sbin/ipset -X Internet2")
+
+    # Create a hashed IP set of all of these destinations
+    run("/sbin/modprobe ip_set_iphash")
+    lines = ["-N Internet2 iphash"]
+    lines += ["-A Internet2 " + ip for ip in node_ips]
+    lines += ["COMMIT"]
+    restore = "\n".join(lines) + "\n"
+    run("/sbin/ipset -R", restore)
+
+    # Add rule to match on destination IP set
+    run("/sbin/iptables -t vnet -A POSTROUTING -m set --set Internet2 dst -j CLASSIFY --set-class 1:%x" %
+        exempt_minor)
+
+
 def usage():
     bwcap_description = format_tc_rate(bwmax)
         
@@ -502,7 +559,7 @@ def main():
                 if slice is None:
                     # Orphaned (not associated with a slice) class
                     slice = "%d?" % xid
-                print "%s: share %d minrate %s maxrate %s" % \
+                print "%s %d %s %s" % \
                       (slice, share, format_tc_rate(minrate), format_tc_rate(maxrate))
 
         elif len(argv) >= 2:
