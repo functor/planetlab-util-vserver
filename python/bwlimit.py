@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.5 2006/02/27 01:58:09 mlhuang Exp $
+# $Id: bwlimit.py,v 1.6 2006/03/01 16:28:51 mlhuang Exp $
 #
 
 import sys, os, re, getopt
@@ -113,37 +113,41 @@ cburst = None
 # "default" subclass 1:10 that is capped at the node bandwidth cap (in
 # this example, 5mbit) and the "exempt" subclass 1:20 that is capped
 # at bwmax (i.e., not capped). The 1:1 parent class exists only to
-# make the borrowing model work. All bandwidth is fairly shared,
-# subject to the restrictions of the class hierarchy: namely, that the
-# total bandwidth to non-exempt destinations should not exceed the
-# node bandwidth cap. The root slice has a higher priority (0) than
-# the others (1) and can thus request all of the bandwidth of that
-# subclass.
+# make the borrowing model work. All bandwidth above minimum
+# guarantees is fairly shared (in this example, slice 2 is guaranteed
+# at least 1mbit in addition to fair access to the rest), subject to
+# the restrictions of the class hierarchy: namely, that the total
+# bandwidth to non-exempt destinations should not exceed the node
+# bandwidth cap.
 #
-#                            1:
-#                            |
-#                       1:1 (1gbit)
-#              ______________|______________
-#             |                             |
-#    1:10 (8bit, 5mbit)           1:20 (8bit, 1gbit)
-#             |                             |
-# 1:1000 (8bit, 5mbit, 0),     1:2000 (8bit, 1gbit, 0),
-# 1:1001 (8bit, 5mbit, 1),     1:2001 (8bit, 1gbit, 1),
-# 1:1002 (8bit, 5mbit, 1),     1:2002 (8bit, 1gbit, 1),
-# ...                           ...
-# 1:1FFF (8bit, 5mbit, 1)      1:2FFF (8bit, 1gbit, 1)
+#                         1:
+#                         |
+#                    1:1 (1gbit)
+#           ______________|_____________
+#          |                            |
+#   1:10 (8bit, 5mbit)           1:20 (8bit, 1gbit)
+#          |                            |
+# 1:1000 (8bit, 5mbit),        1:2000 (8bit, 1gbit),
+# 1:1001 (8bit, 5mbit),        1:2001 (8bit, 1gbit),
+# 1:1002 (1mbit, 5mbit),       1:2002 (1mbit, 1gbit),
+# ...                          ...
+# 1:1FFF (8bit, 5mbit)         1:2FFF (8bit, 1gbit)
 #
 default_minor = 0x1000
 exempt_minor = 0x2000
 
 # root_xid is for the root context. The root context is exempt from
-# fair sharing in both the default and exempt subclasses..
+# fair sharing in both the default and exempt subclasses. The root
+# context gets 5 shares by default.
 root_xid = 0x0000
+root_share = 5
 
 # default_xid is for unclassifiable packets. Packets should not be
 # classified here very often. They can be if a slice's HTB classes are
-# deleted before its processes are.
+# deleted before its processes are. Each slice gets 1 share by
+# default.
 default_xid = 0x0FFF
+default_share = 1
 
 # See tc_util.c and http://physics.nist.gov/cuu/Units/binary.html. Be
 # warned that older versions of tc interpret "kbps", "mbps", "mbit",
@@ -266,9 +270,6 @@ def init(dev = dev, bwcap = None):
         # Allow bwcap to be specified as a tc rate string
         bwcap = get_tc_rate(bwcap)
 
-    # Save current state (if any)
-    caps = get(dev = dev)
-
     # Delete root qdisc 1: if it exists. This will also automatically
     # delete any child classes.
     for line in tc("qdisc show dev %s" % dev):
@@ -303,20 +304,12 @@ def init(dev = dev, bwcap = None):
     # Set up the root class (and tell VNET what it is). Packets sent
     # by root end up here and are capped at the node bandwidth
     # cap.
-    on(root_xid, dev, prio = 0)
+    on(root_xid, dev, share = root_share)
     file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
 
     # Set up the default class. Packets that fail classification end
     # up here.
-    on(default_xid, dev)
-
-    # Reapply bandwidth caps. If the node bandwidth cap is now lower
-    # than it was before, "ceil" for each class will be lowered. If
-    # the node bandwidth cap is now higher than it was before, "ceil"
-    # for each class should be reapplied.
-    for (xid, share, minrate, maxrate) in caps:
-        if xid != root_xid and xid != default_xid:
-            on(xid, dev, share = share, minrate = minrate, maxrate = maxrate)
+    on(default_xid, dev, share = default_share)
 
 
 # Get the bandwidth limits for a particular slice xid as a tuple (xid,
@@ -369,7 +362,7 @@ def get(xid = None, dev = dev):
 
 
 # Apply specified bandwidth limit to the specified slice xid
-def on(xid, dev = dev, share = None, minrate = None, maxrate = None, prio = 1):
+def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
     # Get defaults from current state if available
     cap = get(xid, dev)
     if cap is not None:
@@ -391,7 +384,7 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, prio = 1):
 
     # Set defaults
     if share is None:
-        share = 1
+        share = default_share
     if minrate is None:
         minrate = bwmin
     else:
@@ -404,16 +397,15 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, prio = 1):
     # Sanity checks
     if maxrate > bwcap:
         maxrate = bwcap
-
     if minrate > maxrate:
         minrate = maxrate
 
     # Set up subclasses for the slice
-    tc("class replace dev %s parent 1:10 classid 1:%x htb rate %dbit ceil %dbit quantum %d prio %d" % \
-       (dev, default_minor | xid, minrate, maxrate, share * quantum, prio))
+    tc("class replace dev %s parent 1:10 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
+       (dev, default_minor | xid, minrate, maxrate, share * quantum))
 
-    tc("class replace dev %s parent 1:20 classid 1:%x htb rate %dbit ceil %dbit quantum %d prio %d" % \
-       (dev, exempt_minor | xid, minrate, bwmax, share * quantum, prio))
+    tc("class replace dev %s parent 1:20 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
+       (dev, exempt_minor | xid, minrate, bwmax, share * quantum))
 
     # Attach a FIFO to each subclass, which helps to throttle back
     # processes that are sending faster than the token buckets can
@@ -429,8 +421,10 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, prio = 1):
 # are seen from this slice, they will be classified into the default
 # class 1:1FFF.
 def off(xid, dev = dev):
-    tc("class del dev %s classid 1:%x" % (dev, default_minor | xid))
-    tc("class del dev %s classid 1:%x" % (dev, exempt_minor | xid))
+    cap = get(xid, dev)
+    if cap is not None:
+        tc("class del dev %s classid 1:%x" % (dev, default_minor | xid))
+        tc("class del dev %s classid 1:%x" % (dev, exempt_minor | xid))
 
 
 def usage():
