@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.7 2006/03/01 18:54:38 mlhuang Exp $
+# $Id: bwlimit.py,v 1.8 2006/03/01 22:02:52 mlhuang Exp $
 #
 
 import sys, os, re, getopt
@@ -485,7 +485,7 @@ def exempt_init():
 
 
 def usage():
-    bwcap_description = format_tc_rate(bwmax)
+    bwcap_description = format_tc_rate(get_bwcap())
         
     print """
 Usage:
