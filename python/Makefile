@@ -5,13 +5,13 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2005 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.9 2005/11/01 21:54:00 smuir Exp $
+# $Id: Makefile,v 1.10 2005/11/01 22:02:04 smuir Exp $
 #
 
 INCLUDES := -I.. -I../lib
 LIBS = -L../lib -lvserver
 
-PY_MODS := vserver.py cpulimit.py bwlimit.py
+PY_MODS := vserver.py cpulimit.py bwlimit.py plcapi.py
 PY_EXT_MODS := vduimpl.so vserverimpl.so
 
 LT_LINK = ../libtool --tag=CC --mode=link
