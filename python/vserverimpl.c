@@ -46,69 +46,35 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define NONE  ({ Py_INCREF(Py_None); Py_None; })
 
-static int
-get_rspec(PyObject *resources, rspec_t *rspec)
-{
-  int  result = -1;
-  PyObject  *cpu_share;
-  PyObject  *sched_flags = NULL;
-
-  if (!PyMapping_Check(resources))
-    {
-      PyErr_SetString(PyExc_TypeError, "invalid rspec");
-      return -1;
-    }
-
-  /* get CPU share */
-  if (!(cpu_share = PyMapping_GetItemString(resources, "nm_cpu_share")))
-    return -1;
-  if (!PyInt_Check(cpu_share))
-    {
-      PyErr_SetString(PyExc_TypeError, "nm_cpu_share not an integer");
-      goto out;
-    }
-  rspec->cpu_share = PyInt_AS_LONG(cpu_share);
-
-  /* check whether this share should be guaranteed */
-  rspec->cpu_sched_flags = VC_VXF_SCHED_FLAGS;
-  result = 0;
-  if ((sched_flags = PyMapping_GetItemString(resources, "nm_sched_flags")))
-    {
-      const char  *flagstr;
-
-      if (!(flagstr = PyString_AsString(sched_flags)))
-	result = -1;
-      else if (!strcmp(flagstr, "guaranteed"))
-	rspec->cpu_sched_flags &= ~VC_VXF_SCHED_SHARE;
-      Py_DECREF(sched_flags);
-    }
-  else
-    /* not an error if nm_sched_flags is missing */
-    PyErr_Clear();
-
- out:
-  Py_DECREF(cpu_share);
-
-  return result;
-}
-
 /*
  * context create
  */
 static PyObject *
 vserver_chcontext(PyObject *self, PyObject *args)
 {
+  int  result;
   xid_t  ctx;
   uint32_t  flags = 0;
   uint32_t  bcaps = ~vc_get_insecurebcaps();
-  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
-  PyObject  *resources;
 
-  if (!PyArg_ParseTuple(args, "IO|K", &ctx, &resources, &flags) ||
-      get_rspec(resources, &rspec))
+  if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
     return NULL;
 
-  if (pl_chcontext(ctx, flags, bcaps, &rspec))
+  if ((result = pl_chcontext(ctx, flags, bcaps)) < 0)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return PyBool_FromLong(result);
+}
+
+static PyObject *
+vserver_setup_done(PyObject *self, PyObject *args)
+{
+  xid_t  ctx;
+
+  if (!PyArg_ParseTuple(args, "I", &ctx))
+    return NULL;
+
+  if (pl_setup_done(ctx) < 0)
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return NONE;
@@ -167,15 +133,14 @@ static PyObject *
 vserver_setsched(PyObject *self, PyObject *args)
 {
   xid_t  ctx;
-  rspec_t  rspec = { 32, VC_VXF_SCHED_FLAGS, -1, -1 };
-  PyObject  *resources;
+  uint32_t  cpu_share;
+  uint32_t  cpu_sched_flags = VC_VXF_SCHED_FLAGS;
 
-  if (!PyArg_ParseTuple(args, "IO", &ctx, &resources) ||
-      get_rspec(resources, &rspec))
+  if (!PyArg_ParseTuple(args, "II|I", &ctx, &cpu_share, &cpu_sched_flags))
     return NULL;
 
   /* ESRCH indicates that there are no processes in the context */
-  if (pl_setsched(ctx, rspec.cpu_share, rspec.cpu_sched_flags) &&
+  if (pl_setsched(ctx, cpu_share, cpu_sched_flags) &&
       errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
@@ -283,6 +248,8 @@ vserver_killall(PyObject *self, PyObject *args)
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
+  { "setup_done", vserver_setup_done, METH_VARARGS,
+    "Release vserver setup lock" },
   { "setsched", vserver_setsched, METH_VARARGS,
     "Change vserver scheduling attributes for given vserver context" },
   { "setdlimit", vserver_set_dlimit, METH_VARARGS,
@@ -316,4 +283,9 @@ initvserverimpl(void)
   /* export limit-related constants */
   PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)CDLIM_KEEP);
   PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)CDLIM_INFINITY);
+
+  /* scheduler flags */
+  PyModule_AddIntConstant(mod,
+			  "VS_SCHED_CPU_GUARANTEED",
+			  VS_SCHED_CPU_GUARANTEED);
 }

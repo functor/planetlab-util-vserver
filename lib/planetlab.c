@@ -44,15 +44,15 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vserver.h"
 
 static int
-create_context(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
+create_context(xid_t ctx, uint32_t flags, uint64_t bcaps)
 {
   struct vc_ctx_caps  vc_caps;
-  struct vc_ctx_flags  vc_flags;
-  struct vc_rlimit  vc_rlimit;
 
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
    * Don't ever clear the STATE_INIT flag, that makes us the init task.
+   *
+   * XXX - the kernel code allows initial flags to be passed as an arg.
    */
   if (vc_ctx_create(ctx) == VC_NOCTX)
     return -1;
@@ -65,43 +65,44 @@ create_context(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
   if (vc_set_ccaps(ctx, &vc_caps))
     return -1;
 
-  /* set scheduler parameters */
-  if (pl_setsched(ctx, rspec->cpu_share, rspec->cpu_sched_flags))
-    return -1;
+  /* set default scheduling parameters */
+  pl_setsched(ctx, 32, 0);
 
-  /* set resource limits */
-  vc_rlimit.min = VC_LIM_KEEP;
-  vc_rlimit.soft = VC_LIM_KEEP;
-  vc_rlimit.hard = rspec->mem_limit;
-  if (vc_set_rlimit(ctx, RLIMIT_RSS, &vc_rlimit))
-    return -1;
+  return 0;
+}
 
-  /* assume min and soft unchanged by set_rlimit */
-  vc_rlimit.hard = rspec->task_limit;
-  if (vc_set_rlimit(ctx, RLIMIT_NPROC, &vc_rlimit))
-    return -1;
+int
+pl_setup_done(xid_t ctx)
+{
+  struct vc_ctx_flags  vc_flags;
 
-  /* set flags, unset SETUP flag - this allows other processes to migrate */
-  vc_flags.mask = VC_VXF_STATE_SETUP | VC_VXF_SCHED_FLAGS;
-  flags = 0;  /* XXX - ignore flags parameter */
-  vc_flags.flagword = flags | rspec->cpu_sched_flags;  /* SETUP cleared */
+  /* unset SETUP flag - this allows other processes to migrate */
+  vc_flags.mask = VC_VXF_STATE_SETUP;
+  vc_flags.flagword = 0;
   if (vc_set_cflags(ctx, &vc_flags))
     return -1;
 
   return 0;
 }
 
+#define RETRY_LIMIT  10
+
 int
-pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
+pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps)
 {
+  int  retry_count = 0;
+
   for (;;)
     {
       struct vc_ctx_flags  vc_flags;
 
       if (vc_get_cflags(ctx, &vc_flags))
 	{
+	  if (errno != ESRCH)
+	    return -1;
+
 	  /* context doesn't exist - create it */
-	  if (create_context(ctx, flags, bcaps, rspec))
+	  if (create_context(ctx, flags, bcaps))
 	    {
 	      if (errno == EEXIST)
 		/* another process beat us in a race */
@@ -113,13 +114,18 @@ pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec)
 	    }
 
 	  /* created context and migrated to it i.e., we're done */
-	  break;
+	  return 1;
 	}
 
       /* check the SETUP flag */
       if (vc_flags.flagword & VC_VXF_STATE_SETUP)
 	{
 	  /* context is still being setup - wait a while then retry */
+	  if (retry_count++ >= RETRY_LIMIT)
+	    {
+	      errno = EBUSY;
+	      return -1;
+	    }
 	  sleep(1);
 	  continue;
 	}
@@ -144,18 +150,12 @@ do						\
 }						\
 while (0)
 
-
 int
 pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
 {
   struct vc_set_sched  vc_sched;
   struct vc_ctx_flags  vc_flags;
-
-  if (cpu_sched_flags & ~VC_VXF_SCHED_FLAGS)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+  uint32_t  new_flags;
 
   vc_sched.set_mask = (VC_VXSM_FILL_RATE | VC_VXSM_INTERVAL | VC_VXSM_TOKENS |
 		       VC_VXSM_TOKENS_MIN | VC_VXSM_TOKENS_MAX);
@@ -170,11 +170,14 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
   /* get current flag values */
   VC_SYSCALL(vc_get_cflags(ctx, &vc_flags));
 
-  /* the only flag which ever changes is the SCHED_SHARE bit */
-  if ((vc_flags.flagword ^ cpu_sched_flags) & VC_VXF_SCHED_SHARE)
+  /* guaranteed CPU corresponds to SCHED_SHARE flag being cleared */
+  new_flags = (cpu_sched_flags & VS_SCHED_CPU_GUARANTEED
+	       ? 0
+	       : VC_VXF_SCHED_SHARE);
+  if ((vc_flags.flagword & VC_VXF_SCHED_SHARE) != new_flags)
     {
-      vc_flags.mask = VC_VXF_SCHED_SHARE;
-      vc_flags.flagword = cpu_sched_flags & VC_VXF_SCHED_FLAGS;
+      vc_flags.mask = VC_VXF_SCHED_FLAGS;
+      vc_flags.flagword = new_flags | VC_VXF_SCHED_HARD;
       VC_SYSCALL(vc_set_cflags(ctx, &vc_flags));
     }
 

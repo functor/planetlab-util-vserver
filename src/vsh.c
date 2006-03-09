@@ -281,7 +281,7 @@ static int sandbox_processes(xid_t ctx, char *context)
 		exit(1);
 	}
 #else
-        rspec_t  rspec;
+	int  ctx_is_new;
 	unsigned long long cpu = VC_LIM_KEEP;
 	unsigned long long mem = VC_LIM_KEEP;
 	unsigned long long task = VC_LIM_KEEP;
@@ -304,16 +304,38 @@ static int sandbox_processes(xid_t ctx, char *context)
 
 	(void) (sandbox_chroot(ctx));
 
-        rspec.cpu_share = cpu;
-        rspec.cpu_sched_flags = (VC_VXF_SCHED_HARD |
-                                 (cpuguaranteed ? 0 : VC_VXF_SCHED_SHARE));
-        rspec.mem_limit = mem;
-        rspec.task_limit = task;
-        if (pl_chcontext(ctx, 0, ~vc_get_insecurebcaps(), &rspec))
+        if ((ctx_is_new = pl_chcontext(ctx, 0, ~vc_get_insecurebcaps())) < 0)
           {
             PERROR("pl_chcontext(%u)", ctx);
             exit(1);
           }
+	if (ctx_is_new)
+	  {
+	    /* set resources */
+	    struct vc_rlimit limits;
+
+	    limits.min = VC_LIM_KEEP;
+	    limits.soft = VC_LIM_KEEP;
+	    limits.hard = mem;
+	    if (vc_set_rlimit(ctx, RLIMIT_RSS, &limits))
+	      {
+		PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
+		exit(1);
+	      }
+	    limits.hard = task;
+	    if (vc_set_rlimit(ctx, RLIMIT_NPROC, &limits))
+	      {
+		PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
+		exit(1);
+	      }
+	    cpuguaranteed &= VS_SCHED_CPU_GUARANTEED;
+	    if (pl_setsched(ctx, cpu, cpuguaranteed) < 0)
+	      {
+		PERROR("pl_setsched(&u)", ctx);
+		exit(1);
+	      }
+	    pl_setup_done(ctx);
+	  }
 #endif
 	return 0;
 }

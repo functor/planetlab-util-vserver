@@ -34,22 +34,18 @@ POSSIBILITY OF SUCH DAMAGE.
 #ifndef _LIB_PLANETLAB_H_
 #define _LIB_PLANETLAB_H_
 
-/*
- * context create
- */
-typedef struct {
-  uint32_t  cpu_share;
-  uint32_t  cpu_sched_flags;
-  uint64_t  mem_limit;
-  uint64_t  task_limit;
-} rspec_t;
-
 #define VC_VXF_SCHED_FLAGS  (VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE)
 
 int
-pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, const rspec_t *rspec);
+pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps);
+
+int
+pl_setup_done(xid_t ctx);
 
 int
 pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags);
+
+/* scheduler flags */
+#define VS_SCHED_CPU_GUARANTEED  1
 
 #endif
