@@ -66,7 +66,7 @@ create_context(xid_t ctx, uint32_t flags, uint64_t bcaps)
     return -1;
 
   /* set default scheduling parameters */
-  pl_setsched(ctx, 32, 0);
+  pl_setsched(ctx, 1, 0);
 
   return 0;
 }
