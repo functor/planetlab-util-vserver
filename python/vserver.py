@@ -43,7 +43,7 @@ class VServer:
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name, vm_id, vm_running = False):
+    def __init__(self, name, vm_id = None, vm_running = False):
 
         self.name = name
         self.config_file = "/etc/vservers/%s.conf" % name
@@ -59,6 +59,8 @@ class VServer:
                 if ex.errno != errno.ENOENT:
                     raise
         self.remove_caps = ~vserverimpl.CAP_SAFE;
+        if vm_id == None:
+            vm_id = int(self.config['S_CONTEXT'])
         self.ctx = vm_id
         self.vm_running = vm_running
 
