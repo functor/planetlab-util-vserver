@@ -34,6 +34,10 @@ FLAGS_NAMESPACE = 128
 
 
 
+class NoSuchVServer(Exception): pass
+
+
+
 class VServer:
 
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
@@ -46,7 +50,7 @@ class VServer:
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
                 os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
-            raise Exception, "no such vserver: " + name
+            raise NoSuchVServer, "no such vserver: " + name
         self.config = {}
         for config_file in ["/etc/vservers.conf", self.config_file]:
             try:
@@ -166,17 +170,25 @@ class VServer:
 
         return block_limit
 
-    def set_sched(self, cpu_share, sched_flags = 0):
+    def set_sched_config(self, cpu_share, sched_flags):
+
+        """ Write current CPU scheduler parameters to the vserver
+        configuration file. This method does not modify the kernel CPU
+        scheduling parameters for this context. """
 
         if cpu_share == int(self.config.get("CPULIMIT", -1)):
             return
         cpu_guaranteed = sched_flags & SCHED_CPU_GUARANTEED
-        #cpu_guaranteed = int(self.resources.get("nm_sched_flags",
-        #                                        None) == "guaranteed")
         cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
-        self.__update_config_file(self.config_file, cpu_config)
+        self.update_resources(cpu_config)
         if self.vm_running:
-            vserverimpl.setsched(self.ctx, cpu_share, sched_flags)
+            self.set_sched(cpu_share, sched_flags)
+
+    def set_sched(self, cpu_share, sched_flags = 0):
+
+        """ Update kernel CPU scheduling parameters for this context. """
+
+        vserverimpl.setsched(self.ctx, cpu_share, sched_flags)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
