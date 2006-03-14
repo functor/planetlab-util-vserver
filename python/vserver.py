@@ -17,6 +17,7 @@ import vserverimpl, vduimpl
 import cpulimit, bwlimit
 
 from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
+from vserverimpl import DLIMIT_INF
 
 
 
@@ -221,8 +222,11 @@ class VServer:
 
     def get_bwlimit(self, dev = "eth0"):
 
+        result = bwlimit.get(self.ctx)
         # result of bwlimit.get is (ctx, share, minrate, maxrate)
-        return bwlimit.get(self.ctx)[1:]
+        if result:
+            result = result[1:]
+        return result
 
     def open(self, filename, mode = "r", bufsize = -1):
 
