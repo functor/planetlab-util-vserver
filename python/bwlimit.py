@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.9 2006/03/01 22:37:24 mlhuang Exp $
+# $Id: bwlimit.py,v 1.10 2006/03/14 22:57:50 smuir Exp $
 #
 
 import sys, os, re, getopt
@@ -280,6 +280,9 @@ def tc(cmd):
 # (Re)initialize the bandwidth limits on this node
 def init(dev, bwcap):
 
+    # load the module used to manage exempt classes
+    run("/sbin/modprobe ip_set_iphash")
+
     # Delete root qdisc 1: if it exists. This will also automatically
     # delete any child classes.
     for line in tc("qdisc show dev %s" % dev):
@@ -445,7 +448,6 @@ def exempt_init(group_name, node_ips):
     run("/sbin/ipset -X " + group_name)
 
     # Create a hashed IP set of all of these destinations
-    run("/sbin/modprobe ip_set_iphash")
     lines = ["-N %s iphash" % group_name]
     add_cmd = "-A %s " % group_name
     lines += [(add_cmd + ip) for ip in node_ips]
