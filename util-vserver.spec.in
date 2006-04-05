@@ -72,7 +72,8 @@ Requires(pre):		%confdir
 Requires(postun):	%confdir
 
 %ifarch %ix86
-Requires:		apt
+# Remove apt dependency, this is not available on Fedora Core
+# Requires:		apt
 %endif
 
 %package sysv
