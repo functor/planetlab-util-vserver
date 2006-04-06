@@ -71,11 +71,6 @@ Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
 
-%ifarch %ix86
-# Remove apt dependency, this is not available on Fedora Core
-# Requires:		apt
-%endif
-
 %package sysv
 Summary:		SysV-initscripts for vserver
 Group:			System Environment/Base
