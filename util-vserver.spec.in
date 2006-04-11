@@ -211,7 +211,9 @@ MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
 # install python bindings
-%__make -C python DESTDIR="$RPM_BUILD_ROOT" install
+%__make -C python DESTDIR="$PWD/tmp" install
+install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
+install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
 
 
 %check || :
@@ -374,9 +376,43 @@ done
 %doc lib/apidoc/html
 
 
+%post python
+pushd %{_datadir}/%{name} >/dev/null
+
+# Byte compile and install modules
+py_modules=
+for file in *.py ; do
+    if [ -n "$py_modules" ] ; then
+	py_modules="$py_modules,"
+    fi
+    py_modules="$py_modules '${file%*.py}'"
+done
+%define setup %{__python} -c "from distutils.core import setup; setup(py_modules=[$py_modules])"
+%{setup} build
+%{setup} install
+
+# Install the prebuilt extensions by hand
+python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
+install -D -m 755 *.so "$python_sitelib"/
+
+popd
+
+
+%preun python
+# 0 = erase, 1 = upgrade
+if [ $1 -eq 0 ] ; then
+    python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
+    pushd %{_datadir}/%{name} >/dev/null
+    for file in *.py *.so ; do
+	rm -f "$python_sitelib"/${file}*
+    done
+    popd
+fi
+
+
 %files python
 %defattr(0644,root,root)
-%_libdir/python@PYTHON_VERSION@/site-packages/*
+%{_datadir}/%{name}
 
 
 %changelog
