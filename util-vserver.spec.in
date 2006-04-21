@@ -411,7 +411,6 @@ fi
 
 
 %files python
-%defattr(0644,root,root)
 %{_datadir}/%{name}
 
 
