@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.10 2006/03/14 22:57:50 smuir Exp $
+# $Id: bwlimit.py,v 1.11 2006/03/15 16:41:21 smuir Exp $
 #
 
 import sys, os, re, getopt
@@ -175,8 +175,11 @@ suffixes = {
 }
 
 
-# Parses an integer or a tc rate string (e.g., 1.5mbit) into bits/second
 def get_tc_rate(s):
+    """
+    Parses an integer or a tc rate string (e.g., 1.5mbit) into bits/second
+    """
+
     if type(s) == int:
         return s
     m = re.match(r"([0-9.]+)(\D*)", s)
@@ -189,9 +192,14 @@ def get_tc_rate(s):
         return -1
 
 
-# Prints a tc rate string
 def format_tc_rate(rate):
-    if rate >= 1000000:
+    """
+    Formats a bits/second rate into a tc rate string
+    """
+
+    if rate >= 1000000000 and (rate % 1000000000) == 0:
+        return "%.0fgbit" % (rate / 1000000000.)
+    elif rate >= 1000000 and (rate % 1000000) == 0:
         return "%.0fmbit" % (rate / 1000000.)
     elif rate >= 1000:
         return "%.0fkbit" % (rate / 1000.)
@@ -214,8 +222,10 @@ def read_bwcap(bwcap_file):
     return bwcap
 
 
-# Get current (live) value of bwcap
 def get_bwcap(dev = dev):
+    """
+    Get the current (live) value of the node bandwidth cap
+    """
 
     state = tc("-d class show dev %s" % dev)
     base_re = re.compile(r"class htb 1:10 parent 1:1 .*ceil ([^ ]+) .*")
@@ -227,34 +237,47 @@ def get_bwcap(dev = dev):
     return get_tc_rate(base_classes[0].group(1))
 
 
-# Get slice xid (500) from slice name ("500" or "princeton_mlh") or
-# slice name ("princeton_mlh") from slice xid (500).
-def get_slice(xid_or_name):
+def get_slice(xid):
+    """
+    Get slice name ("princeton_mlh") from slice xid (500)
+    """
 
-    if xid_or_name == root_xid:
+    if xid == root_xid:
         return "root"
-    if xid_or_name == default_xid:
+    if xid == default_xid:
         return "default"
-    if isinstance(xid_or_name, (int, long)):
-        try:
-            return pwd.getpwuid(xid_or_name).pw_name
-        except KeyError:
-            pass
-    else:
-        try:
-            try:
-                return int(xid_or_name)
-            except ValueError:
-                pass
-            return pwd.getpwnam(xid_or_name).pw_uid
-        except KeyError:
-            pass
+    try:
+        return pwd.getpwuid(xid).pw_name
+    except KeyError:
+        pass
 
     return None
 
+def get_xid(slice):
+    """
+    Get slice xid ("princeton_mlh") from slice name ("500" or "princeton_mlh")
+    """
 
-# Shortcut for running a command
+    if slice == "root":
+        return root_xid
+    if slice == "default":
+        return default_xid
+    try:
+        try:
+            return int(slice)
+        except ValueError:
+            pass
+        return pwd.getpwnam(slice).pw_uid
+    except KeyError:
+        pass
+
+    return None
+
 def run(cmd, input = None):
+    """
+    Shortcut for running a shell command
+    """
+
     try:
         if verbose:
             sys.stderr.write("Executing: " + cmd + "\n")
@@ -272,13 +295,18 @@ def run(cmd, input = None):
     return None
 
 
-# Shortcut for running a tc command
 def tc(cmd):
+    """
+    Shortcut for running a tc command
+    """
+
     return run(TC + " " + cmd)
 
 
-# (Re)initialize the bandwidth limits on this node
 def init(dev, bwcap):
+    """
+    (Re)initialize the bandwidth limits on this node
+    """
 
     # load the module used to manage exempt classes
     run("/sbin/modprobe ip_set_iphash")
@@ -325,57 +353,112 @@ def init(dev, bwcap):
     on(default_xid, dev, share = default_share)
 
 
-# Get the bandwidth limits for a particular slice xid as a tuple (xid,
-# share, minrate, maxrate), or all classes as a list of tuples.
 def get(xid = None, dev = dev):
+    """
+    Get the bandwidth limits and current byte totals for a
+    particular slice xid as a tuple (xid, share, minrate, maxrate,
+    minexemptrate, maxexemptrate, bytes, exemptbytes), or all classes
+    as a list of such tuples.
+    """
+
     if xid is None:
         ret = []
     else:
         ret = None
 
-    # class htb 1:1002 parent 1:10 leaf 81b3: prio 1 rate 8bit ceil 5000Kbit burst 1600b cburst 4Kb
-    for line in tc("-d class show dev %s" % dev):
-        # Search for child classes of 1:10
-        m = re.match(r"class htb 1:([0-9a-f]+) parent 1:10", line)
-        if m is None:
-            continue
+    rates = {}
+    rate = None
 
-        # If we are looking for a particular class
-        classid = int(m.group(1), 16) & default_xid
-        if xid is not None and xid != classid:
-            continue
+    # ...
+    # class htb 1:1000 parent 1:10 leaf 1000: prio 0 quantum 8000 rate 8bit ceil 10000Kbit ...
+    #  Sent 6851486 bytes 49244 pkt (dropped 0, overlimits 0 requeues 0)
+    # ...
+    # class htb 1:2000 parent 1:20 leaf 2000: prio 0 quantum 8000 rate 8bit ceil 1000Mbit ...
+    #  Sent 0 bytes 0 pkt (dropped 0, overlimits 0 requeues 0) 
+    # ...
+    for line in tc("-s -d class show dev %s" % dev):
+        # Rate parameter line
+        params = re.match(r"class htb 1:([0-9a-f]+) parent 1:(10|20)", line)
+        # Statistics line
+        stats = re.match(r".* Sent ([0-9]+) bytes", line)
+        # Another class
+        ignore = re.match(r"class htb", line)
 
-        # Parse share
-        share = 1
-        m = re.search(r"quantum (\d+)", line)
-        if m is not None:
-            share = int(m.group(1)) / quantum
+        if params is not None:
+            # Which class
+            if params.group(2) == "10":
+                min = 'min'
+                max = 'max'
+                bytes = 'bytes'
+            else:
+                min = 'minexempt'
+                max = 'maxexempt'
+                bytes = 'exemptbytes'
 
-        # Parse minrate
-        minrate = bwmin
-        m = re.search(r"rate (\w+)", line)
-        if m is not None:
-            minrate = get_tc_rate(m.group(1))
+            # Slice ID
+            id = int(params.group(1), 16) & 0x0FFF;
 
-        # Parse maxrate 
-        maxrate = bwmax
-        m = re.search(r"ceil (\w+)", line)
-        if m is not None:
-            maxrate = get_tc_rate(m.group(1))
+            if rates.has_key(id):
+                rate = rates[id]
+            else:
+                rate = {'id': id}
 
-        if xid is None:
-            # Return a list of parameters
-            ret.append((classid, share, minrate, maxrate))
-        else:
-            # Return the parameters for this class
-            ret = (classid, share, minrate, maxrate)
-            break
+            # Parse share
+            rate['share'] = 1
+            m = re.search(r"quantum (\d+)", line)
+            if m is not None:
+                rate['share'] = int(m.group(1)) / quantum
+
+            # Parse minrate
+            rate[min] = bwmin
+            m = re.search(r"rate (\w+)", line)
+            if m is not None:
+                rate[min] = get_tc_rate(m.group(1))
+
+            # Parse maxrate
+            rate[max] = bwmax
+            m = re.search(r"ceil (\w+)", line)
+            if m is not None:
+                rate[max] = get_tc_rate(m.group(1))
+
+            # Which statistics to parse
+            rate['stats'] = bytes
+
+            rates[id] = rate
+
+        elif stats is not None:
+            if rate is not None:
+                rate[rate['stats']] = int(stats.group(1))
+
+        elif ignore is not None:
+            rate = None
+
+        # Keep parsing until we get everything
+        if rate is not None and \
+           rate.has_key('min') and rate.has_key('minexempt') and \
+           rate.has_key('max') and rate.has_key('maxexempt') and \
+           rate.has_key('bytes') and rate.has_key('exemptbytes'):
+            params = (rate['id'], rate['share'],
+                      rate['min'], rate['max'],
+                      rate['minexempt'], rate['maxexempt'],
+                      rate['bytes'], rate['exemptbytes'])
+            if xid is None:
+                # Return a list of parameters
+                ret.append(params)
+                rate = None
+            elif xid == rate['id']:
+                # Return the parameters for this class
+                ret = params
+                break
 
     return ret
 
 
-# Apply specified bandwidth limit to the specified slice xid
-def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
+def on(xid, dev = dev, share = None, minrate = None, maxrate = None, minexemptrate = None, maxexemptrate = None):
+    """
+    Apply specified bandwidth limit to the specified slice xid
+    """
+
     # Get defaults from current state if available
     cap = get(xid, dev)
     if cap is not None:
@@ -385,15 +468,13 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
             minrate = cap[2]
         if maxrate is None:
             maxrate = cap[3]
+        if minexemptrate is None:
+            minexemptrate = cap[4]
+        if maxexemptrate is None:
+            maxexemptrate = cap[5]
 
     # Figure out what the current node bandwidth cap is
-    bwcap = bwmax
-    for line in tc("-d class show dev %s" % dev):
-        # Search for 1:10
-        m = re.match(r"class htb 1:10.*ceil (\w+)", line)
-        if m is not None:
-            bwcap = get_tc_rate(m.group(1))
-            break
+    bwcap = get_bwcap()
 
     # Set defaults
     if share is None:
@@ -406,19 +487,31 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
         maxrate = bwcap
     else:
         maxrate = get_tc_rate(maxrate)
+    if minexemptrate is None:
+        minexemptrate = minrate
+    else:
+        minexemptrate = get_tc_rate(minexemptrate)
+    if maxexemptrate is None:
+        maxexemptrate = bwmax
+    else:
+        maxexemptrate = get_tc_rate(maxexemptrate)
 
     # Sanity checks
     if maxrate > bwcap:
         maxrate = bwcap
     if minrate > maxrate:
         minrate = maxrate
+    if maxexemptrate > bwmax:
+        maxexemptrate = bwmax
+    if minexemptrate > maxexemptrate:
+        minexemptrate = maxexemptrate
 
     # Set up subclasses for the slice
     tc("class replace dev %s parent 1:10 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
        (dev, default_minor | xid, minrate, maxrate, share * quantum))
 
     tc("class replace dev %s parent 1:20 classid 1:%x htb rate %dbit ceil %dbit quantum %d" % \
-       (dev, exempt_minor | xid, minrate, bwmax, share * quantum))
+       (dev, exempt_minor | xid, minexemptrate, maxexemptrate, share * quantum))
 
     # Attach a FIFO to each subclass, which helps to throttle back
     # processes that are sending faster than the token buckets can
@@ -430,10 +523,22 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None):
        (dev, exempt_minor | xid, exempt_minor | xid))
 
 
+def set(xid, share = None, minrate = None, maxrate = None, minexemptrate = None, maxexemptrate = None):
+    on(xid = xid, share = share,
+       minrate = minrate, maxrate = maxrate,
+       minexemptrate = minexemptrate, maxexemptrate = maxexemptrate)
+
+
 # Remove class associated with specified slice xid. If further packets
 # are seen from this slice, they will be classified into the default
 # class 1:1FFF.
 def off(xid, dev = dev):
+    """
+    Remove class associated with specified slice xid. If further
+    packets are seen from this slice, they will be classified into the
+    default class 1:1FFF.
+    """
+
     cap = get(xid, dev)
     if cap is not None:
         tc("class del dev %s classid 1:%x" % (dev, default_minor | xid))
@@ -441,6 +546,10 @@ def off(xid, dev = dev):
 
 
 def exempt_init(group_name, node_ips):
+    """
+    Initialize the list of destinations exempt from the node bandwidth
+    (burst) cap.
+    """
 
     # Clean up
     iptables = "/sbin/iptables -t vnet %s POSTROUTING" 
@@ -472,23 +581,21 @@ Options:
 	-d device	Network interface (default: %s)
         -r rate         Node bandwidth cap (default: %s)
         -q quantum      Share multiplier (default: %d bytes)
+        -n              Print rates in numeric bits per second
+        -v              Enable verbose debug messages
         -h              This message
 
 Commands:
         init
-                (Re)initialize bandwidth caps.
-        on slice [share] [minrate] [maxrate]
-                Set bandwidth cap for the specified slice
+                (Re)initialize all bandwidth parameters
+        on slice [share|-] [minrate|-] [maxrate|-] [minexemptrate|-] [maxexemptrate|-]
+                Set bandwidth parameter(s) for the specified slice
         off slice
-                Remove bandwidth caps for the specified slice
+                Remove all bandwidth parameters for the specified slice
         get
-                Get all bandwidth caps
+                Get all bandwidth parameters for all slices
         get slice
-                Get bandwidth caps for the specified slice
-        getcap slice
-                Get maxrate for the specified slice
-        setcap slice maxrate
-                Set maxrate for the specified slice
+                Get bandwidth parameters for the specified slice
 """ % (sys.argv[0], dev, bwcap_description, quantum)
     sys.exit(1)
     
@@ -497,12 +604,15 @@ def main():
     global dev, quantum, verbose
 
     # Defaults
+    numeric = False
     bwcap = get_bwcap()
 
-    (opts, argv) = getopt.getopt(sys.argv[1:], "f:d:r:g:q:vh")
+    (opts, argv) = getopt.getopt(sys.argv[1:], "d:nr:q:vh")
     for (opt, optval) in opts:
         if opt == '-d':
             dev = optval
+        elif opt == '-n':
+            numeric = True
         elif opt == '-r':
             bwcap = get_tc_rate(optval)
         elif opt == '-q':
@@ -521,61 +631,65 @@ def main():
             # Show
             if len(argv) >= 2:
                 # Show a particular slice
-                xid = get_slice(argv[1])
+                xid = get_xid(argv[1])
                 if xid is None:
                     sys.stderr.write("Error: Invalid slice name or context '%s'\n" % argv[1])
                     usage()
-                caps = [get(xid, dev)]
+                params = get(xid, dev)
+                if params is None:
+                    paramslist = []
+                else:
+                    paramslist = [params]
             else:
                 # Show all slices
-                caps = get(None, dev)
+                paramslist = get(None, dev)
 
-            for (xid, share, minrate, maxrate) in caps:
+            for (xid, share,
+                 minrate, maxrate,
+                 minexemptrate, maxexemptrate,
+                 bytes, exemptbytes) in paramslist:
                 slice = get_slice(xid)
                 if slice is None:
                     # Orphaned (not associated with a slice) class
                     slice = "%d?" % xid
-                print "%s %d %s %s" % \
-                      (slice, share, format_tc_rate(minrate), format_tc_rate(maxrate))
+                if numeric:
+                    print "%s %d %d %d %d %d %d %d" % \
+                          (slice, share,
+                           minrate, maxrate,
+                           minexemptrate, maxexemptrate,
+                           bytes, exemptbytes)
+                else:
+                    print "%s %d %s %s %s %s %d %d" % \
+                          (slice, share,
+                           format_tc_rate(minrate), format_tc_rate(maxrate),
+                           format_tc_rate(minexemptrate), format_tc_rate(maxexemptrate),
+                           bytes, exemptbytes)
 
         elif len(argv) >= 2:
             # slice, ...
-            xid = get_slice(argv[1])
+            xid = get_xid(argv[1])
             if xid is None:
                 sys.stderr.write("Error: Invalid slice name or context '%s'\n" % argv[1])
                 usage()
 
-            if argv[0] == "on" or argv[0] == "add" or argv[0] == "replace":
+            if argv[0] == "on" or argv[0] == "add" or argv[0] == "replace" or argv[0] == "set":
                 # Enable cap
                 args = []
                 if len(argv) >= 3:
-                    # ... share, minrate, maxrate
-                    casts = [int, get_tc_rate, get_tc_rate]
+                    # ... share, minrate, maxrate, minexemptrate, maxexemptrate
+                    casts = [int, get_tc_rate, get_tc_rate, get_tc_rate, get_tc_rate]
                     for i, arg in enumerate(argv[2:]):
                         if i >= len(casts):
                             break
-                        args.append(casts[i](arg))
+                        if arg == "-":
+                            args.append(None)
+                        else:
+                            args.append(casts[i](arg))
                 on(xid, dev, *args)
 
             elif argv[0] == "off" or argv[0] == "del":
                 # Disable cap
                 off(xid, dev)
-
-            # Backward compatibility with old resman script
-            elif argv[0] == "getcap":
-                # Get maxrate
-                cap = get(xid, dev)
-                if cap is not None:
-                    (xid, share, minrate, maxrate) = cap
-                    print format_tc_rate(maxrate)
-
-            # Backward compatibility with old resman script
-            elif argv[0] == "setcap":
-                if len(argv) >= 3:
-                    # Set maxrate
-                    on(xid, dev, maxrate = get_tc_rate(argv[2]))
-                else:
-                    usage()
 
             else:
                 usage()
