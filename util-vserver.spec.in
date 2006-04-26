@@ -398,6 +398,34 @@ install -D -m 755 *.so "$python_sitelib"/
 popd
 
 
+%triggerpostun -- %{name}
+# RPMs get upgraded by installing the new one, then uninstalling the
+# old one. Since we no longer own the byte-compiled modules, they may
+# be removed right after we create them in %post if we are upgraded
+# from a version that did own them at one point. This section should
+# be removed once all packages have been upgraded to at least this
+# version.
+pushd %{_datadir}/%{name} >/dev/null
+
+# Byte compile and install modules
+py_modules=
+for file in *.py ; do
+    if [ -n "$py_modules" ] ; then
+	py_modules="$py_modules,"
+    fi
+    py_modules="$py_modules '${file%*.py}'"
+done
+%define setup %{__python} -c "from distutils.core import setup; setup(py_modules=[$py_modules])"
+%{setup} build
+%{setup} install
+
+# Install the prebuilt extensions by hand
+python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
+install -D -m 755 *.so "$python_sitelib"/
+
+popd
+
+
 %preun python
 # 0 = erase, 1 = upgrade
 if [ $1 -eq 0 ] ; then
