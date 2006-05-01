@@ -17,7 +17,7 @@
 
 %define name @PACKAGE@
 %define version @VERSION@
-%define release 11%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 12%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -102,7 +102,7 @@ Requires:		%name-lib = %version-%release
 Summary:		Python modules for manipulating vservers
 Group:			Applications/System
 Requires:		python util-python
-Obsoletes:		util-vserver-py23
+Obsoletes:		util-vserver-py23 resman
 
 
 %description
@@ -214,6 +214,7 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 %__make -C python DESTDIR="$PWD/tmp" install
 install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
 install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
+install -D -m 755 python/bwlimit $RPM_BUILD_ROOT/%{_sbindir}/bwlimit
 
 
 %check || :
@@ -440,6 +441,7 @@ fi
 
 %files python
 %{_datadir}/%{name}
+%{_sbindir}/bwlimit
 
 
 %changelog
