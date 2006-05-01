@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuseradd,v 1.23 2005/08/21 21:41:03 mlhuang Exp $
+# $Id: vuseradd,v 1.24 2005/09/02 20:00:39 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -93,8 +93,3 @@ if [ -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
 	echo "$NAME	ALL=(ALL)	ALL" >> "$__DEFAULT_VSERVERDIR/$NAME/etc/sudoers"
     fi
 fi
-
-# turn resource management on for vserver $NAME
-chkconfig resman && service resman start $NAME
-# XXX - resman doesn't print a trailing newline
-echo

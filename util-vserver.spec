@@ -17,10 +17,13 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 3.planetlab%{?date:.%{date}}
+%define release 10%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
+
+# don't build debuginfo RPM
+%define debug_package %{nil}
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
@@ -381,6 +384,30 @@ done
 
 
 %changelog
+* Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
+- add support for setting guaranteed CPU share flag in rspec
+
+* Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
+- fix bug in python/vserverimpl.c where attempting to adjust CPU share
+  for a context that didn't exist would cause an error (it should be a
+  safe no-op)
+
+* Fri Dec  2 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix bugs in python/vserverimpl.c where exceptions were not raised when
+  they should be and thus occured later at unexpected times
+- add support for stopping a vserver
+
+* Wed Nov  9 2005 Steve Muir <smuir@cs.princeton.edu>
+- add support for removing resource limits e.g., when a slice is deleted
+
+* Mon Nov  7 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix file descriptor leak in vduimpl
+- clean up handling of network parameters
+- don't rely upon /etc/vservers/foo.conf to initialise vserver object
+
+* Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
+- fix Python modules to handling scheduling parameters correctly
+
 * Fri Oct 28 2005 Steve Muir <smuir@cs.princeton.edu>
 - raise exception about being over disk limit after setting usage values
 

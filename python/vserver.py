@@ -4,15 +4,20 @@ import errno
 import fcntl
 import os
 import re
+import pwd
+import signal
 import sys
 import time
 import traceback
 
 import mountimpl
-import passfdimpl
+import runcmd
 import utmp
 import vserverimpl, vduimpl
 import cpulimit, bwlimit
+
+from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
+from vserverimpl import DLIMIT_INF
 
 
 
@@ -29,32 +34,36 @@ FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
 
-              
+
+class NoSuchVServer(Exception): pass
+
+
+
 class VServer:
 
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name, vm_running = False, resources = {}):
+    def __init__(self, name, vm_id = None, vm_running = False):
 
         self.name = name
         self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
                 os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
-            raise Exception, "no such vserver: " + name
-        self.config = self.__read_config_file("/etc/vservers.conf")
-        self.config.update(self.__read_config_file(self.config_file))
-        self.flags = 0
-        flags = self.config["S_FLAGS"].split(" ")
-        if "lock" in flags:
-            self.flags |= FLAGS_LOCK
-        if "nproc" in flags:
-            self.flags |= FLAGS_NPROC
+            raise NoSuchVServer, "no such vserver: " + name
+        self.config = {}
+        for config_file in ["/etc/vservers.conf", self.config_file]:
+            try:
+                self.config.update(self.__read_config_file(config_file))
+            except IOError, ex:
+                if ex.errno != errno.ENOENT:
+                    raise
         self.remove_caps = ~vserverimpl.CAP_SAFE;
-        self.ctx = int(self.config["S_CONTEXT"])
+        if vm_id == None:
+            vm_id = int(self.config['S_CONTEXT'])
+        self.ctx = vm_id
         self.vm_running = vm_running
-        self.resources = resources
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -111,10 +120,30 @@ class VServer:
         os.chroot(self.dir)
         os.chdir("/")
 
+    def chroot_call(self, fn, *args):
+
+        cwd_fd = os.open(".", os.O_RDONLY)
+        try:
+            root_fd = os.open("/", os.O_RDONLY)
+            try:
+                self.__do_chroot()
+                result = fn(*args)
+            finally:
+                os.fchdir(root_fd)
+                os.chroot(".")
+                os.fchdir(cwd_fd)
+                os.close(root_fd)
+        finally:
+            os.close(cwd_fd)
+        return result
+
     def set_disklimit(self, block_limit):
 
         # block_limit is in kB
-        over_limit = False
+        if block_limit == 0:
+            vserverimpl.unsetdlimit(self.dir, self.ctx)
+            return
+
         if self.vm_running:
             block_usage = vserverimpl.DLIMIT_KEEP
             inode_usage = vserverimpl.DLIMIT_KEEP
@@ -122,8 +151,6 @@ class VServer:
             # init_disk_info() must have been called to get usage values
             block_usage = self.disk_blocks
             inode_usage = self.disk_inodes
-            if block_limit < block_usage:
-                over_limit = True
 
         vserverimpl.setdlimit(self.dir,
                               self.ctx,
@@ -133,31 +160,38 @@ class VServer:
                               vserverimpl.DLIMIT_INF,  # inode limit
                               2)   # %age reserved for root
 
-        if over_limit:
-            raise Exception, ("%s disk usage (%u blocks) > limit (%u)" %
-                              (self.name, block_usage, block_limit))
-
     def get_disklimit(self):
 
         try:
-            blocksused, blocktotal, inodesused, inodestotal, reserved = \
-                        vserverimpl.getdlimit(self.dir, self.ctx)
+            (self.disk_blocks, block_limit, self.disk_inodes, inode_limit,
+             reserved) = vserverimpl.getdlimit(self.dir, self.ctx)
         except OSError, ex:
-            if ex.errno == errno.ESRCH:
-                # get here if no vserver disk limit has been set for xid
-                # set blockused to -1 to indicate no limit
-                blocktotal = -1
+            if ex.errno != errno.ESRCH:
+                raise
+            # get here if no vserver disk limit has been set for xid
+            block_limit = -1
 
-        return blocktotal
+        return block_limit
 
-    def set_sched(self, cpu_share):
+    def set_sched_config(self, cpu_share, sched_flags):
+
+        """ Write current CPU scheduler parameters to the vserver
+        configuration file. This method does not modify the kernel CPU
+        scheduling parameters for this context. """
 
         if cpu_share == int(self.config.get("CPULIMIT", -1)):
             return
-
-        self.__update_config_file(self.config_file, { "CPULIMIT": cpu_share })
+        cpu_guaranteed = sched_flags & SCHED_CPU_GUARANTEED
+        cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
+        self.update_resources(cpu_config)
         if self.vm_running:
-            vserverimpl.setsched(self.ctx, cpu_share, True)
+            self.set_sched(cpu_share, sched_flags)
+
+    def set_sched(self, cpu_share, sched_flags = 0):
+
+        """ Update kernel CPU scheduling parameters for this context. """
+
+        vserverimpl.setsched(self.ctx, cpu_share, sched_flags)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
@@ -179,86 +213,35 @@ class VServer:
         ret = vserverimpl.getrlimit(self.ctx,6)
         return ret
 
-    def set_bwlimit(self, eth, limit, cap, minrate, maxrate):
-        if cap == "-1":
-            bwlimit.off(self.ctx,eth)
-        else:
-            bwlimit.on(self.ctx, eth, limit, cap, minrate, maxrate)
+    def set_bwlimit(self, maxrate, minrate = 1, share = None, dev = "eth0"):
 
-    def get_bwlimit(self, eth):
-        # not implemented yet
-        bwlimit = -1
-        cap = "unknown"
-        minrate = "unknown"
-        maxrate = "unknown"
-        return (bwlimit, cap, minrate, maxrate)
-        
+        if maxrate != 0:
+            bwlimit.on(self.ctx, dev, share, minrate, maxrate)
+        else:
+            bwlimit.off(self.ctx, dev)
+
+    def get_bwlimit(self, dev = "eth0"):
+
+        result = bwlimit.get(self.ctx)
+        # result of bwlimit.get is (ctx, share, minrate, maxrate)
+        if result:
+            result = result[1:]
+        return result
+
     def open(self, filename, mode = "r", bufsize = -1):
 
-        (sendsock, recvsock) = passfdimpl.socketpair()
-        child_pid = os.fork()
-        if child_pid == 0:
-            try:
-                # child process
-                self.__do_chroot()
-                f = open(filename, mode)
-                passfdimpl.sendmsg(f.fileno(), sendsock)
-                os._exit(0)
-            except EnvironmentError, ex:
-                (result, errmsg) = (ex.errno, ex.strerror)
-            except Exception, ex:
-                (result, errmsg) = (255, str(ex))
-            os.write(sendsock, errmsg)
-            os._exit(result)
-
-        # parent process
-
-        # XXX - need this since a lambda can't raise an exception
-        def __throw(ex):
-            raise ex
-
-        os.close(sendsock)
-        throw = lambda : __throw(Exception(errmsg))
-        while True:
-            try:
-                (pid, status) = os.waitpid(child_pid, 0)
-                if os.WIFEXITED(status):
-                    result = os.WEXITSTATUS(status)
-                    if result != 255:
-                        errmsg = os.strerror(result)
-                        throw = lambda : __throw(IOError(result, errmsg))
-                    else:
-                        errmsg = "unexpected exception in child"
-                else:
-                    result = -1
-                    errmsg = "child killed"
-                break
-            except OSError, ex:
-                if ex.errno != errno.EINTR:
-                    os.close(recvsock)
-                    raise ex
-        fcntl.fcntl(recvsock, fcntl.F_SETFL, os.O_NONBLOCK)
-        try:
-            (fd, errmsg) = passfdimpl.recvmsg(recvsock)
-        except OSError, ex:
-            if ex.errno != errno.EAGAIN:
-                throw = lambda : __throw(ex)
-            fd = 0
-        os.close(recvsock)
-        if not fd:
-            throw()
-
-        return os.fdopen(fd, mode, bufsize)
+        return self.chroot_call(open, filename, mode, bufsize)
 
     def __do_chcontext(self, state_file):
 
-        vserverimpl.chcontext(self.ctx, self.resources)
+        if state_file:
+            print >>state_file, "S_CONTEXT=%u" % self.ctx
+            print >>state_file, "S_PROFILE="
+            state_file.close()
 
-        if not state_file:
-            return
-        print >>state_file, "S_CONTEXT=%d" % self.ctx
-        print >>state_file, "S_PROFILE=%s" % self.config.get("S_PROFILE", "")
-        state_file.close()
+        if vserverimpl.chcontext(self.ctx):
+            self.set_resources()
+            vserverimpl.setup_done(self.ctx)
 
     def __prep(self, runlevel, log):
 
@@ -327,7 +310,6 @@ class VServer:
                 self.__do_chroot()
                 log = open("/var/log/boot.log", "w", 0)
                 os.dup2(1, 2)
-                # XXX - close all other fds
 
                 print >>log, ("%s: starting the virtual server %s" %
                               (time.asctime(time.gmtime()), self.name))
@@ -379,6 +361,13 @@ class VServer:
         # parent process
         return child_pid
 
+    def set_resources(self):
+
+        """ Called when vserver context is entered for first time,
+        should be overridden by subclass. """
+
+        pass
+
     def update_resources(self, resources):
 
         self.config.update(resources)
@@ -391,3 +380,20 @@ class VServer:
         (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
 
         return size
+
+    def stop(self, signal = signal.SIGKILL):
+
+        vserverimpl.killall(self.ctx, signal)
+        self.vm_running = False
+
+
+
+def create(vm_name, static = False, ctor = VServer):
+
+    options = []
+    if static:
+        options += ['--static']
+    runcmd.run('vuseradd', options + [vm_name])
+    vm_id = pwd.getpwnam(vm_name)[2]
+
+    return ctor(vm_name, vm_id)

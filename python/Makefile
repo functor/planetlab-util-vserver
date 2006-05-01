@@ -1,53 +1,36 @@
 #
 # GNUMakefile for util-vserver Python bindings
 #
-# It's too hard to integrate distutils into the autoconf/libtool
-# framework, so run this Makefile separately from and after the normal
-# util-vserver build.
-#
 # Steve Muir <smuir@cs.princeton.edu>
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2005 The Trustees of Princeton University
 #
-# $Id: Makefile,v 1.7 2005/08/26 04:00:44 mlhuang Exp $
+# $Id: Makefile,v 1.11 2006/03/01 22:03:38 mlhuang Exp $
 #
 
-ALL := vserverimpl.so vduimpl.so util_vserver_vars.py
+INCLUDES := -I.. -I../lib
+LIBS = -L../lib -lvserver
 
-# need command substitution
-SHELL := /bin/bash
+PY_MODS := vserver.py cpulimit.py bwlimit.py
+PY_EXT_MODS := vduimpl.so vserverimpl.so
 
-pythonlibdir := @libdir@/python@PYTHON_VERSION@/site-packages
+LT_LINK = ../libtool --tag=CC --mode=link
 
-all: $(ALL)
 
-%.o: %.c
-        # builds object and incompletely linked library
-	python setup.py build_ext
-        # copy to current directory
-	cp -a build/temp.*/*.o .
 
-vserverimpl.so vduimpl.so: %.so: %.o
-        # relink the object against libvserver with libtool
-	../libtool --tag=CC --mode=link $(CC) -shared -o $@ $< ../lib/libvserver.la
+all: py-build
 
-util_vserver_vars.py: ../scripts/util-vserver-vars
-        # python does not export variables beginning with underscore
-	(. $< ; \
-	while read var ; do eval echo $$var=\$${$$var} ; done < \
-	<(sed -ne "s/\([^=]*\)=.*/\1/p" $<) \
-	| sed -e "s/^_*//" -e "s/\([^=]*\)=\(.*\)/\1='\2'/") > $@
+# XXX - compatibility with util-vserver specfile
+INSTALL_ROOT ?= $(DESTDIR)
 
-install: $(ALL)
-        # install relinked libraries and byte-compiled scripts
-	python setup.py install --root="$(DESTDIR)"
-        # reinstall libraries with libtool so that the final path
-        # to libvserver is resolved
-	for so in $(filter %.so, $(ALL)) ; do \
-	  ../libtool --tag=CC --mode=install install "$$so" `find "$(DESTDIR)" -name "$$so"` ; \
-	done
+install: py-install
 
-clean:
-	rm -rf $(ALL) *.o build
+clean: py-clean
+
+
+
+UTIL_PYTHON ?= $(wildcard ../../util-python*)
+
+include $(UTIL_PYTHON)/pybuild.mk
 
 .PHONY: all install clean
