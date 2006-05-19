@@ -105,14 +105,7 @@ class VServer:
         f.write(data)
         f.close()
 
-        # 'copy' original file, rename new to original
-        backup = filename + ".old"
-        try:
-            os.unlink(backup)
-        except OSError, ex:
-            if ex.errno != errno.ENOENT:
-                raise
-        os.link(filename, backup)
+        # replace old file with new
         os.rename(newfile, filename)
 
     def __do_chroot(self):
@@ -213,10 +206,13 @@ class VServer:
         ret = vserverimpl.getrlimit(self.ctx,6)
         return ret
 
-    def set_bwlimit(self, maxrate, minrate = 1, share = None, dev = "eth0"):
+    def set_bwlimit(self, minrate = bwlimit.bwmin, maxrate = None,
+                    exempt_min = None, exempt_max = None,
+                    share = None, dev = "eth0"):
 
-        if maxrate != 0:
-            bwlimit.on(self.ctx, dev, share, minrate, maxrate)
+        if minrate:
+            bwlimit.on(self.ctx, dev, share,
+                       minrate, maxrate, exempt_min, exempt_max)
         else:
             bwlimit.off(self.ctx, dev)
 
