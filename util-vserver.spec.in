@@ -1,4 +1,4 @@
-# $Id: util-vserver.spec.in,v 1.49 2005/07/15 19:06:58 ensc Exp $
+# $Id$
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -399,7 +399,7 @@ install -D -m 755 *.so "$python_sitelib"/
 popd
 
 
-%triggerpostun -- %{name}
+%triggerpostun python -- util-vserver-python, util-vserver-py23
 # RPMs get upgraded by installing the new one, then uninstalling the
 # old one. Since we no longer own the byte-compiled modules, they may
 # be removed right after we create them in %post if we are upgraded
