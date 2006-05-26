@@ -1,4 +1,4 @@
-## $Id: Makefile.am,v 1.26 2005/07/03 22:40:43 ensc Exp $
+## $Id: Makefile.am,v 1.1.1.1 2005/08/17 17:58:04 mlhuang Exp $
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -25,7 +25,8 @@ defaults_DATA =		misc/debootstrap.uri \
 			misc/fstab \
 			misc/mtab \
 			misc/vprocunhide-files \
-			misc/vunify-exclude
+			misc/vunify-exclude \
+			sample.conf
 
 nobase_distrib_SCRIPTS	=  redhat/initpost \
 			   redhat/initpre \

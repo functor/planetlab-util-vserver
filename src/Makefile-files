@@ -18,7 +18,7 @@
 ##  
 
 src_sbin_CXX_PROGS =	
-src_pkglib_CXX_PROGS =	
+src_pkglib_CXX_PROGS =	src/vbuild
 
 src_pkglib_C99_PROGS =	src/vunify src/vcopy
 
@@ -74,6 +74,7 @@ DIETPROGS +=		src/chcontext-compat \
 			src/vserver-stat \
 			src/vserver-info \
 			src/vdlimit \
+			src/vsh \
 			src/vwait
 
 if ENSC_CAN_BEECRYPT_WITH_DIETLIBC
@@ -147,6 +148,7 @@ sbin_PROGRAMS +=	src/chbind \
 			src/vserver-stat \
 			src/vserver-info \
 			src/vuname \
+			src/vsh \
 			src/vwait \
 			$(src_sbin_CXX_X_PROGS)
 
@@ -242,6 +244,8 @@ src_vserver_stat_SOURCES	=  src/vserver-stat.c
 src_vserver_stat_LDADD		=  $(LIBINTERNAL) $(VSERVER_LDADDS) $(LIBENSCVECTOR)
 src_vserver_stat_LDFLAGS	=  $(VSERVER_LDFLGS)
 
+src_vbuild_SOURCES              =  src/vbuild.cc src/vutil.cc src/vserver.cc
+
 src_lsxid_SOURCES		=  src/fstool.c src/lsxid.c
 src_lsxid_LDADD			=  $(LIBINTERNAL) $(VSERVER_LDADDS) $(LIBENSCVECTOR)
 src_lsxid_LDFLAGS		=  $(VSERVER_LDFLGS) 
@@ -292,6 +296,10 @@ src_rpm_fake_la_LIBADD		=  $(LIBVSERVER_GLIBC) -ldl
 src_vdlimit_SOURCES		= src/vdlimit.c
 src_vdlimit_LDADD		= $(VSERVER_LDADDS)
 src_vdlimit_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vsh_SOURCES			= src/vsh.c
+src_vsh_LDADD			= $(VSERVER_LDADDS)
+src_vsh_LDFLAGS			= $(VSERVER_LDFLGS)
 
 src_vwait_SOURCES		= src/vwait.c
 src_vwait_LDADD			= $(VSERVER_LDADDS)
