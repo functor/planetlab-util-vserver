@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.8 2005/07/28 21:30:07 smuir Exp $
+# $Id: vuserdel,v 1.9 2005/08/21 21:44:09 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -40,11 +40,6 @@ do
         echo "unmounting $dir"
         umount -l "$dir"
 done
-
-# turn resource management off for vserver $NAME
-chkconfig resman && service resman stop $NAME
-# XXX - resman doesn't print a trailing newline
-echo
 
 # delete user
 [ -z "$STATIC" ] && userdel -r $NAME
