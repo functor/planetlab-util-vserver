@@ -29,6 +29,7 @@ test -e "$UTIL_VSERVER_VARS" || {
 USR_SBIN=$__SBINDIR
 USR_LIB_VSERVER=$__PKGLIBDIR
 DEFAULTPATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin
+VINIT_CMD=/etc/rc.vinit
 
 vserver_mknod(){
 	mknod $1 $2 $3 $4
@@ -67,114 +68,6 @@ testperm()
 		echo
 	fi
 }
-# Set the IP alias needed by a vserver
-ifconfig_iproot()
-{
-	if [ "$NODEV" = "" -a "$IPROOT" != "" -a "$IPROOT" != "0.0.0.0" -a "$IPROOT" != "ALL" ] ;then
-		# A vserver may have more than one IP
-		# The first alias is dev:vserver
-		# and the other are dev:vserver1,2,3 and so on
-		# An IP may hold the device. The following is valid
-		#	IPROOT="1.2.4.5 eth1:1.2.3.5"
-		#	IPROOTDEV=eth0
-		# The first IP 1.2.3.4 will go on eth0 and the other on eth1
-		# VLAN devices are also supported (eth0.231 for vlan 231)
-		SUFFIX=
-		for oneip in $IPROOT
-		do
-			IPDEV=$IPROOTDEV
-			MASK=$IPROOTMASK
-			BCAST=$IPROOTBCAST
-			# Split the device and IP if available
-			case $oneip in
-			*:*)
-				eval `echo $oneip | tr : ' ' | (read dev ip; echo oneip=$ip; echo IPDEV=$dev)`
-				;;
-			esac
-			# Split the IP and the netmask if available
-			case $oneip in
-			*/*)
-				eval `echo $oneip | tr / ' ' | (read ip msk; echo oneip=$ip; echo MASK=$msk)`
-				eval `$_IFSPEC "" "$oneip" "$MASK" "$BCAST"`
-				;;
-			esac
-			if [ "$IPDEV" != "" ] ; then
-				case $IPDEV in
-				*.*)
-					if [ ! -f /proc/net/vlan/$IPDEV ] ; then
-						/sbin/vconfig add `echo $IPDEV | tr . ' '`
-						# Put a dummy IP
-						/sbin/ifconfig $IPDEV 127.0.0.1
-					fi
-					;;
-				esac
-				# Compute the default netmask, if missing
-				eval `$_IFSPEC $IPDEV "$oneip" "$MASK" "$BCAST"`
-				IPROOTMASK=$NETMASK
-				IPROOTBCAST=$BCAST
-				#echo /sbin/ifconfig $IPDEV:$1$SUFFIX $oneip netmask $IPROOTMASK broadcast $IPROOTBCAST
-				/sbin/ifconfig $IPDEV:$1$SUFFIX $oneip netmask $IPROOTMASK broadcast $IPROOTBCAST
-			fi
-			if [ "$SUFFIX" = "" ] ; then
-				SUFFIX=1
-			else
-				SUFFIX=`expr $SUFFIX + 1`
-			fi
-		done
-	fi
-	if [ "$IPROOTBCAST" = "" ] ; then
-		IPROOTBCAST=255.255.255.255
-	fi
-}
-ifconfig_iproot_off()
-{
-	if [ "$NODEV" = "" -a "$IPROOT" != "" -a "$IPROOT" != "0.0.0.0" -a "$IPROOT" != "ALL"  -a "$IPROOTDEV" != "" ] ;then
-		SUFFIX=
-		for oneip in $IPROOT
-		do
-			IPDEV=$IPROOTDEV
-			# Split the device and IP if available
-			case $oneip in
-			*:*)
-				eval `echo $oneip | tr : ' ' | (read dev ip; echo IPDEV=$dev)`
-				;;
-			esac
-			/sbin/ifconfig $IPDEV:$1$SUFFIX down 2>/dev/null
-			if [ "$SUFFIX" = "" ] ; then
-				SUFFIX=1
-			else
-				SUFFIX=`expr $SUFFIX + 1`
-			fi
-		done
-	fi
-}
-# Split an IPROOT definition, trash the devices and
-# compose a set of --ip option for chbind
-setipopt(){
-	RET=
-	IPS="$*"
-	if [ "$IPS" = "" ] ; then
-		IPS=0.0.0.0
-	fi
-	if [ "$1" = "ALL" ] ; then
-		IPS=`$_LISTDEVIP`
-	fi
-	for oneip in $IPS
-	do
-		# Split the device and IP if available
-		case $oneip in
-		*:*)
-			eval `echo $oneip | tr : ' ' | (read dev ip; echo oneip=$ip)`
-			;;
-		esac
-		#case $oneip in
-		#*/*)
-		#	eval `echo $oneip | tr / ' ' | (read ip msk; echo oneip=$ip)`
-		#	;;
-		#esac
-		echo --ip $oneip
-	done
-}
 
 # Extract the initial runlevel from the vserver inittab
 get_initdefault()
@@ -195,6 +88,7 @@ readlastconf()
 	export PROFILE
 	. $__CONFDIR/$1.conf
 }
+
 usage()
 {
 	echo vserver [ options ] server-name command ...
@@ -217,10 +111,6 @@ usage()
 	echo " status  : Tells some information about a vserver"
 	echo " chkconfig : It turns a server on or off in a vserver"
 	echo
-	echo "--nodev  : Do not configure the IP aliases of the vserver"
-	echo "           Useful to enter a vserver without enabling its network"
-	echo "           and avoiding conflicts with another copy of this vserver"
-	echo "           running elsewhere"
 	echo "--silent : No informative messages about vserver context and IP numbers"
 	echo "           Useful when you want to redirect the output"
 }
@@ -241,14 +131,10 @@ calculateCaps()
 }
 
 SILENT=
-NODEV=
 while true
 do
 	if [ "$1" = "--silent" ] ; then
 		SILENT=--silent
-		shift
-	elif [ "$1" = "--nodev" ] ; then
-		NODEV=--nodev
 		shift
 	else
 		break
@@ -407,7 +293,8 @@ S_FLAGS="lock nproc"
 # ULIMIT="-HS -u 200"
 # The example above, combined with the nproc S_FLAGS will limit the
 # vserver to a maximum of 200 processes
-ULIMIT="-HS -u 1000"
+#ULIMIT="-HS -u 1000"
+ULIMIT=""
 # You can set various capabilities. By default, the vserver are run
 # with a limited set, so you can let root run in a vserver and not
 # worry about it. He can't take over the machine. In some cases
@@ -434,15 +321,10 @@ elif [ "$2" = "start" ] ; then
 	if ! $0 $1 running
 	then
 		test -x $__CONFDIR/$1.sh && $__CONFDIR/$1.sh pre-start $1
-		IPROOT=
-		IPROOTMASK=
-		IPROOTBCAST=
-		IPROOTDEV=
 		S_NICE=
 		S_FLAGS=
 		. $__CONFDIR/$1.conf
 		export PROFILE
-		ifconfig_iproot $1
 		cd $__DEFAULT_VSERVERDIR/$1 || exit 1
 
 		if [ "$PROFILE" != "" ] ; then
@@ -527,12 +409,14 @@ elif [ "$2" = "start" ] ; then
 		# We switch to /vservers/$1 now, because after the
 		# security context switch /vservers directory becomes a dead zone.
 		cd $__DEFAULT_VSERVERDIR/$1
-		IPOPT=`setipopt $IPROOT`
 		export PATH=$DEFAULTPATH
-		$NICECMD $_CHBIND $SILENT $IPOPT --bcast $IPROOTBCAST \
-			$_CHCONTEXT_COMPAT $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
-			$_SAVE_S_CONTEXT $__PKGSTATEDIR/$1.ctx \
-			$_CAPCHROOT $CHROOTOPT . $STARTCMD
+		# XXX execute /etc/rc.vinit first for backward compatibility
+		for CMD in "$VINIT_CMD $2" "$STARTCMD" ; do
+			$NICECMD \
+				$_CHCONTEXT_COMPAT $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
+				$_SAVE_S_CONTEXT $__PKGSTATEDIR/$1.ctx \
+				$_CAPCHROOT $CHROOTOPT . $CMD
+		done
 		sleep 2
 		test ! -x $__CONFDIR/$1.sh || $__CONFDIR/$1.sh post-start $1
 	fi
@@ -563,17 +447,12 @@ elif [ "$2" = "status" ] ; then
 	fi
 elif [ "$2" = "stop" ] ; then
 	echo Stopping the virtual server $1
-	IPROOT=
-	IPROOTMASK=
-	IPROOTBCAST=
-	IPROOTDEV=
 	CAPS=
 	IS_MINIT=
 	readlastconf $1
 	if $0 $1 running
 	then
 		test -x $__CONFDIR/$1.sh && $__CONFDIR/$1.sh pre-stop $1
-		ifconfig_iproot $1
 		cd $__DEFAULT_VSERVERDIR/$1
 		mountproc $__DEFAULT_VSERVERDIR/$1
 		# The fakeinit flag tell us how to turn off the server
@@ -609,11 +488,12 @@ elif [ "$2" = "stop" ] ; then
 		calculateCaps $S_CAPS
 
 		cd $__DEFAULT_VSERVERDIR/$1
-		IPOPT=`setipopt $IPROOT`
 		export PATH=$DEFAULTPATH
-		$_CHBIND $SILENT $IPOPT --bcast $IPROOTBCAST \
+		# XXX execute /etc/rc.vinit first for backward compatibility
+		for CMD in "$VINIT_CMD $2" "$STOPCMD" ; do
 			$_CHCONTEXT_COMPAT $SILENT $CAPS --secure --ctx $S_CONTEXT \
 			$_CAPCHROOT . $STOPCMD
+		done
 
 		if test "$IS_MINIT"; then
 		    echo "Waiting for minit finish-signal"
@@ -625,8 +505,7 @@ elif [ "$2" = "stop" ] ; then
 		fi
 
 		echo Killing all processes
-		$_CHBIND --silent $IPOPT --bcast $IPROOTBCAST \
-			$_CHCONTEXT_COMPAT $CAPS --secure --silent --ctx $S_CONTEXT \
+		$_CHCONTEXT_COMPAT $CAPS --secure --silent --ctx $S_CONTEXT \
 			$_VSERVERKILLALL
 	fi
 	# We umount anyway, because "enter" establish the mount
@@ -634,7 +513,6 @@ elif [ "$2" = "stop" ] ; then
 	umountproc $__DEFAULT_VSERVERDIR/$1
 	cd /
 	test -x $__CONFDIR/$1.sh && $__CONFDIR/$1.sh post-stop $1
-	ifconfig_iproot_off $1
 elif [ "$2" = "restart" ] ; then
 	if $0 $1 running
 	then
@@ -651,14 +529,9 @@ elif [ "$2" = "suexec" ] ; then
 		echo "vserver vserver-name suexec user command [ args ... ]" >&2
 		exit 1
 	else
-		IPROOT=
-		IPROOTMASK=
-		IPROOTBCAST=
-		IPROOTDEV=
 		readlastconf $1
 		. $__CONFDIR/$1.conf
 		cd $__DEFAULT_VSERVERDIR/$1
-		ifconfig_iproot $1
 		mountproc $__DEFAULT_VSERVERDIR/$1
 		PS1="[\u@vserver:$1 \W]"
 		export PS1
@@ -702,10 +575,8 @@ elif [ "$2" = "suexec" ] ; then
 		then
 			. $__PKGSTATEDIR/$VSERVER.ctx
 			cd $__DEFAULT_VSERVERDIR/$VSERVER
-			IPOPT=`setipopt $IPROOT`
 			export PATH=$DEFAULTPATH
-			exec $_CHBIND $SILENT $IPOPT --bcast $IPROOTBCAST \
-				$_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure --ctx $S_CONTEXT \
+			exec $_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure --ctx $S_CONTEXT \
 				$_CAPCHROOT --suid $USERID . "$@"
 		else
 			test -x $__CONFDIR/$1.sh && $__CONFDIR/$1.sh pre-start $1
@@ -724,10 +595,8 @@ elif [ "$2" = "suexec" ] ; then
 			fi
 			mkdir -p $__PKGSTATEDIR
 			cd $__DEFAULT_VSERVERDIR/$VSERVER
-			IPOPT=`setipopt $IPROOT`
 			export PATH=$DEFAULTPATH
-			exec $_CHBIND $SILENT $IPOPT --bcast $IPROOTBCAST \
-				$_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure $CTXOPT $HOSTOPT $DOMAINOPT \
+			exec $_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure $CTXOPT $HOSTOPT $DOMAINOPT \
 				$_SAVE_S_CONTEXT $__PKGSTATEDIR/$VSERVER.ctx \
 				$_CAPCHROOT --suid $USERID $CHROOTOPT . "$@"
 		fi
@@ -735,15 +604,15 @@ elif [ "$2" = "suexec" ] ; then
 elif [ "$2" = "exec" ] ; then
 	VSERV=$1
 	shift; shift
-	exec $0 $NODEV $SILENT $VSERV suexec root "$@"
+	exec $0 $SILENT $VSERV suexec root "$@"
 elif [ "$2" = "enter" ] ; then
 	testperm $1
-	exec $0 $NODEV $SILENT $1 exec /bin/bash -login
+	exec $0 $SILENT $1 exec /bin/bash -login
 elif [ "$2" = "service" ] ; then
 	VSERVER=$1
 	shift
 	shift
-	exec $0 $NODEV $SILENT $VSERVER exec /sbin/service "$@"
+	exec $0 $SILENT $VSERVER exec /sbin/service "$@"
 elif [ "$2" = "chkconfig" ] ; then
 	VSERVER=$1
 	shift

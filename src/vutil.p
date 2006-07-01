@@ -1,4 +1,4 @@
-// $Id: vutil.p,v 1.1 2003/09/29 22:01:57 ensc Exp $		--*- c++ -*--
+// $Id: vutil.p,v 1.3 2003/10/21 13:23:12 ensc Exp $		--*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vutil.p by Jacques Gelinas
@@ -30,7 +30,7 @@ int vbuild_chown (const char *path, uid_t uid, gid_t gid);
 int vbuild_file_copy (const char *src,
 	 const char *dst,
 	 struct stat&st);
-void vutil_loadallpkg (string&refserver, list<PACKAGE>&packages);
+void vutil_loadallpkg (Vserver const &refserver, list<Package>&packages);
 int vutil_lstat (string path, struct stat&st);
 FILE *vutil_execdistcmd (const char *key,
 	 const string&vserver,

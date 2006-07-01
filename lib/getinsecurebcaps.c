@@ -1,4 +1,4 @@
-// $Id: getinsecurebcaps.c,v 1.2 2005/07/15 18:59:55 ensc Exp $    --*- c -*--
+// $Id: getinsecurebcaps.c,v 1.1.1.1 2005/08/17 17:58:04 mlhuang Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -26,6 +26,7 @@ uint_least64_t
 vc_get_insecurebcaps()
 {
   return ( (1<<VC_CAP_LINUX_IMMUTABLE) | (1<<VC_CAP_NET_BROADCAST) |
+	   (1<<VC_CAP_NET_BIND_SERVICE) |
 	   (1<<VC_CAP_NET_ADMIN) | (1<<VC_CAP_NET_RAW) |
 	   (1<<VC_CAP_IPC_LOCK) | (1<<VC_CAP_IPC_OWNER) |
 	   (1<<VC_CAP_SYS_MODULE) | (1<<VC_CAP_SYS_RAWIO) |
