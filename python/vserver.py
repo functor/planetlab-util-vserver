@@ -86,11 +86,13 @@ class VServer:
         f.close()
         todo = newvars.copy()
         changed = False
+        offset = 0
         for m in self.config_var_re.finditer(data):
             (key, val) = m.groups()
             newval = todo.pop(key, None)
             if newval != None:
-                data = data[:m.start(2)] + str(newval) + data[m.end(2):]
+                data = data[:offset+m.start(2)] + str(newval) + data[offset+m.end(2):]
+                offset += len(str(newval)) - (m.end(2)-m.start(2))
                 changed = True
         for (newkey, newval) in todo.items():
             data += "%s=%s\n" % (newkey, newval)
