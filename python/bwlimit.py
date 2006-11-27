@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.11 2006/03/15 16:41:21 smuir Exp $
+# $Id: bwlimit.py,v 1.12 2006/04/24 20:04:13 mlhuang Exp $
 #
 
 import sys, os, re, getopt
@@ -303,13 +303,16 @@ def tc(cmd):
     return run(TC + " " + cmd)
 
 
-def init(dev, bwcap):
+def init(dev = dev, bwcap = bwmax):
     """
     (Re)initialize the bandwidth limits on this node
     """
 
-    # load the module used to manage exempt classes
+    # Load the module used to manage exempt classes
     run("/sbin/modprobe ip_set_iphash")
+
+    # Save current settings
+    paramslist = get(None, dev)
 
     # Delete root qdisc 1: if it exists. This will also automatically
     # delete any child classes.
@@ -351,6 +354,14 @@ def init(dev, bwcap):
     # Set up the default class. Packets that fail classification end
     # up here.
     on(default_xid, dev, share = default_share)
+
+    # Restore old settings
+    for (xid, share,
+         minrate, maxrate,
+         minexemptrate, maxexemptrate,
+         bytes, exemptbytes) in paramslist:
+        if xid not in (root_xid, default_xid):
+            on(xid, dev, share, minrate, maxrate, minexemptrate, maxexemptrate)
 
 
 def get(xid = None, dev = dev):
