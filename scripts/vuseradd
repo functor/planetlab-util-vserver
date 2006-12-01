@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: vuseradd,v 1.25 2005/11/08 00:22:59 smuir Exp $
+# $Id: vuseradd,v 1.26 2006/11/13 18:49:31 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -59,12 +59,7 @@ NAME=$1
 groupadd slices 2>/dev/null || :
 
 # Add slice name to /etc/passwd
-useradd -g slices -s /bin/vsh $NAME
-
-# openssh-server 3.8 and above refuse login for "locked" accounts
-for file in /etc/passwd /etc/shadow ; do
-    [ -f $file ] && sed -i -e "s/$NAME:\!\!:\(.*\)/$NAME:*:\1/" $file
-done
+useradd -g slices -s /bin/vsh $NAME -p '*'
 
 USERID=`id -u $NAME`
 GROUPID=`id -g $NAME`
