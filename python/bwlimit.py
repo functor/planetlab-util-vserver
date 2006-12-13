@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.12 2006/04/24 20:04:13 mlhuang Exp $
+# $Id: bwlimit.py,v 1.13 2006/11/27 22:32:59 mlhuang Exp $
 #
 
 import sys, os, re, getopt
@@ -508,8 +508,12 @@ def on(xid, dev = dev, share = None, minrate = None, maxrate = None, minexemptra
         maxexemptrate = get_tc_rate(maxexemptrate)
 
     # Sanity checks
+    if maxrate < bwmin:
+        maxrate = bwmin
     if maxrate > bwcap:
         maxrate = bwcap
+    if minrate < bwmin:
+        minrate = bwmin
     if minrate > maxrate:
         minrate = maxrate
     if maxexemptrate > bwmax:
