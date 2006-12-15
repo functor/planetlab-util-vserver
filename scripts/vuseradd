@@ -2,9 +2,10 @@
 #
 # useradd(8) wrapper for vservers
 #
-# Copyright (c) 2004  The Trustees of Princeton University (Trustees).
+# Mark Huang <mlhuang@cs.princeton.edu>
+# Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: vuseradd,v 1.24 2005/09/02 20:00:39 mlhuang Exp $
+# $Id: vuseradd,v 1.26 2006/11/13 18:49:31 mlhuang Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -14,32 +15,57 @@ test -e "$UTIL_VSERVER_VARS" || {
 }
 . "$UTIL_VSERVER_VARS"
 
+shopt -s nullglob
+
+# Defaults
+TYPE="default"
+
 usage()
 {
-    echo "usage: $0 name"
+    TYPES=
+    pushd "$__DEFAULT_VSERVERDIR/.vref" >/dev/null
+    for ref in * ; do
+	if [ -z "$TYPES" ] ; then
+	    TYPES=$ref
+	else
+	    TYPES="$TYPES, $ref"
+	fi
+    done
+    popd >/dev/null
+
+    echo "Usage: vuseradd [OPTION]... [NAME]"
+    echo "	-t	Reference image type ($TYPES)"
     exit 1
 }
 
+# Get options
+while getopts "t:" opt ; do
+    case $opt in
+	t)
+	    TYPE="$OPTARG"
+	    ;;
+	*)
+	    usage
+	    ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+# Get slice name
 [ -z "$1" ] && usage
-[ "$1" == "--static" ] && { STATIC=yes; shift; }
 NAME=$1
 
-# add slices group if not already present
+# Add slices group to /etc/group if not already present
 groupadd slices 2>/dev/null || :
 
-# add user
-[ -z "$STATIC" ] && useradd -g slices -s /bin/vsh $NAME
-
-# openssh-server 3.8 and above refuse login for "locked" accounts
-for file in /etc/passwd /etc/shadow ; do
-    [ -f $file ] && sed -i -e "s/$NAME:\!\!:\(.*\)/$NAME:*:\1/" $file
-done
+# Add slice name to /etc/passwd
+useradd -g slices -s /bin/vsh $NAME -p '*'
 
 USERID=`id -u $NAME`
 GROUPID=`id -g $NAME`
 GROUPNAME=`id -gn $NAME`
 
-# create vserver configuration file
+# Create /etc/vservers configuration file
 if [ ! -f $__CONFDIR/$NAME.conf ] ; then
     sed \
 	-e "s/.*S_CONTEXT=.*/S_CONTEXT=$USERID/" \
@@ -49,47 +75,48 @@ if [ ! -f $__CONFDIR/$NAME.conf ] ; then
 fi
 
 if [ ! -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
-    # check the cache
-    shopt -s nullglob
-    for i in "$__DEFAULT_VSERVERDIR/.vcache/"* ; do
-	[ -d "$i" ] && mv "$i" "$__DEFAULT_VSERVERDIR/$NAME" && break
-    done
-    # build vserver
+    # Check the cache
+    if [ "$TYPE" = "default" ] ; then
+	for i in "$__DEFAULT_VSERVERDIR/.vcache/"* ; do
+	    [ -d "$i" ] && mv "$i" "$__DEFAULT_VSERVERDIR/$NAME" && break
+	done
+    fi
+
+    # Build slice from reference image
     if [ ! -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
-	# build in temporary directory
-	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.$NAME.XXXXXX")
-	"$__PKGLIBDIR/vbuild" "$__DEFAULT_VSERVERDIR/vserver-reference" "$TMP"
+	REF="$__DEFAULT_VSERVERDIR/.vref/$TYPE"
+
+	# Build in temporary directory
+	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
+	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+	"$__PKGLIBDIR/vbuild" "$REF" "$TMP"
 	RETVAL=$?
-	# move it to its permanent location when complete
-	if [ $RETVAL -ne 0 ] ; then 
+
+	# Move it to its permanent location when complete
+	if [ $RETVAL -eq 0 ] ; then 
+	    mv "$TMP" "$__DEFAULT_VSERVERDIR/$NAME"
+	else
 	    echo "Error $RETVAL building $__DEFAULT_VSERVERDIR/$NAME"
 	    rm -rf "$TMP" $__CONFDIR/$NAME.conf $__PKGSTATEDIR/$NAME.ctx
 	    userdel -r $NAME
 	    exit $RETVAL
-	else
-	    # sanity check
-	    vnewsize=$(du -s "$TMP" | awk "{ print \$1 }")
-	    vrefsize=$(du -s "$__DEFAULT_VSERVERDIR/vserver-reference" | awk "{ print \$1 }")
-	    if [ $vnewsize -lt $vrefsize ] ; then
-		echo "WARNING: Unexpected for 'du -s $__DEFAULT_VSERVERDIR/$NAME'=$vnewsize to be less than 'du -s $__DEFAULT_VSERVERDIR/vserver-reference'=$vrefsize"
-	    fi
-
-	    mv "$TMP" "$__DEFAULT_VSERVERDIR/$NAME"
 	fi
     fi
 fi
 
 if [ -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
-    # fix permissions
+    # Fix permissions
     chmod 755 "$__DEFAULT_VSERVERDIR/$NAME"
 
-    # add user in vserver
+    # Add user in vserver
     $_VSERVER_LEGACY $NAME suexec root sh -c \
 	"groupadd -g $GROUPID $GROUPNAME ; useradd -u $USERID -g $GROUPID -p '' $NAME"
 
-    # add an unrestricted entry to /etc/sudoers file
+    # Add an unrestricted entry to /etc/sudoers file
     if [ -f "$__DEFAULT_VSERVERDIR/$NAME/etc/sudoers" ] && \
        ! grep -q "^$NAME" "$__DEFAULT_VSERVERDIR/$NAME/etc/sudoers" ; then
 	echo "$NAME	ALL=(ALL)	ALL" >> "$__DEFAULT_VSERVERDIR/$NAME/etc/sudoers"
     fi
 fi
+
+exit 0

@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vcached,v 1.11 2005/08/21 21:37:10 mlhuang Exp $
+# $Id: vcached,v 1.12 2005/09/03 21:47:11 mlhuang Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -90,17 +90,10 @@ for i in $(seq 0 $(($slots - 1))) ; do
 	echo "$(date) Caching v$i"
 	# build image in .vtmp
 	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/v$i.XXXXXX")
-	"$__PKGLIBDIR/vbuild" "$__DEFAULT_VSERVERDIR/vserver-reference" "$TMP"
+	"$__PKGLIBDIR/vbuild" "$__DEFAULT_VSERVERDIR/.vref/default" "$TMP"
 	RETVAL=$?
 	# move it to .vcache when complete
 	if [ $RETVAL -eq 0 ] ; then
-	    # sanity check
-	    vnewsize=$(du -s "$TMP" | awk "{ print \$1 }")
-	    vrefsize=$(du -s "$__DEFAULT_VSERVERDIR/vserver-reference" | awk "{ print \$1 }")
-	    if [ $vnewsize -lt $vrefsize ] ; then
-		echo "WARNING: Unexpected for 'du -s $__DEFAULT_VSERVERDIR/$NAME'=$vnewsize to be less than 'du -s $__DEFAULT_VSERVERDIR/vserver-reference'=$vrefsize"
-	    fi
-
 	    mv "$TMP" "$__DEFAULT_VSERVERDIR/.vcache/v$i"
 	    echo "$(date) v$i ready"
 	else
