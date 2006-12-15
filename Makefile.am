@@ -241,10 +241,10 @@ nodist_lib_dietlibc_not_enabled_error_a_SOURCES = \
 endif
 
 install-exec-hook:
-	cd $(DESTDIR)$(sbindir) && $(LN_S) vuseradd vadduser
-	cd $(DESTDIR)$(sbindir) && $(LN_S) vuserdel vdeluser
+	cd $(DESTDIR)$(sbindir) && $(LN_S)f vuseradd vadduser
+	cd $(DESTDIR)$(sbindir) && $(LN_S)f vuserdel vdeluser
 	mkdir -p $(DESTDIR)/bin
-	cd $(DESTDIR)/bin && $(LN_S) ../$(sbindir)/vsh
+	cd $(DESTDIR)/bin && $(LN_S)f ../$(sbindir)/vsh
 
 install-data-hook:
 	install -D -m 644 scripts/vcached.logrotate $(DESTDIR)/$(sysconfdir)/logrotate.d/vcached
