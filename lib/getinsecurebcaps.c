@@ -1,4 +1,4 @@
-// $Id: getinsecurebcaps.c,v 1.2 2005/07/15 18:59:55 ensc Exp $    --*- c -*--
+// $Id: getinsecurebcaps.c 2154 2005-07-15 18:59:55Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

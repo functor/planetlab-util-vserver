@@ -1,4 +1,4 @@
-// $Id: syscall_kill-v11.hc,v 1.4 2004/02/02 18:55:52 ensc Exp $    --*- c++ -*--
+// $Id: syscall_kill-v11.hc 736 2004-02-02 18:55:52Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

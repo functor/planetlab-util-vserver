@@ -1,4 +1,4 @@
-// $Id: list-insertinternal.c,v 1.1 2005/03/17 14:47:21 ensc Exp $    --*- c -*--
+// $Id: list-insertinternal.c 1896 2005-03-17 14:51:55Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
 //  

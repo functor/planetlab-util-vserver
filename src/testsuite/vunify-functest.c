@@ -1,4 +1,4 @@
-// $Id: vunify-functest.c,v 1.4 2004/02/17 19:51:21 ensc Exp $    --*- c -*--
+// $Id: vunify-functest.c 920 2004-02-17 19:51:21Z ensc $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

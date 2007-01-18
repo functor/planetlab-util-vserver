@@ -1,4 +1,4 @@
-// $Id: vnamespace.c,v 1.5 2004/08/19 14:31:24 ensc Exp $    --*- c -*--
+// $Id: vnamespace.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -112,18 +112,18 @@ newNamespace(char const *cmd)
 }
 
 static void
-enterNamespace(xid_t xid)
+enterNamespace(xid_t xid, uint_least64_t mask)
 {
-  if (vc_enter_namespace(xid)==-1) {
+  if (vc_enter_namespace(xid, mask)==-1) {
     perror("vnamespace: vc_enter_namespace()");
     exit(255);
   }
 }
 
 static void
-setNamespace()
+setNamespace(xid_t xid, uint_least64_t mask)
 {
-  if (vc_set_namespace()==-1) {
+  if (vc_set_namespace(xid, mask)==-1) {
     perror("vnamespace: vc_set_namespace()");
     exit(255);
   }
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return 255;
 	break;
     }
@@ -182,9 +182,9 @@ int main(int argc, char *argv[])
     WRITE_MSG(2, "No command specified; try '--help' for more information\n");
   else {
     if      (do_new)     newNamespace(argv[optind]);
-    else if (do_set)     setNamespace();
+    else if (do_set)     setNamespace(VC_SAMECTX, CLONE_NEWNS|CLONE_FS);
     else if (do_cleanup) cleanupNamespace();
-    else if (do_enter)   enterNamespace(xid);
+    else if (do_enter)   enterNamespace(xid, CLONE_NEWNS|CLONE_FS);
 
     if (optind<argc)
       EexecvpD(argv[optind], argv+optind);

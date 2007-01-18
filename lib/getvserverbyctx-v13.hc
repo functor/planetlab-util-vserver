@@ -1,4 +1,4 @@
-// $Id: getvserverbyctx-v13.hc,v 1.1 2004/03/11 04:39:59 ensc Exp $    --*- c -*--
+// $Id: getvserverbyctx-v13.hc 2182 2005-10-25 16:20:07Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,12 +21,14 @@
 #endif
 
 static char *
-vc_getVserverByCtx_v13(xid_t ctx, vcCfgStyle *style, char const UNUSED *revdir)
+vc_getVserverByCtx_v13(xid_t ctx, vcCfgStyle *style, char const UNUSED *revdir,
+		       bool validate_result)
 {
   char		buf[128];
 
   if (vc_get_vhi_name(ctx, vcVHI_CONTEXT, buf, sizeof buf)!=-1 &&
-      vc_getVserverCtx(buf, vcCFG_RECENT_FULL, false, 0)==ctx) {
+      (!validate_result ||
+       vc_getVserverCtx(buf, vcCFG_RECENT_FULL, false, 0)==ctx)) {
     if (style) *style = vcCFG_RECENT_FULL;
     return strdup(buf);
   }

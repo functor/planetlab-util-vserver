@@ -1,4 +1,4 @@
-// $Id: showattr.c,v 1.11 2005/03/24 12:44:17 ensc Exp $
+// $Id: showattr.c 1980 2005-03-24 12:44:17Z ensc $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on showattr.cc by Jacques Gelinas

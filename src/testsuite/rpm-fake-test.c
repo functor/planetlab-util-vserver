@@ -1,4 +1,4 @@
-// $Id: rpm-fake-test.c,v 1.4 2004/02/27 18:57:28 ensc Exp $    --*- c -*--
+// $Id: rpm-fake-test.c 1044 2004-02-27 18:57:28Z ensc $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

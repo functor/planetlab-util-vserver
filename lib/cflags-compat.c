@@ -1,4 +1,4 @@
-// $Id: cflags-compat.c,v 1.1 2004/04/14 23:19:51 ensc Exp $    --*- c -*--
+// $Id: cflags-compat.c 1449 2004-04-14 23:19:51Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: vhashify.c,v 1.6 2005/03/24 12:46:59 ensc Exp $    --*- c -*--
+// $Id: vhashify.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -269,6 +269,7 @@ convertDigest(HashPath d_path)
   return true;
 }
 
+#ifndef ENSC_TESTSUITE
 static bool
 addStatHash(hashFunctionContext *h_ctx, struct stat const * const st)
 {
@@ -291,9 +292,20 @@ addStatHash(hashFunctionContext *h_ctx, struct stat const * const st)
     SET_ATTR(mtime)
   };
 
+#undef SET_ATTR
+#undef DECL_ATTR
+
+  
   return hashFunctionContextUpdate(h_ctx, (void *)&tmp, sizeof tmp)!=-1;
 }
-
+#else
+static bool
+addStatHash(hashFunctionContext UNUSED *h_ctx, struct stat const UNUSED * const st)
+{
+  return true;
+}
+#endif
+  
 static bool
 calculateHashFromFD(int fd, HashPath d_path, struct stat const * const st)
 {
@@ -699,7 +711,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }
@@ -740,4 +752,6 @@ int main(int argc, char *argv[])
   freeHashList(&global_info.hash_dirs);
   hashFunctionContextFree(&global_info.hash_context);
 #endif
+
+  return EXIT_SUCCESS;
 }

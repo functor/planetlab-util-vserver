@@ -1,4 +1,4 @@
-// $Id: getinitpid.c,v 1.3 2004/01/21 19:06:14 ensc Exp $    --*- c++ -*--
+// $Id: getinitpid.c 677 2004-01-21 19:06:14Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

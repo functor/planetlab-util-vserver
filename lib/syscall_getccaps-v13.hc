@@ -1,4 +1,4 @@
-// $Id: syscall_getccaps-v13.hc,v 1.2 2004/03/24 01:07:11 ensc Exp $    --*- c -*--
+// $Id: syscall_getccaps-v13.hc 1323 2004-03-24 01:07:11Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: checkversion.c,v 1.5 2004/01/21 18:53:22 ensc Exp $    --*- c++ -*--
+// $Id: checkversion.c 2246 2006-01-18 23:34:36Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -35,7 +35,7 @@ utilvserver_checkCompatVersion()
     v_errno = errno;
 #ifdef VC_ENABLE_API_LEGACY
     if (res==-1 && (errno==ENOSYS || errno==EINVAL)) res=0;
-#endif    
+#endif
   }
 
   errno = v_errno;

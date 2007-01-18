@@ -1,4 +1,4 @@
-// $Id: createskeleton-full.hc,v 1.4 2005/02/01 00:55:51 ensc Exp $    --*- c -*--
+// $Id: createskeleton-full.hc 1837 2005-02-01 00:55:51Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

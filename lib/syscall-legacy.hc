@@ -1,4 +1,4 @@
-// $Id: syscall-legacy.hc,v 1.10 2005/05/02 21:41:49 ensc Exp $ --*- c -*--
+// $Id: syscall-legacy.hc 2076 2005-05-02 21:42:05Z ensc $ --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on syscall.cc by Jacques Gelinas

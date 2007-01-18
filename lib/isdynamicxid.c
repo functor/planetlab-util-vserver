@@ -1,4 +1,4 @@
-// $Id: isdynamicxid.c,v 1.1 2004/03/16 03:42:14 ensc Exp $    --*- c -*--
+// $Id: isdynamicxid.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,10 +21,10 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 bool
 vc_is_dynamic_xid(xid_t xid)
 {
-  return xid>=MIN_D_CONTEXT;
+  return vc_getXIDType(xid) == vcTYPE_DYNAMIC;
 }

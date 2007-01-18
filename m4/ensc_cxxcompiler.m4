@@ -1,4 +1,4 @@
-dnl $Id: ensc_cxxcompiler.m4,v 1.3 2005/04/10 00:52:57 ensc Exp $
+dnl $Id: ensc_cxxcompiler.m4 2007 2005-04-10 00:52:57Z ensc $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

@@ -1,4 +1,4 @@
-// $Id: getfilecontext.c,v 1.1 2004/12/09 13:05:41 ensc Exp $    --*- c -*--
+// $Id: getfilecontext.c 1766 2004-12-09 13:05:41Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

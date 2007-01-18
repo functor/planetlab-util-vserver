@@ -1,4 +1,4 @@
-// $Id: chroot-sh.c,v 1.2 2005/07/03 17:40:15 ensc Exp $    --*- c -*--
+// $Id: chroot-sh.c 2407 2006-11-25 19:18:06Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#define ENSC_WRAPPERS_PREFIX	"chroot-sh"
+#define ENSC_WRAPPERS_PREFIX	"chroot-sh: "
 #define ENSC_WRAPPERS_UNISTD	1
 #define ENSC_WRAPPERS_IO	1
 #define ENSC_WRAPPERS_FCNTL	1
@@ -85,7 +85,7 @@ testInternal(int argc, char *argv[], char const *operation)
     return wrapper_exit_code;
   }
 
-  if (stat(argv[1], &st)==-1) return 0;
+  if (stat(argv[1], &st)==-1) return -1;
   else                        return st.st_mode;
 }
 
@@ -142,6 +142,55 @@ execTestFile(int argc, char *argv[])
   return res!=-1 && S_ISREG(res) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
+static int
+execMkdir(int argc, char *argv[])
+{
+  int		i   = 1;
+  int		res = EXIT_SUCCESS;
+  
+  if (argc<2) {
+    WRITE_MSG(2, "No files specified for 'mkdir' operation; try '--help' for more information\n");
+    return wrapper_exit_code;
+  }
+
+  for (;i<argc; ++i) {
+    if (mkdir(argv[i], 0755)==-1) {
+      PERROR_Q(ENSC_WRAPPERS_PREFIX "mkdir", argv[i]);
+      res = EXIT_FAILURE;
+    }
+  }
+
+  return res;
+}
+
+static int
+execChmod(int argc, char *argv[])
+{
+  int		i   = 2;
+  int		res = EXIT_SUCCESS;
+  unsigned long mode;
+  
+  if (argc<3) {
+    WRITE_MSG(2, "No files specified for 'chmod' operation; try '--help' for more information\n");
+    return wrapper_exit_code;
+  }
+
+  if (!isNumberUnsigned(argv[1], &mode, 1)) {
+    WRITE_MSG(2, "Invalid mode: '");
+    WRITE_STR(2, argv[1]);
+    WRITE_MSG(2, "'\n");
+    return EXIT_FAILURE;
+  }
+
+  for (;i<argc; ++i) {
+    if (chmod(argv[i], mode)==-1) {
+      PERROR_Q(ENSC_WRAPPERS_PREFIX "chmod", argv[i]);
+      res = EXIT_FAILURE;
+    }
+  }
+
+  return res;
+}
 
 static struct Command {
     char const		*cmd;
@@ -152,6 +201,8 @@ static struct Command {
   { "truncate", execTruncate },
   { "testfile", execTestFile },
   { "rm",       execRm },
+  { "mkdir",    execMkdir },
+  { "chmod",    execChmod },
   { 0,0 }
 };
 
@@ -170,7 +221,10 @@ showHelp()
 	    "  append <file>   ...  appends stdin to <file> which is created when needed\n"
 	    "  truncate <file> ...  clear <file> and fill it with stdin; the <file> is\n"
 	    "                       created when needed\n"
-	    "  rm <file>+      ...  unlink the given files\n\n"
+	    "  rm <file>+      ...  unlink the given files\n"
+	    "  mkdir <file>+   ...  create the given directories\n"
+	    "  chmod <mode> <file>+\n"
+	    "                  ...  change access permissions of files\n\n"
 	    "Please report bugs to " PACKAGE_BUGREPORT "\n");
   exit(0);
 }

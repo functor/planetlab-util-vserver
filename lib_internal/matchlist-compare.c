@@ -1,4 +1,4 @@
-// $Id: matchlist-compare.c,v 1.2 2004/04/06 08:43:02 ensc Exp $    --*- c -*--
+// $Id: matchlist-compare.c 1423 2004-04-06 08:43:20Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

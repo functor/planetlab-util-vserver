@@ -1,4 +1,4 @@
-// $Id: errinfo.h,v 1.1 2004/07/02 23:34:52 ensc Exp $    --*- c -*--
+// $Id: errinfo.h 1616 2004-07-02 23:34:52Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

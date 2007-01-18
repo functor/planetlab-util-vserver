@@ -1,4 +1,4 @@
-// $Id: check-unixfile.c,v 1.1 2005/01/27 19:13:04 ensc Exp $    --*- c -*--
+// $Id: check-unixfile.c 1814 2005-01-27 19:13:04Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

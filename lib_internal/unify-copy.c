@@ -1,4 +1,4 @@
-// $Id: unify-copy.c,v 1.6 2005/03/24 12:42:16 ensc Exp $    --*- c -*--
+// $Id: unify-copy.c 1977 2005-03-24 12:42:16Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

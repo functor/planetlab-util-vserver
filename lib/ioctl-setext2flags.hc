@@ -1,4 +1,4 @@
-// $Id: ioctl-setext2flags.hc,v 1.4 2004/01/23 20:47:32 ensc Exp $    --*- c -*--
+// $Id: ioctl-setext2flags.hc 702 2004-01-23 20:47:32Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

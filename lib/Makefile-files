@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.55 2005/05/05 09:17:25 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files 2415 2006-12-08 13:24:49Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -22,7 +22,8 @@ lib_VERSION =			0.0.0
 lib_compat_SRCS =		lib/cflags-compat.c \
 				lib/cflags_list-compat.c
 lib_legacy_SRCS =		lib/getprocentry-legacy.c
-lib_management_SRCS =		lib/createskeleton.c \
+lib_management_SRCS =		lib/comparevserverbyid.c \
+				lib/createskeleton.c \
 				lib/getvserverbyctx.c \
 				lib/getvserverbyctx-compat.hc \
 				lib/getvserverbyctx-v13.hc \
@@ -32,7 +33,8 @@ lib_management_SRCS =		lib/createskeleton.c \
 				lib/getvserverctx.c \
 				lib/getvservername.c \
 				lib/getvservervdir.c \
-				lib/xidopt2xid.c
+				lib/xidopt2xid.c \
+				lib/nidopt2nid.c
 lib_v11_SRCS =			lib/syscall_rlimit.c \
 				lib/syscall_rlimit-v11.hc \
 				lib/syscall_kill.c  \
@@ -91,6 +93,7 @@ lib_v13_SRCS =			lib/syscall_ctxcreate.c \
 				lib/syscall_setnflags-net.hc \
 				lib/syscall_setnflags.c \
 				lib/syscall_setsched-v13.hc \
+				lib/syscall_setsched-v13obs.hc \
 				lib/syscall_setsched.c \
 				lib/syscall_setvhiname-olduts.hc \
 				lib/syscall_setvhiname-v13.hc \
@@ -107,6 +110,23 @@ lib_v13_SRCS =			lib/syscall_ctxcreate.c \
 				lib/ncaps_list-net.c \
 				lib/nflags-net.c \
 				lib/nflags_list-net.c
+lib_v21_SRCS =			lib/syscall_setccaps-v21.hc \
+				lib/syscall_setsched-v21.hc \
+				lib/syscall_rlimitstat.c \
+				lib/syscall_rlimitstat-v21.hc \
+				lib/syscall_resetminmax.c \
+				lib/syscall_resetminmax-v21.hc \
+				lib/syscall_getvci.c \
+				lib/syscall_getvci-v21.hc \
+				lib/syscall_virtstat.c \
+				lib/syscall_virtstat-v21.hc \
+				lib/syscall_ctxstat.c \
+				lib/syscall_ctxstat-v21.hc \
+				lib/syscall_getspacemask.c \
+				lib/syscall_getspacemask-v21.hc \
+				lib/syscall_enternamespace-v21.hc \
+				lib/syscall_setnamespace-v21.hc \
+				lib/syscall_ctxmigrate-v21.hc
 
 if ENSC_HAVE_C99_COMPILER
 lib_v13_SRCS +=			lib/syscall_adddlimit-v13.hc \
@@ -123,6 +143,7 @@ PKGCONFIG_FILES =		lib/util-vserver
 
 lib_SRCS =  			lib/syscall.c \
 				lib/checkversion.c \
+				lib/checkconfig.c \
 				lib/isdirectory.c \
 				lib/isfile.c \
 				lib/islink.c \
@@ -151,12 +172,14 @@ lib_SRCS =  			lib/syscall.c \
 				$(lib_management_SRCS) \
 				$(lib_v11_SRCS) \
 				$(lib_v13_SRCS) \
+				$(lib_v21_SRCS) \
 				$(ensc_fmt_SRCS)
 
 include_HEADERS +=		lib/vserver.h
 
 noinst_HEADERS +=		lib/syscall-compat.hc \
 	 			lib/syscall-legacy.hc \
+				lib/syscall-fallback.h \
 				lib/createskeleton-full.hc \
 				lib/createskeleton-short.hc \
 				lib/fmt.h \
@@ -197,7 +220,8 @@ lib_libvserver_la_LDFLAGS =	-version $(lib_VERSION)
 lib_libvserver_a_SOURCES =  	$(lib_SRCS)
 lib_libvserver_a_CPPFLAGS = 	$(AM_CPPFLAGS) $(LIB_DEBUG_CPPFLAGS)
 
-DIETPROGS +=			lib/lib_libvserver_a-%
+DIETPROGS +=			lib/lib_libvserver_a-%		\
+				ensc_fmt/lib_libvserver_a-%
 
 CLEANFILES +=			lib/libvserver.la \
 				lib/libvserver.a

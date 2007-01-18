@@ -1,4 +1,4 @@
-// $Id: filecfg-ml.c,v 1.2 2005/01/26 15:32:35 ensc Exp $    --*- c -*--
+// $Id: filecfg-ml.c 1796 2005-01-26 15:32:35Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

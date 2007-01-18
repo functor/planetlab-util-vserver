@@ -1,4 +1,4 @@
-// $Id: fstool.h,v 1.7 2004/08/19 14:29:44 ensc Exp $    --*- c -*--
+// $Id: fstool.h 1672 2004-08-19 14:29:44Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

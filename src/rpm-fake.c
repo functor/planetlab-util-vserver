@@ -1,4 +1,4 @@
-// $Id: rpm-fake.c,v 1.32 2005/07/03 12:26:28 ensc Exp $    --*- c++ -*--
+// $Id: rpm-fake.c 2421 2006-12-09 16:12:18Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -65,10 +65,6 @@ int rpm_execcon(unsigned int verified,
 
 #undef _POSIX_SOURCE
 #include "capability-compat.h"
-
-#ifndef CLONE_NEWNS
-#  define CLONE_NEWNS	0x00020000
-#endif
 
 #define LIBNAME		"rpm-fake.so"
 #define PLATFORM_FILE	"/etc/rpm/platform"

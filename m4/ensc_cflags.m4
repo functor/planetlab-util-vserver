@@ -1,4 +1,4 @@
-dnl $Id: ensc_cflags.m4,v 1.3 2004/03/04 03:00:42 ensc Exp $
+dnl $Id: ensc_cflags.m4 1052 2004-03-04 03:00:42Z ensc $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

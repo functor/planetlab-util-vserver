@@ -1,4 +1,4 @@
-// $Id: util-debug.h,v 1.1 2004/04/14 23:22:13 ensc Exp $    --*- c -*--
+// $Id: util-debug.h 1452 2004-04-14 23:22:13Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

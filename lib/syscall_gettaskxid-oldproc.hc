@@ -1,4 +1,4 @@
-// $Id: syscall_gettaskxid-oldproc.hc,v 1.2 2004/02/02 18:58:00 ensc Exp $    --*- c -*--
+// $Id: syscall_gettaskxid-oldproc.hc 738 2004-02-02 18:58:00Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

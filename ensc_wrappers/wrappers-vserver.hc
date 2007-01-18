@@ -1,4 +1,4 @@
-// $Id: wrappers-vserver.hc,v 1.11 2004/10/19 23:11:23 ensc Exp $    --*- c++ -*--
+// $Id: wrappers-vserver.hc 2416 2006-12-08 13:25:29Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -20,6 +20,8 @@
 #  error wrappers_handler.hc can not be used in this way
 #endif
 
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
+
 inline static WRAPPER_DECL xid_t
 Evc_new_s_context(xid_t ctx, unsigned int remove_cap, unsigned int flags)
 {
@@ -28,11 +30,21 @@ Evc_new_s_context(xid_t ctx, unsigned int remove_cap, unsigned int flags)
   return res;
 }
 
+#endif
+
 inline static WRAPPER_DECL xid_t
 Evc_get_task_xid(pid_t pid)
 {
   register xid_t	res = vc_get_task_xid(pid);
   FatalErrnoError(res==VC_NOCTX, "vc_get_task_xid()");
+  return res;
+}
+
+inline static WRAPPER_DECL nid_t
+Evc_get_task_nid(pid_t pid)
+{
+  register nid_t	res = vc_get_task_nid(pid);
+  FatalErrnoError(res==VC_NOCTX, "vc_get_task_nid()");
   return res;
 }
 
@@ -44,10 +56,24 @@ Evc_ctx_create(xid_t xid)
   return res;
 }
 
+inline static WRAPPER_DECL nid_t
+Evc_net_create(nid_t nid)
+{
+  register nid_t	res = vc_net_create(nid);
+  FatalErrnoError(res==VC_NOCTX, "vc_net_create()");
+  return res;
+}
+
 inline static WRAPPER_DECL void
 Evc_ctx_migrate(xid_t xid)
 {
   FatalErrnoError(vc_ctx_migrate(xid)==-1, "vc_ctx_migrate()");
+}
+
+inline static WRAPPER_DECL void
+Evc_net_migrate(nid_t nid)
+{
+  FatalErrnoError(vc_net_migrate(nid)==-1, "vc_net_migrate()");
 }
 
 inline static WRAPPER_DECL void
@@ -60,6 +86,18 @@ inline static WRAPPER_DECL void
 Evc_set_cflags(xid_t xid, struct vc_ctx_flags const *flags)
 {
   FatalErrnoError(vc_set_cflags(xid, flags)==-1, "vc_set_cflags()");
+}
+
+inline static WRAPPER_DECL void
+Evc_get_nflags(nid_t nid, struct vc_net_flags *flags)
+{
+  FatalErrnoError(vc_get_nflags(nid, flags)==-1, "vc_get_nflags()");
+}
+
+inline static WRAPPER_DECL void
+Evc_set_nflags(nid_t nid, struct vc_net_flags const *flags)
+{
+  FatalErrnoError(vc_set_nflags(nid, flags)==-1, "vc_set_nflags()");
 }
 
 inline static WRAPPER_DECL void
@@ -82,15 +120,27 @@ Evc_set_ccaps(xid_t xid, struct vc_ctx_caps const *caps)
 }
 
 inline static WRAPPER_DECL void
-Evc_set_namespace()
+Evc_get_ncaps(nid_t nid, struct vc_net_caps *caps)
 {
-  FatalErrnoError(vc_set_namespace()==-1, "vc_set_namespace()");
+  FatalErrnoError(vc_get_ncaps(nid, caps)==-1, "vc_get_ncaps()");
 }
 
 inline static WRAPPER_DECL void
-Evc_enter_namespace(xid_t xid)
+Evc_set_ncaps(nid_t nid, struct vc_net_caps const *caps)
 {
-  FatalErrnoError(vc_enter_namespace(xid)==-1, "vc_enter_namespace()");
+  FatalErrnoError(vc_set_ncaps(nid, caps)==-1, "vc_set_ncaps()");
+}
+
+inline static WRAPPER_DECL void
+Evc_set_namespace(xid_t xid, uint_least64_t mask)
+{
+  FatalErrnoError(vc_set_namespace(xid, mask)==-1, "vc_set_namespace()");
+}
+
+inline static WRAPPER_DECL void
+Evc_enter_namespace(xid_t xid, uint_least64_t mask)
+{
+  FatalErrnoError(vc_enter_namespace(xid, mask)==-1, "vc_enter_namespace()");
 }
 
 inline static WRAPPER_DECL xid_t
@@ -116,5 +166,17 @@ Evc_xidopt2xid(char const *id, bool honor_static)
 #endif    
   }
 
+  return rc;
+}
+
+inline static WRAPPER_DECL nid_t
+Evc_nidopt2nid(char const *id, bool honor_static)
+{
+  char const *	err;
+  nid_t		rc = vc_nidopt2nid(id, honor_static, &err);
+  if (__builtin_expect(rc==VC_NOCTX,0)) {
+    ENSC_DETAIL1(msg, "vc_nidopt2nid", id, 1);
+    FatalErrnoErrorFail(msg);
+  }
   return rc;
 }

@@ -1,4 +1,4 @@
-// $Id: stack-start.h,v 1.2 2004/02/20 17:02:20 ensc Exp $    --*- c++ -*--
+// $Id: stack-start.h 968 2004-02-20 17:02:20Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

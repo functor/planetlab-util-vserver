@@ -1,4 +1,4 @@
-// $Id: string.hc,v 1.3 2005/03/18 00:20:42 ensc Exp $    --*- c -*--
+// $Id: string.hc 1915 2005-03-18 00:20:42Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

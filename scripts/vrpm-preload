@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vrpm-preload,v 1.12 2005/01/27 21:24:44 ensc Exp $
+# $Id: vrpm-preload 1825 2005-01-27 21:24:44Z ensc $
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

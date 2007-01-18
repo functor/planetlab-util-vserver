@@ -1,4 +1,4 @@
-// $Id: util-mem.h,v 1.3 2004/07/02 23:45:09 ensc Exp $    --*- c -*--
+// $Id: util-mem.h 1620 2004-07-02 23:45:09Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

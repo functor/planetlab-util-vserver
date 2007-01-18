@@ -1,4 +1,4 @@
-// $Id: unify-settime.c,v 1.2 2004/06/27 13:03:58 ensc Exp $    --*- c -*--
+// $Id: unify-settime.c 1595 2004-06-27 13:03:58Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
