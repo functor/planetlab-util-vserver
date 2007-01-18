@@ -1,4 +1,4 @@
-// $Id: vserver-internal.h,v 1.25 2005/05/02 21:42:37 ensc Exp $    --*- c++ -*--
+// $Id: vserver-internal.h 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -41,12 +41,16 @@ inline static ALWAYSINLINE void vc_noop0() {}
 #define CALL_VC_NOOP	vc_noop0()
 #define CALL_VC_GENERAL(ID, SUFFIX, FUNC, ...)				\
   VC_PREFIX; VC_SELECT(ID) return FUNC ## _ ## SUFFIX(__VA_ARGS__); VC_SUFFIX
+#define CALL_VC_GENERAL_CONFIG(BIT, SUFFIX, FUNC, ...)			\
+  VC_PREFIX; VC_CBIT(BIT)  return FUNC ## _ ## SUFFIX(__VA_ARGS__); VC_SUFFIX
 
 #ifdef VC_MULTIVERSION_SYSCALL
 #  define VC_SELECT(ID)	if (ver>=(ID))
+#  define VC_CBIT(BIT)  if ((conf&BIT) == BIT)
 #  define CALL_VC(...)					\
   do {							\
     int	ver = utilvserver_checkCompatVersion();		\
+    int UNUSED conf = utilvserver_checkCompatConfig();		\
     if (ver==-1) return -1;				\
     VC_SUFFIX, __VA_ARGS__, VC_PREFIX;			\
     errno = ENOSYS;					\
@@ -54,6 +58,7 @@ inline static ALWAYSINLINE void vc_noop0() {}
   } while (0)
 #else
 #  define VC_SELECT(ID) if (1)
+#  define VC_CBIT(BIT)  if (1)
 #  define CALL_VC(...)					\
   do {							\
     if (1) {} VC_SUFFIX, __VA_ARGS__, VC_PREFIX;	\
@@ -97,12 +102,23 @@ inline static ALWAYSINLINE void vc_noop0() {}
 #  define CALL_VC_V13B(F,...)	CALL_VC_NOOP
 #endif
 
-#ifdef VC_ENABLE_API_V13
+#ifdef VC_ENABLE_API_V13OBS
 #  define CALL_VC_V13OBS(F,...)	CALL_VC_GENERAL(0x00010011, v13obs, F, __VA_ARGS__)
 #else
 #  define CALL_VC_V13OBS(F,...)	CALL_VC_NOOP
 #endif
 
+#ifdef VC_ENABLE_API_V21
+#  define CALL_VC_V21(F,...)	CALL_VC_GENERAL(0x00020100, v21, F, __VA_ARGS__)
+#else
+#  define CALL_VC_V21(F,...)	CALL_VC_NOOP
+#endif
+
+#ifdef VC_ENABLE_API_V21
+#  define CALL_VC_SPACES(F,...)	CALL_VC_GENERAL_CONFIG(VC_VCI_SPACES, spaces, F, __VA_ARGS__)
+#else
+#  define CALL_VC_SPACES(F,...)	CALL_VC_NOOP
+#endif
 
 #ifdef VC_ENABLE_API_NET
 #  define CALL_VC_NET(F,...)	CALL_VC_GENERAL(0x00010016, net, F, __VA_ARGS__)
@@ -190,16 +206,18 @@ inline static ALWAYSINLINE void vc_noop0() {}
 #endif
 
 #if 1
-#  define NETTYPE_USER2KERNEL(X)	((X)==vcNET_IPV4   ? 0 : \
-					 (X)==vcNET_IPV6   ? 1 : \
-					 (X)==vcNET_IPV4R  ? 2 : \
-					 (X)==vcNET_IPV6R  ? 3 : \
+#  define NETTYPE_USER2KERNEL(X)	((X)==vcNET_IPV4   ? NXA_TYPE_IPV4     : \
+					 (X)==vcNET_IPV6   ? NXA_TYPE_IPV6     : \
+					 (X)==vcNET_IPV4B  ? (NXA_TYPE_IPV4 | NXA_MOD_BCAST) : \
+					 (X)==vcNET_IPV6B  ? (NXA_TYPE_IPV6 | NXA_MOD_BCAST) : \
+					 (X)==vcNET_ANY    ? NXA_TYPE_ANY      : \
 					 (X))
-#  define NETTYPE_KERNEL2USER(X)	((X)==0 ? vcNET_IPV4   ? : \
-					 (X)==1 ? vcNET_IPV6   ? : \
-					 (X)==2 ? vcNET_IPV4R  ? : \
-					 (X)==3 ? vcNET_IPV6R  ? : \
-					 (vc_net_nx_type)(X))
+#  define NETTYPE_KERNEL2USER(X)	((X)==NXA_TYPE_IPV4	? vcNET_IPV4   : \
+					 (X)==NXA_TYPE_IPV6	? vcNET_IPV6   : \
+					 (X)==(NXA_TYPE_IPV4|NXA_MOD_BCAST) ? vcNET_IPV4B : \
+					 (X)==(NXA_TYPE_IPV6|NXA_MOD_BCAST) ? vcNET_IPV6B : \
+					 (X)==NXA_TYPE_ANY      ? vcNET_ANY    : \
+					 (X))
 #else
 #  define NETTYPE_USER2KERNEL(X)	(X)
 #  define NETTYPE_KERNEL2USER(X)	(X)

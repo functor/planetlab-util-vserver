@@ -396,7 +396,7 @@ elif [ "$2" = "start" ] ; then
 			DOMAINOPT="--domainname $S_DOMAINNAME"
 		fi
 		if [ "$S_NICE" != "" ] ; then
-			NICECMD="nice -$S_NICE"
+			NICECMD="nice -n $S_NICE"
 		fi
 		mkdir -p $__PKGSTATEDIR
 		chmod 700 $__PKGSTATEDIR
@@ -410,13 +410,14 @@ elif [ "$2" = "start" ] ; then
 		# security context switch /vservers directory becomes a dead zone.
 		cd $__DEFAULT_VSERVERDIR/$1
 		export PATH=$DEFAULTPATH
-		# XXX execute /etc/rc.vinit first for backward compatibility
+		# PLANETLAB execute /etc/rc.vinit first for backward compatibility
 		for CMD in "$VINIT_CMD $2" "$STARTCMD" ; do
-			$NICECMD \
-				$_CHCONTEXT_COMPAT $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
-				$_SAVE_S_CONTEXT $__PKGSTATEDIR/$1.ctx \
-				$_CAPCHROOT $CHROOTOPT . $CMD
+		    $NICECMD $_CHBIND_COMPAT $SILENT $IPOPT --bcast $IPROOTBCAST \
+			$_CHCONTEXT_COMPAT $SILENT $DISCONNECT $CAPS $FLAGS $CTXOPT $HOSTOPT $DOMAINOPT --secure \
+			$_SAVE_S_CONTEXT $__PKGSTATEDIR/$1.ctx \
+			$_CAPCHROOT $CHROOTOPT . $CMD
 		done
+
 		sleep 2
 		test ! -x $__CONFDIR/$1.sh || $__CONFDIR/$1.sh post-start $1
 	fi
@@ -489,10 +490,11 @@ elif [ "$2" = "stop" ] ; then
 
 		cd $__DEFAULT_VSERVERDIR/$1
 		export PATH=$DEFAULTPATH
-		# XXX execute /etc/rc.vinit first for backward compatibility
+		# PLANETLAB execute /etc/rc.vinit first for backward compatibility
 		for CMD in "$VINIT_CMD $2" "$STOPCMD" ; do
+		    $_CHBIND_COMPAT $SILENT $IPOPT --bcast $IPROOTBCAST \
 			$_CHCONTEXT_COMPAT $SILENT $CAPS --secure --ctx $S_CONTEXT \
-			$_CAPCHROOT . $STOPCMD
+			$_CAPCHROOT . $CMD
 		done
 
 		if test "$IS_MINIT"; then
@@ -505,7 +507,8 @@ elif [ "$2" = "stop" ] ; then
 		fi
 
 		echo Killing all processes
-		$_CHCONTEXT_COMPAT $CAPS --secure --silent --ctx $S_CONTEXT \
+		$_CHBIND_COMPAT --silent $IPOPT --bcast $IPROOTBCAST \
+			$_CHCONTEXT_COMPAT $CAPS --secure --silent --ctx $S_CONTEXT \
 			$_VSERVERKILLALL
 	fi
 	# We umount anyway, because "enter" establish the mount
@@ -576,7 +579,8 @@ elif [ "$2" = "suexec" ] ; then
 			. $__PKGSTATEDIR/$VSERVER.ctx
 			cd $__DEFAULT_VSERVERDIR/$VSERVER
 			export PATH=$DEFAULTPATH
-			exec $_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure --ctx $S_CONTEXT \
+			exec $_CHBIND_COMPAT $SILENT $IPOPT --bcast $IPROOTBCAST \
+				$_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure --ctx $S_CONTEXT \
 				$_CAPCHROOT --suid $USERID . "$@"
 		else
 			test -x $__CONFDIR/$1.sh && $__CONFDIR/$1.sh pre-start $1
@@ -596,7 +600,8 @@ elif [ "$2" = "suexec" ] ; then
 			mkdir -p $__PKGSTATEDIR
 			cd $__DEFAULT_VSERVERDIR/$VSERVER
 			export PATH=$DEFAULTPATH
-			exec $_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure $CTXOPT $HOSTOPT $DOMAINOPT \
+			exec $_CHBIND_COMPAT $SILENT $IPOPT --bcast $IPROOTBCAST \
+				$_CHCONTEXT_COMPAT $SILENT $FLAGS $CAPS --secure $CTXOPT $HOSTOPT $DOMAINOPT \
 				$_SAVE_S_CONTEXT $__PKGSTATEDIR/$VSERVER.ctx \
 				$_CAPCHROOT --suid $USERID $CHROOTOPT . "$@"
 		fi

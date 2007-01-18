@@ -1,4 +1,4 @@
-// $Id$    --*- c -*--
+// $Id: syscall_setsched.c,v 1.3 2007/01/18 15:28:28 mef Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #define VC_MULTIVERSION_SYSCALL	1
 #include "vserver-internal.h"
@@ -30,9 +30,18 @@
 #  include "syscall_setsched-v13.hc"
 #endif
 
+#ifdef VC_ENABLE_API_V13OBS
+#  include "syscall_setsched-v13obs.hc"
+#endif
+
+#ifdef VC_ENABLE_API_V21
+#  include "syscall_setsched-v21.hc"
+#endif
+
 int
 vc_set_sched(xid_t xid, struct vc_set_sched const *data)
 {
-  CALL_VC(CALL_VC_V13B  (vc_set_sched,xid,data),
+  CALL_VC(CALL_VC_V21   (vc_set_sched,xid,data),
+	  CALL_VC_V13B  (vc_set_sched,xid,data),
 	  CALL_VC_V13OBS(vc_set_sched,xid,data));
 }

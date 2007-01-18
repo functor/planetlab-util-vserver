@@ -1,13 +1,12 @@
-# $Id: util-vserver.spec.in,v 1.49 2005/07/15 19:06:58 ensc Exp $
+# $Id: util-vserver.spec.in 2283 2006-09-10 17:07:57Z hollow $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
-## --without xalan           ...   do not require/use the xalan xslt processor
+## --with xalan              ...   require/use the xalan xslt processor
 
 %global confdir		%_sysconfdir/vservers
 %global confdefaultdir	%confdir/.defaults
 %global pkglibdir	%_libdir/%name
-%global __chattr	/usr/bin/chattr
 %global chkconfig	/sbin/chkconfig
 
 %global _localstatedir	%_var
@@ -15,29 +14,15 @@
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
-%define name util-vserver
-%define version 0.30.208
-%define release 15%{?pldistro:.%{pldistro}}%{?date:.%{date}}
-
-%define _without_dietlibc 1
-%define _without_xalan 1
-
-# don't build debuginfo RPM
-%define debug_package %{nil}
-
-Vendor: PlanetLab
-Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 3.0
-URL: http://cvs.planet-lab.org/cvs/util-vserver
-
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.208
-Release:	%{release}
+Version:	0.30.212
+Release:	%release_func 0
 License:	GPL
 Group:		System Environment/Base
-#URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://savannah.nongnu.org/download/util-vserver/stable.pkg/%version/%name-%version.tar.bz2
+URL:		http://savannah.nongnu.org/projects/util-vserver/
+Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2
+#Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -49,10 +34,11 @@ BuildRequires:	mount vconfig gawk iproute iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel beecrypt-devel
 BuildRequires:	doxygen tetex-latex
+Requires(post):		%name-core
 Requires(pre):		%pkglibdir
 Requires(postun):	%pkglibdir
 %{!?_without_dietlibc:BuildRequires:	dietlibc >= 0:0.25}
-%{!?_without_xalan:BuildRequires:	xalan-j}
+%{?_with_xalan:BuildRequires:	xalan-j}
 
 %package lib
 Summary:		Dynamic libraries for util-vserver
@@ -70,6 +56,7 @@ Requires:		rpm wget binutils tar e2fsprogs
 Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
+Requires(post):		%name-core
 
 %package sysv
 Summary:		SysV-initscripts for vserver
@@ -97,12 +84,6 @@ Summary:		Header-files and libraries needed to develop vserver based application
 Group:			Development/Libraries
 Requires:		pkgconfig
 Requires:		%name-lib = %version-%release
-
-%package python
-Summary:		Python modules for manipulating vservers
-Group:			Applications/System
-Requires:		python util-python
-Obsoletes:		util-vserver-py23 resman
 
 
 %description
@@ -178,18 +159,9 @@ This package contains header files and libraries which are needed to
 develop VServer related applications.
 
 
-%description python
-Python modules for manipulating vservers.  Provides a superset of the
-functionality of the vserver script (at least will do in the future),
-but more readily accessible from Python code.
-
-
 %prep
 %setup -q
 
-aclocal -I m4
-autoconf
-automake --add-missing
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
@@ -198,7 +170,6 @@ automake --add-missing
 %__make %{?_smp_mflags} all
 %__make %{?_smp_mflags} doc
 
-%__make -C python
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -210,15 +181,9 @@ MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
-# install python bindings
-%__make -C python DESTDIR="$PWD/tmp" install
-install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
-install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
-install -D -m 755 python/bwlimit $RPM_BUILD_ROOT/%{_sbindir}/bwlimit
-
 
 %check || :
-#%__make check
+%__make check
 
 
 %clean
@@ -229,22 +194,15 @@ rm -rf $RPM_BUILD_ROOT
 test -d /vservers      || mkdir -m0000 /vservers
 test -d /vservers/.pkg || mkdir -m0755 /vservers/.pkg
 
-f="%confdefaultdir/vdirbase"; test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
-f="%confdefaultdir/run.rev";  test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
+f="%confdefaultdir/vdirbase";  test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
+f="%confdefaultdir/run.rev";   test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
+f="%confdefaultdir/cachebase"; test -L "$f" -o -e "$f" || ln -s %_localstatedir/cache/vservers   "$f"
 
-%_sbindir/setattr --barrier /vservers || :
-
-# add /bin/vsh to list of secure shells
-if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
-    echo /bin/vsh >> /etc/shells
-fi
+%_sbindir/setattr --barrier /vservers /vservers/.pkg || :
 
 
-%postun
-# 0 = erase, 1 = upgrade
-if [ "$1" = 0 ] ; then
-    perl -i -n -e 'next if /^\/bin\/vsh$/; print' /etc/shells
-fi
+%preun
+test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 
 
 %post   lib -p /sbin/ldconfig
@@ -252,25 +210,23 @@ fi
 
 
 %post sysv
-#%chkconfig --add vservers-default
-#%chkconfig --add vprocunhide
-# PlanetLab Node Manager takes care of starting and stopping VServers
-%chkconfig --del vservers-default
-# PlanetLab does not require /proc security
-%chkconfig --del vprocunhide
+%chkconfig --add vservers-default
+%chkconfig --add vprocunhide
+
+
 
 %preun sysv
-#test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
+test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
 
-#test "$1" != 0 || %chkconfig --del vprocunhide
-#test "$1" != 0 || %chkconfig --del vservers-default
+test "$1" != 0 || %chkconfig --del vprocunhide
+test "$1" != 0 || %chkconfig --del vservers-default
 
 
 %postun sysv
-#test "$1" = 0  || %_initrddir/vprocunhide condrestart >/dev/null || :
+test "$1" = 0  || %_initrddir/vprocunhide condrestart >/dev/null || :
 
 
-%triggerin build -- fedora-release
+%triggerin build -- fedora-release, centos-release
 function copy()
 {
     base=$1
@@ -285,6 +241,16 @@ function copy()
 }
 copy fedora /usr/share/doc/fedora-release-*/RPM-GPG-*
 copy fedora /etc/pki/rpm-gpg/RPM-GPG-*
+copy centos /usr/share/doc/centos-*/RPM-GPG-KEY-*
+
+
+%post build
+test -d /vservers/.hash || mkdir -m0700 /vservers/.hash
+
+f="%confdefaultdir/apps/vunify/hash"; test -e "$f"/method -o -e "$f"/00 || \
+	ln -s /vservers/.hash "$f"/00
+
+%_sbindir/setattr --barrier /vservers/.hash || :
 
 
 %preun build
@@ -303,28 +269,26 @@ done
 
 
 %post legacy
-# PlanetLab Node Manager takes care of starting and stopping VServers
-#%chkconfig --add rebootmgr
-#%chkconfig --add vservers-legacy
+%chkconfig --add rebootmgr
+%chkconfig --add vservers-legacy
 
-# PlanetLab does not require these legacy services
-#for i in %v_services; do
-#	%chkconfig --add v_$i
-#done
+for i in %v_services; do
+	%chkconfig --add v_$i
+done
 
 
 %preun legacy
-#test "$1" != 0 || %_initrddir/rebootmgr   stop &>/dev/null || :
+test "$1" != 0 || %_initrddir/rebootmgr   stop &>/dev/null || :
 
-#test "$1" != 0 || for i in %v_services; do
-#	%chkconfig --del v_$i
-#done
+test "$1" != 0 || for i in %v_services; do
+	%chkconfig --del v_$i
+done
 
-#test "$1" != 0 || %chkconfig --del rebootmgr
-#test "$1" != 0 || %chkconfig --del vservers-legacy
+test "$1" != 0 || %chkconfig --del rebootmgr
+test "$1" != 0 || %chkconfig --del vservers-legacy
 
 %postun legacy
-#test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
+test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %files -f %name-base.list
@@ -337,9 +301,11 @@ done
 %dir %confdefaultdir/apps
 %dir %confdefaultdir/files
 %dir %pkglibdir/defaults
+%ghost %confdefaultdir/cachebase
 %ghost %confdefaultdir/vdirbase
 %ghost %confdefaultdir/run.rev
 
+%dir %_localstatedir/cache/vservers
 %dir %_localstatedir/run/vservers
 %dir %_localstatedir/run/vservers.rev
 %dir %_localstatedir/run/vshelper
@@ -377,143 +343,33 @@ done
 %doc lib/apidoc/html
 
 
-%post python
-pushd %{_datadir}/%{name} >/dev/null
-
-# Byte compile and install modules
-py_modules=
-for file in *.py ; do
-    if [ -n "$py_modules" ] ; then
-	py_modules="$py_modules,"
-    fi
-    py_modules="$py_modules '${file%*.py}'"
-done
-%define setup %{__python} -c "from distutils.core import setup; setup(py_modules=[$py_modules])"
-%{setup} build
-%{setup} install
-
-# Install the prebuilt extensions by hand
-python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-install -D -m 755 *.so "$python_sitelib"/
-
-popd
-
-
-%triggerpostun python -- util-vserver-python, util-vserver-py23
-# RPMs get upgraded by installing the new one, then uninstalling the
-# old one. Since we no longer own the byte-compiled modules, they may
-# be removed right after we create them in %post if we are upgraded
-# from a version that did own them at one point. This section should
-# be removed once all packages have been upgraded to at least this
-# version.
-pushd %{_datadir}/%{name} >/dev/null
-
-# Byte compile and install modules
-py_modules=
-for file in *.py ; do
-    if [ -n "$py_modules" ] ; then
-	py_modules="$py_modules,"
-    fi
-    py_modules="$py_modules '${file%*.py}'"
-done
-%define setup %{__python} -c "from distutils.core import setup; setup(py_modules=[$py_modules])"
-%{setup} build
-%{setup} install
-
-# Install the prebuilt extensions by hand
-python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-install -D -m 755 *.so "$python_sitelib"/
-
-popd
-
-
-%preun python
-# 0 = erase, 1 = upgrade
-if [ $1 -eq 0 ] ; then
-    python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-    pushd %{_datadir}/%{name} >/dev/null
-    for file in *.py *.so ; do
-	rm -f "$python_sitelib"/${file}*
-    done
-    popd
-fi
-
-
-%files python
-%{_datadir}/%{name}
-%{_sbindir}/bwlimit
-
-
 %changelog
-* Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
-- add support for setting guaranteed CPU share flag in rspec
+* Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
+- do not require 'xalan' anymore by default
+- removed 'Requires: apt'; apt-rpm is not maintained upstream anymore
+- removed 'chattr' leftovers
+- create the '/etc/vservers/.defaults/cachebase' symlink
+- added /var/cache/vservers and the needed support
+- set barrier attribute on /vservers/.pkg and /vservers/.hash
+- added 'centos-release' to the list of packages in the copy-the-keys
+  trigger script
+- create '/vservers/.hash' and add initial configuration for it
 
-* Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
-- fix bug in python/vserverimpl.c where attempting to adjust CPU share
-  for a context that didn't exist would cause an error (it should be a
-  safe no-op)
+* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.209-0
+- version 0.30.209
+- copy centos keys
 
-* Fri Dec  2 2005 Steve Muir <smuir@cs.princeton.edu>
-- fix bugs in python/vserverimpl.c where exceptions were not raised when
-  they should be and thus occured later at unexpected times
-- add support for stopping a vserver
-
-* Wed Nov  9 2005 Steve Muir <smuir@cs.princeton.edu>
-- add support for removing resource limits e.g., when a slice is deleted
-
-* Mon Nov  7 2005 Steve Muir <smuir@cs.princeton.edu>
-- fix file descriptor leak in vduimpl
-- clean up handling of network parameters
-- don't rely upon /etc/vservers/foo.conf to initialise vserver object
-
-* Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
-- fix Python modules to handling scheduling parameters correctly
-
-* Fri Oct 28 2005 Steve Muir <smuir@cs.princeton.edu>
-- raise exception about being over disk limit after setting usage values
-
-* Fri Oct  7 2005 Steve Muir <smuir@cs.princeton.edu>
-- create common function to be used for entering a vserver and applying
-  resource limits
-
-* Thu Aug 21 2005 Mark Huang <mlhuang@cs.princeton.edu>
-- restore build of python modules
-
-* Sat Aug 20 2005 Mark Huang <mlhuang@cs.princeton.edu>
-- upgrade to util-vserver-0.30.208
-- forward-port vbuild and legacy support until we can find a suitable
-  replacement
-- make vsh use new vc_create_context() call
-
-* Thu Jul 28 2005 Steve Muir <smuir@cs.princeton.edu>
-- add support for static vserver IDs to vuseradd and vuserdel
-
-* Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
-- add bwlimit and cpulimit modules
+* Sat Jul 16 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-2
+- updated URLs
 
 * Fri Jul 15 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-1
+- version 0.30.208
 - require the -lib subpackage by -devel
 - copy GPG keys from /etc/pki/rpm-gpg/
-
-* Mon Jun 20 2005 Steve Muir <smuir@cs.princeton.edu>
-- import Marc's vdu implementation
-
-* Wed Jun 15 2005 Steve Muir <smuir@cs.princeton.edu>
-- 'vserver-init start' functionality subsumed by Node Manager
-
-* Thu Jun 02 2005 Marc E. Fiuczynski <mef@cs.princeton.edu>
-- Fixed vlimit command
-
-* Wed May 25 2005 Steve Muir <smuir@cs.princeton.edu>
-- add Python modules for manipulating vservers
 
 * Fri Apr 15 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.206-1
 - added patches to make yum work in chroot environments
 - version 0.30.206
-
-* Thu Apr  7 2005 Steve Muir <smuir@cs.princeton.edu>
-- vuserdel changes: don't shutdown vserver, just kill all processes;
-  unmount all mountpoints in vserver before deleting
 
 * Thu Mar 24 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.205-0
 - added some %%descriptions
@@ -531,41 +387,8 @@ fi
 - do not ship the /vservers directory itself; as it is immutable, the
   extraction will fail else
 
-* Fri Nov 19 2004 Mark Huang <mlhuang@cs.princeton.edu>
-- vcached no longer runs as a daemon
-- do not restart vservers when package is upgraded
-
-* Wed Nov 17 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-6.planetlab
-+ planetlab-3_0-rc4
-- PL2445
-- Both vcached and vuseradd now print a warning message when vbuild
-  succeeds but the resulting new vserver image is smaller in size than
-  the vserver-reference image.
-- vuseradd: clean up some more junk on failure
-
-* Tue Nov 16 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-5.planetlab
-+ planetlab-3_0-rc3
-- PL3026: This is the upgraded version of vdu that maintains an
-  internal hash table of files with a nlink count > 1.  Only if vdu
-  sees all hard links to a particular inode does it add its size and
-  block count to the total.
-
-* Fri Nov 12 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-4.planetlab
-- PL2445 Use -b option to du to avoid rounding errors.
-
-* Sat Nov  6 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.30-3.planetlab
-+ planetlab-3_0-rc2
-- don't create the symbolic link /home/slice/.ssh, this is not how
-  pl_sshd works
-
-* Mon Oct 11 2004 Marc E. Fiuczynski <mef@cs.princeton.edu>
-- added vsh
-
 * Thu Sep  9 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.194-0
 - documented switches for 'rpmbuild'
-
-* Wed Aug 11 2004 Mark Huang <mlhuang@cs.princeton.edu> 0.29-1.planetlab
-- initial PlanetLab 3.0 build.
 
 * Wed May 26 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.29.215-0
 - (re)added the MANIFEST_* variables which were lost some time ago;

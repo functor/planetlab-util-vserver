@@ -1,12 +1,9 @@
-// $Id: vdu-new.c,v 1.2 2004/08/17 14:44:14 mef-pl_kernel Exp $
-
-// Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
-// based on vdu.cc by Jacques Gelinas
+// $Id: vdu.c 2260 2006-01-22 11:56:28Z ensc $    --*- c -*--
+// Copyright (C) 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2, or (at your option)
-// any later version.
+// the Free Software Foundation; version 2 of the License.
 //  
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,234 +20,317 @@
 #  include <config.h>
 #endif
 
+#include "util.h"
+#include <lib/vserver.h>
+#include <lib/fmt.h>
+
 #include <stdlib.h>
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <dirent.h>
+#include <getopt.h>
+#include <stdint.h>
 #include <errno.h>
-#include <string.h>
-#include <sys/ioctl.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <fcntl.h>
 
-#include <assert.h>
+#define ENSC_WRAPPERS_PREFIX	"vdu: "
+#define ENSC_WRAPPERS_VSERVER	1
+#define ENSC_WRAPPERS_UNISTD	1
+#define ENSC_WRAPPERS_DIRENT	1
+#define ENSC_WRAPPERS_FCNTL	1
+#define ENSC_WRAPPERS_STAT	1
+#include <wrappers.h>
 
-#include "vdu.h"
+#define CMD_HELP		0x1000
+#define CMD_VERSION		0x1001
+#define CMD_XID			0x2000
+#define CMD_SPACE		0x2001
+#define CMD_INODES		0x2002
+#define CMD_SCRIPT		0x2003
+#define CMD_BLOCKSIZE		0x2005
 
-HashTable tbl;
+int			wrapper_exit_code = 1;
 
-static int // boolean
-INOPut(PHashTable tbl, ino64_t* key, struct stat64 **val){
-    return Put(tbl, key, val);
-}
+struct option const
+CMDLINE_OPTIONS[] = {
+  { "help",           no_argument,       0, CMD_HELP },
+  { "version",        no_argument,       0, CMD_VERSION },
+  { "xid",            required_argument, 0, CMD_XID },
+  { "space",          no_argument,       0, CMD_SPACE },
+  { "inodes",         no_argument,       0, CMD_INODES },
+  { "script",         no_argument,       0, CMD_SCRIPT },
+  { "blocksize",      required_argument, 0, CMD_BLOCKSIZE },
+  {0,0,0,0}
+};
 
-__extension__ typedef long long		longlong;
-//__extension__ typedef long		longlong;
+struct Arguments {
+    xid_t		xid;
+    bool		space;
+    bool		inodes;
+    bool		script;
+    unsigned long	blocksize;
+};
 
-static longlong inodes;
-static longlong blocks;
-static longlong size;
+struct Result {
+    uint_least64_t	blocks;
+    uint_least64_t	inodes;
+};
 
-static short verbose = 0;
+struct TraversalParams {
+    struct Arguments const * const	args;
+    struct Result * const		result;
+};
 
-static inline void warning(char *s) {
-    fprintf(stderr,"%s (%s)\n",s,strerror(errno));    
-}
-
-void panic(char *s) {
-    warning(s);
-    exit(2);
-}
-
-static void vdu_onedir (char const *path)
+static void
+showHelp(int fd, char const *cmd, int res)
 {
-    char const *foo = path;
-    struct stat64 dirst, st;
-    struct dirent *ent;
-    char *name;
-    DIR *dir;
-    int dirfd;
-    longlong dirsize, dirinodes, dirblocks;
+  WRITE_MSG(fd, "Usage:\n    ");
+  WRITE_STR(fd, cmd);
+  WRITE_MSG(fd,
+	    " --xid <xid> (--space|--inodes) [--blocksize <blocksize>] [--script] <directory>*\n"
+	    "\n"
+	    "Please report bugs to " PACKAGE_BUGREPORT "\n");
 
-    dirsize = dirinodes = dirblocks = 0;
-
-    // A handle to speed up chdir
-    if ((dirfd = open (path,O_RDONLY)) == -1) {
-	fprintf (stderr,"Can't open directory %s\n",path);
-	panic("open failed");
-    }
-
-    if (fchdir (dirfd) == -1) {
-	fprintf (stderr,"Can't fchdir directory %s\n",path);
-	panic("fchdir failed");
-    }
-
-    if (fstat64 (dirfd,&dirst) != 0) {
-	fprintf (stderr,"Can't lstat directory %s\n",path);
-	panic("lstat failed");
-    }
-
-    if ((dir = opendir (".")) == NULL) {
-	fprintf (stderr,"Can't open (opendir) directory %s\n",path);
-	panic("opendir failed");
-    }
-
-
-    /* Walk the directory entries and compute the sum of inodes,
-     * blocks, and disk space used. This code will recursively descend
-     * down the directory structure. 
-     */
-
-    while ((ent=readdir(dir))!=NULL){
-	if (lstat64(ent->d_name,&st)==-1){
-	    fprintf (stderr,"Can't stat %s/%s\n",path,ent->d_name);
-	    warning("lstat failed");
-	    continue;
-	}
-	
-	dirinodes ++;
-
-	if (S_ISREG(st.st_mode)){
-	    if (st.st_nlink > 1){
-		struct stat64 *val;
-		int nlink;
-
-		/* Check hash table if we've seen this inode
-		 * before. Note that the hash maintains a
-		 * (inode,struct stat) key value pair.
-		 */
-
-		val = &st;
-
-		(void) INOPut(&tbl,&st.st_ino,&val);
-
-		/* Note that after the INOPut call "val" refers to the
-		 * value entry in the hash table --- not &st.  This
-		 * means that if the inode has been put into the hash
-		 * table before, val will refer to the first st that
-		 * was put into the hashtable.  Otherwise, if it is
-		 * the first time it is put into the hash table, then
-		 * val will be equal to this &st.
-		 */
-		nlink = val->st_nlink;
-		nlink --;
-
-		/* val refers to value in hash tbale */
-		if (nlink == 0) {
-
-		    /* We saw all hard links to this particular inode
-		     * as part of this sweep of vdu. So account for
-		     * the size and blocks required by the file.
-		     */
-
-		    dirsize += val->st_size;
-		    dirblocks += val->st_blocks;
-
-		    /* Do not delete the (ino,val) tuple from the tbl,
-		     * as we need to handle the case when we are
-		     * double counting a file due to a bind mount.
-		     */
-		    val->st_nlink = 0;
-
-		} else if (nlink > 0) {
-		    val->st_nlink = nlink;
-		} else /* if(nlink < 0) */ {
-		    /* We get here when we are double counting nlinks
-		       due a bind mount. */
-
-		    /* DO NOTHING */
-		}
-	    } else {
-		dirsize += st.st_size;
-		dirblocks += st.st_blocks;
-	    }
-
-	} else if (S_ISDIR(st.st_mode)) {
-	    if ((st.st_dev == dirst.st_dev) &&
-		(strcmp(ent->d_name,".")!=0) &&
-		(strcmp(ent->d_name,"..")!=0)) {
-
-		dirsize += st.st_size;
-		dirblocks += st.st_blocks;
-
-		name = strdup(ent->d_name);
-		if (name==0) {
-		    panic("Out of memory\n");
-		}
-		vdu_onedir(name);
-		free(name);
-		fchdir(dirfd);
-	    }
-	} else {
-	    // dirsize += st.st_size;
-	    // dirblocks += st.st_blocks;
-	}
-    }
-    closedir (dir);
-    close (dirfd);
-    if (verbose)
-	printf("%16lld %16lld %16lld %s\n",dirinodes, dirblocks, dirsize,foo);
-    inodes += dirinodes;
-    blocks += dirblocks;
-    size   += dirsize;
+  exit(res);
 }
 
 static void
-Count(ino64_t* key, struct stat64* val) {
-    if(val->st_nlink) {
-	blocks += val->st_blocks;
-	size += val->st_size;
-	printf("ino=%16lld nlink=%d\n",val->st_ino, val->st_nlink);
-    }
+showVersion()
+{
+  WRITE_MSG(1,
+	    "vdu " VERSION " -- calculates the size of a directory\n"
+	    "This program is part of " PACKAGE_STRING "\n\n"
+	    "Copyright (C) 2006 Enrico Scholz\n"
+	    VERSION_COPYRIGHT_DISCLAIMER);
+  exit(0);
 }
 
-int
-main (int argc, char **argv)
+/* basic hash table implementation for inode tracking */
+#define HASH_SIZE 103
+typedef struct hash_entry {
+  struct hash_entry *next;
+  ino_t inode;
+} hash_entry;
+
+typedef struct hash_table {
+  hash_entry *entries[HASH_SIZE];
+} hash_table;
+
+static hash_table ht;
+
+static void
+hash_init(void)
 {
-    int startdir, i;
+  memset(&ht, 0, sizeof(hash_table));
+}
 
-    if (argc < 2){
-	fprintf (stderr,"vdu version %s\n",VERSION);
-	fprintf (stderr,"vdu directory ...\n\n");
-	fprintf (stderr,"Compute the size of a directory tree.\n");
-    }else{
-	if ((startdir = open (".",O_RDONLY)) == -1) {
-	    fprintf (stderr,"Can't open current working directory\n");
-	    panic("open failed");
-	}
-
-	/* hash table support for hard link count */
-	(void) Init(&tbl,0,0);
-
-	for (i=1; i<argc; i++){
-	    inodes = blocks = size = 0;
-	    vdu_onedir (argv[i]);
-
-	    printf("%16lld %16lld %16lld %s\n",
-		   inodes, 
-		   blocks>>1, 
-		   size,
-		   argv[i]);
-	    if (fchdir (startdir) == -1) {
-		panic("fchdir failed");
-	    }
-	}
-
-	if(0) {
-	    /* show size & blocks for files with nlinks from outside of dir */
-	    inodes = blocks = size = 0;
-	    Iterate(&tbl,Count);
-	    printf("%16lld %16lld %16lld NOT COUNTED\n",
-		   inodes, 
-		   blocks, 
-		   size);
-	}
-
-	// Dispose(&tbl); this fails to delete all entries 
-	close(startdir);
+static void
+hash_free(void)
+{
+  int i;
+  hash_entry *e, *p;
+  for (i = 0; i < HASH_SIZE; i++) {
+    for (e = ht.entries[i], p = NULL; e; e = e->next) {
+      free(p);
+      p = e;
     }
+    free(p);
+  }
+}
+
+static int
+hash_insert(ino_t inode)
+{
+  hash_entry *e, *p;
+  unsigned int hashval = inode % HASH_SIZE;
+
+  /* no one else here */
+  if (ht.entries[hashval] == NULL) {
+    ht.entries[hashval]        = malloc(sizeof(hash_entry));
+    ht.entries[hashval]->next  = NULL;
+    ht.entries[hashval]->inode = inode;
     return 0;
+  }
+
+  for (e = ht.entries[hashval], p = NULL; e; e = e->next) {
+    /* already in the hash table */
+    if (e->inode == inode)
+      return -1;
+    else if (e->inode > inode) {
+      /* we're first */
+      if (p == NULL) {
+	ht.entries[hashval]        = malloc(sizeof(hash_entry));
+	ht.entries[hashval]->next  = e;
+	ht.entries[hashval]->inode = inode;
+      }
+      /* we're in the middle */
+      else {
+	p->next        = malloc(sizeof(hash_entry));
+	p->next->next  = e;
+	p->next->inode = inode;
+      }
+      return 0;
+    }
+    p = e;
+  }
+  /* we're last */
+  p->next        = malloc(sizeof(hash_entry));
+  p->next->next  = NULL;
+  p->next->inode = inode;
+
+  return 0;
+}
+
+static void
+visitDirEntry(char const *name, dev_t const dir_dev,
+	      struct TraversalParams *params);
+
+static void
+visitDir(char const *name, struct stat const *expected_stat, struct TraversalParams *params)
+{
+  int		fd = Eopen(".", O_RDONLY|O_DIRECTORY, 0);
+  DIR *		dir;
+
+  EsafeChdir(name, expected_stat);
+
+  dir = Eopendir(".");
+
+  for (;;) {
+    struct dirent		*ent = Ereaddir(dir);
+    if (ent==0) break;
+
+    if (isDotfile(ent->d_name)) continue;
+    visitDirEntry(ent->d_name, expected_stat->st_dev, params);
+  }
+
+  Eclosedir(dir);
+
+  Efchdir(fd);
+  Eclose(fd);
+}
+
+static void
+visitDirEntry(char const *name, dev_t const dir_dev,
+	      struct TraversalParams *params)
+{
+  struct stat		st;
+  xid_t			xid;
+  
+  ElstatD(name, &st);
+
+  xid = vc_getfilecontext(name);
+  if (xid == params->args->xid &&
+      (st.st_nlink == 1 || hash_insert(st.st_ino) != -1)) {
+    params->result->blocks += st.st_blocks;
+    params->result->inodes += 1;
+  }
+
+  if (S_ISDIR(st.st_mode) && dir_dev == st.st_dev)
+    visitDir(name, &st, params);
+}
+
+static void
+visitDirStart(char const *name, struct TraversalParams *params)
+{
+  struct stat	st;
+  int		fd = Eopen(".", O_RDONLY|O_DIRECTORY, 0);
+
+  Estat(name, &st);
+  Echdir(name);
+
+  visitDirEntry(".", st.st_dev, params);
+
+  Efchdir(fd);
+  Eclose(fd);  
+}
+
+int main(int argc, char *argv[])
+{
+  struct Arguments		args = {
+    .xid       = VC_NOCTX,
+    .space     = false,
+    .inodes    = false,
+    .script    = false,
+    .blocksize = 1024,
+  };
+  
+  while (1) {
+    int		c = getopt_long(argc, argv, "+", CMDLINE_OPTIONS, 0);
+    if (c==-1) break;
+
+    switch (c) {
+      case CMD_HELP	:  showHelp(1, argv[0], 0);
+      case CMD_VERSION	:  showVersion();
+      case CMD_XID	:  args.xid = Evc_xidopt2xid(optarg,true); break;
+      case CMD_SPACE	:  args.space  = true;                     break;
+      case CMD_INODES	:  args.inodes = true;                     break;
+      case CMD_SCRIPT	:  args.script = true;                     break;
+      case CMD_BLOCKSIZE:
+	if (!isNumberUnsigned(optarg, &args.blocksize, false)) {
+	  WRITE_MSG(2, "Invalid block size argument: '");
+	  WRITE_STR(2, optarg);
+	  WRITE_MSG(2, "'; try '--help' for more information\n");
+	  return EXIT_FAILURE;
+	}
+	break;
+      default		:
+	WRITE_MSG(2, "Try '");
+	WRITE_STR(2, argv[0]);
+	WRITE_MSG(2, " --help' for more information.\n");
+	return 255;
+	break;
+    }
+  }
+
+  if (args.xid==VC_NOCTX)
+    WRITE_MSG(2, "No xid specified; try '--help' for more information\n");
+  else if (!args.space && !args.inodes)
+    WRITE_MSG(2, "Must specify --space or --inodes; try '--help' for more information\n");
+  else if (optind==argc)
+    WRITE_MSG(2, "No directory specified; try '--help' for more information\n");
+  else {
+    int		i;
+    size_t	len;
+    struct Result		result;
+    struct TraversalParams	params   = {
+      .args   = &args,
+      .result = &result
+    };
+
+    for (i = optind; i < argc; i++) {
+      uint_least64_t		size;
+      char			buf[sizeof(size)*3 + 3];
+      char const *		delim = "";
+      
+      result.blocks = 0;
+      result.inodes = 0;
+
+      hash_init();
+      visitDirStart(argv[i], &params);
+      hash_free();
+
+      if (!args.script) {
+	WRITE_STR(1, argv[i]);
+	WRITE_MSG(1, " ");
+      }
+
+      if (args.space) {
+	len = utilvserver_fmt_uint64(buf, result.blocks*512 / args.blocksize);
+	if (*delim) WRITE_STR(1, delim);
+	Vwrite(1, buf, len);
+	delim = " ";
+      }
+      if (args.inodes) {
+	len = utilvserver_fmt_uint64(buf, result.inodes);
+	if (*delim) WRITE_STR(1, delim);
+	Vwrite(1, buf, len);
+	delim = " ";
+      }	
+      WRITE_MSG(1, "\n");
+    }
+    return EXIT_SUCCESS;
+  }
+
+  return EXIT_FAILURE;
 }
 
 /*

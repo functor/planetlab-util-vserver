@@ -1,4 +1,4 @@
-// $Id: cflags-v13.c,v 1.3 2004/10/21 19:00:20 ensc Exp $    --*- c -*--
+// $Id: cflags-v13.c 2393 2006-11-23 18:30:29Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  
@@ -25,6 +25,7 @@
 #include <lib_internal/util-dimof.h>
 
 #include <string.h>
+#include <strings.h>
 #include <assert.h>
 
 #define DECL(STR, VAL) { STR, sizeof(STR)-1, VAL }
@@ -48,23 +49,58 @@ static struct Mapping_uint64 const VALUES[] = {
   DECL("virt_uptime",   VC_VXF_VIRT_UPTIME),
   DECL("virt_cpu",      VC_VXF_VIRT_CPU),
   DECL("virt_load",     VC_VXF_VIRT_LOAD),
+  DECL("virt_time",	VC_VXF_VIRT_TIME),
 
   DECL("hide_mount",	VC_VXF_HIDE_MOUNT),
   DECL("hide_netif",	VC_VXF_HIDE_NETIF),
+  DECL("hide_vinfo",	VC_VXF_HIDE_VINFO),
 
   DECL("state_setup",   VC_VXF_STATE_SETUP),
   DECL("state_init",    VC_VXF_STATE_INIT),
+  DECL("state_admin",	VC_VXF_STATE_ADMIN),
+
+  DECL("sc_helper",	VC_VXF_SC_HELPER),
+  DECL("persistent",	VC_VXF_PERSISTENT),
+  DECL("reboot_kill",	VC_VXF_REBOOT_KILL),
 
   DECL("fork_rss",	VC_VXF_FORK_RSS),
   DECL("prolific",	VC_VXF_PROLIFIC),
   DECL("igneg_nice",    VC_VXF_IGNEG_NICE),
-  
+
+    // Some pseudo flags
+  DECL("secure",        VC_VXF_HIDE_NETIF),
+  DECL("default",       VC_VXF_VIRT_UPTIME),
+
+    // Aliases for the legacy flags
+  DECL("info_lock",	VC_VXF_INFO_LOCK),
+  DECL("info_nproc",	VC_VXF_INFO_NPROC),
+  DECL("info_private",	VC_VXF_INFO_PRIVATE),
+  DECL("info_init",	VC_VXF_INFO_INIT),
+
+  DECL("info_hideinfo",	VC_VXF_INFO_HIDEINFO),
+  DECL("info_ulimit",	VC_VXF_INFO_ULIMIT),
+  DECL("info_namespace", VC_VXF_INFO_NAMESPACE),
+    // 2.6 name
+  DECL("info_nspace",	VC_VXF_INFO_NAMESPACE),
 };
+
+inline static char const *
+removePrefix(char const *str, size_t *len)
+{
+  if ((len==0 || *len==0 || *len>4) &&
+      strncasecmp("vxf_", str, 4)==0) {
+    if (len && *len>4) *len -= 4;
+    return str+4;
+  }
+  else
+    return str;
+}
 
 uint_least64_t
 vc_text2cflag(char const *str, size_t len)
 {
-  ssize_t	idx = utilvserver_value2text_uint64(str, len,
+  char const *	tmp = removePrefix(str, &len);
+  ssize_t	idx = utilvserver_value2text_uint64(tmp, len,
 						    VALUES, DIM_OF(VALUES));
   if (idx==-1) return 0;
   else         return VALUES[idx].val;

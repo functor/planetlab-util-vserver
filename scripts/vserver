@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vserver,v 1.30 2005/04/28 18:03:42 ensc Exp $
+# $Id: vserver 2418 2006-12-08 13:28:02Z dhozac $
 
 # Copyright (C) 2003,2004,2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -37,7 +37,7 @@ $"Usage: $(basename $0) [-s|--sync] [-v|--verbose] [--silent]
 <vserver> is the name of a vserver.
 
 Possible commands are:
-    start [--rescue] [--rescue-cmd <cmd>]
+    start [--rescue [--rescue-init]] [<rescue-cmd> <args>*]
                 ... starts the specified vserver
     stop        ... stops the specified vserver
     restart     ... restarts the specified vserver; this is the subsequent
@@ -57,6 +57,7 @@ Possible commands are:
 
     build <buildopts>*
                 ... builds a new vserver from scratch
+    delete      ... remove a vserver
 
     unify [-R]
 		... (de)unify vserver
@@ -152,7 +153,8 @@ SELF=( "$0" "${OPTION_ALL[@]}" )
 vserver=$1
 cmd=$2
 
-test "$cmd" != build || { shift 2; exec "$_VSERVER_BUILD" -n "$vserver" "$@"; }
+test "$cmd" != build || { shift 2; exec $_VNAMESPACE --new -- \
+    "$_VSERVER_BUILD" $OPTION_DEBUG -n "$vserver" "$@"; }
 
 
 allow_legacy=
@@ -194,12 +196,22 @@ else
     VSERVER_NAME=$(basename "$VSERVER_DIR")
 fi
 
+# Create a new namespace when starting the guest
 test "$2" != start -o -n "$OPTION_NONAMESPACE" || isAvoidNamespace "$VSERVER_DIR" || \
     exec $_VNAMESPACE --new -- $_VSERVER ----nonamespace "${OPTIONS_ORIG[@]}"
 
+# Enter the namespace early so we can test for files inside the guest
+test "$2" != enter -a "$2" != stop || \
+    test -n "$OPTION_NONAMESPACE" || isAvoidNamespace "$VSERVER_DIR" || \
+    ! isVserverRunning "$VSERVER_DIR" || \
+    exec $_VNAMESPACE --enter "$VSERVER_DIR" -- $_VSERVER ----nonamespace "${OPTIONS_ORIG[@]}"
+
+set_init_cwd
+cd /
+
 . $__PKGLIBDIR/vserver.functions
 case "$2" in
-    (start|stop)
+    (start|stop|delete)
 	shift 2
 	. $__PKGLIBDIR/vserver.$cmd
 	;;
@@ -208,19 +220,21 @@ case "$2" in
 	$cmd "$@"
 	;;
     (condrestart)
-	test ! isVserverRunning "$VSERVER_DIR" || restart
+	! isVserverRunning "$VSERVER_DIR" || restart
 	;;
     (exec)
 	shift 2
-	suexec root "$@"
+	suexec 0 "$@"
 	;;
     (chkconfig)
 	shift 2
-	suexec root chkconfig "$@"
+	suexec 0 chkconfig "$@"
 	;;
     (enter)
+	useVlogin && \
+	  OPTS_VCONTEXT_ENTER=( "${OPTS_VCONTEXT_ENTER[@]}" --vlogin )
 	getEnterShell "$VSERVER_DIR"
-	suexec root "${ENTER_SHELL[@]}"
+	suexec 0 "${ENTER_SHELL[@]}"
 	;;
     (running)
 	isVserverRunning "$VSERVER_DIR"
@@ -248,12 +262,14 @@ case "$2" in
 	;;
 
     (apt-get|apt-config|apt-cache)
-	export _APT_GET=$2
+	export APT_GET=$2
 	shift 2
-	exec $_VAPT_GET -- "$@"
+	exec $_VAPT_GET "$VSERVER_DIR" -- "$@"
 	;;
+
     (rpm)
-	exec $_VRPM -- "$@"
+	shift 2
+	exec $_VRPM "$VSERVER_DIR" -- "$@"
 	;;
 	
     (status)
@@ -271,7 +287,7 @@ case "$2" in
 	fi
 	;;
     (*)
-	echo $"Usage: $0 {start|stop|suexec|restart|condrestart|exec|enter|chkconfig|running|status}" >&2
+	echo $"Usage: $0 <vserver> {start|stop|suexec|restart|condrestart|exec|enter|chkconfig|running|status|delete}" >&2
 	exit 2
 	;;
 esac

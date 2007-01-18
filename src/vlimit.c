@@ -1,4 +1,4 @@
-// $Id: vlimit.c,v 1.20 2005/03/24 12:44:17 ensc Exp $
+// $Id: vlimit.c 2403 2006-11-24 23:06:08Z dhozac $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -59,10 +59,16 @@
 
 int		wrapper_exit_code = 255;
 
+#ifndef RLIMIT_MSGQUEUE
+#  define RLIMIT_MSGQUEUE	12
+#endif
+
 #define NUMLIM(X) \
 { #X, required_argument, 0, 2048|X }
 #define OPT_RESLIM(RES,V) \
   { #RES, required_argument, 0, 2048|RLIMIT_##V }
+#define OPT_VLIMIT(RES,V) \
+  { #RES, required_argument, 0, 2048|VC_VLIMIT_##V }
 
 static struct option const
 CMDLINE_OPTIONS[] = {
@@ -80,25 +86,36 @@ CMDLINE_OPTIONS[] = {
   NUMLIM(20), NUMLIM(21), NUMLIM(22), NUMLIM(23),
   NUMLIM(24), NUMLIM(25), NUMLIM(26), NUMLIM(27),
   NUMLIM(28), NUMLIM(29), NUMLIM(30), NUMLIM(31),
-  OPT_RESLIM(cpu,     CPU),
-  OPT_RESLIM(fsize,   FSIZE),
-  OPT_RESLIM(data,    DATA),
-  OPT_RESLIM(stack,   STACK),
-  OPT_RESLIM(core,    CORE),
-  OPT_RESLIM(rss,     RSS),
-  OPT_RESLIM(nproc,   NPROC),
-  OPT_RESLIM(nofile,  NOFILE),
-  OPT_RESLIM(memlock, MEMLOCK),
-  OPT_RESLIM(as,      AS),
-  OPT_RESLIM(locks,   LOCKS),
+  OPT_RESLIM(cpu,      CPU),
+  OPT_RESLIM(fsize,    FSIZE),
+  OPT_RESLIM(data,     DATA),
+  OPT_RESLIM(stack,    STACK),
+  OPT_RESLIM(core,     CORE),
+  OPT_RESLIM(rss,      RSS),
+  OPT_RESLIM(nproc,    NPROC),
+  OPT_RESLIM(nofile,   NOFILE),
+  OPT_RESLIM(memlock,  MEMLOCK),
+  OPT_RESLIM(as,       AS),
+  OPT_RESLIM(locks,    LOCKS),
+  OPT_RESLIM(msgqueue, MSGQUEUE),
+  OPT_VLIMIT(nsock,    NSOCK),
+  OPT_VLIMIT(openfd,   OPENFD),
+  OPT_VLIMIT(anon,     ANON),
+  OPT_VLIMIT(shmem,    SHMEM),
+  OPT_VLIMIT(semary,   SEMARY),
+  OPT_VLIMIT(nsems,    NSEMS),
+  OPT_VLIMIT(dentry,   DENTRY),
   { 0,0,0,0 }
 };
 
 #define REV_RESLIM(X)	[RLIMIT_##X] = #X
+#define REV_VLIMIT(X)	[VC_VLIMIT_##X] = #X
 static char const * const LIMIT_STR[] = {
-  REV_RESLIM(CPU),     REV_RESLIM(FSIZE), REV_RESLIM(DATA),  REV_RESLIM(STACK),
-  REV_RESLIM(CORE),    REV_RESLIM(RSS),   REV_RESLIM(NPROC), REV_RESLIM(NOFILE),
-  REV_RESLIM(MEMLOCK), REV_RESLIM(AS),    REV_RESLIM(LOCKS)
+  REV_RESLIM(CPU),     REV_RESLIM(FSIZE),  REV_RESLIM(DATA),  REV_RESLIM(STACK),
+  REV_RESLIM(CORE),    REV_RESLIM(RSS),    REV_RESLIM(NPROC), REV_RESLIM(NOFILE),
+  REV_RESLIM(MEMLOCK), REV_RESLIM(AS),     REV_RESLIM(LOCKS), REV_RESLIM(MSGQUEUE),
+  REV_VLIMIT(NSOCK),   REV_VLIMIT(OPENFD), REV_VLIMIT(ANON),  REV_VLIMIT(SHMEM),
+  REV_VLIMIT(SEMARY),  REV_VLIMIT(NSEMS),  REV_VLIMIT(DENTRY),
 };
 
 static void
@@ -130,7 +147,8 @@ showHelp(int fd, char const *cmd, int res)
 	    "    --<resource>|<nr> <value>\n"
 	    "                ...  set specified (MSH) limit for <resource> to <value>\n\n"
 	    "Valid values for resource are cpu, fsize, data, stack, core, rss, nproc,\n"
-	    "nofile, memlock, as and locks.\n\n"
+	    "nofile, memlock, as, locks, msgqueue, nsock, openfd, anon, shmem, semary,\n"
+	    "nsems, and dentry.\n\n"
 	    "Please report bugs to " PACKAGE_BUGREPORT "\n");
   exit(res);
 }
@@ -163,7 +181,7 @@ appendLimit(char *ptr, bool do_it, vc_limit_t lim)
   ptr += 2;
   if (do_it) {
     if (lim==VC_LIM_INFINITY) {
-      strcpy(ptr, "inf");
+      memcpy(ptr, "inf", 3);
       ptr += 3;
     }
     else {
@@ -198,7 +216,7 @@ showAll(int ctx)
     if (((mask.min|mask.soft|mask.hard) & bitmask)==0) continue;
     if (vc_get_rlimit(ctx, i, &limit)==-1) {
       perror("vc_get_rlimit()");
-      //continue;
+      continue;
     }
 
     memset(buf, ' ', sizeof buf);
@@ -388,7 +406,7 @@ int main (int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	exit(wrapper_exit_code) ;
 	break;
     }
