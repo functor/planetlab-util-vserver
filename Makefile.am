@@ -213,6 +213,16 @@ nodist_lib_dietlibc_not_enabled_error_a_SOURCES = \
 			lib-dietlibc-not-enabled-error.c
 endif
 
+install-exec-hook:
+	cd $(DESTDIR)$(sbindir) && $(LN_S)f vuseradd vadduser
+	cd $(DESTDIR)$(sbindir) && $(LN_S)f vuserdel vdeluser
+	mkdir -p $(DESTDIR)/bin
+	cd $(DESTDIR)/bin && $(LN_S)f ../$(sbindir)/vsh
+
+install-data-hook:
+	install -D -m 644 scripts/vcached.logrotate $(DESTDIR)/$(sysconfdir)/logrotate.d/vcached
+	install -D -m 644 scripts/vcached.cron $(DESTDIR)/$(sysconfdir)/cron.d/vcached
+
 include $(top_srcdir)/lib/Makefile-files
 include $(top_srcdir)/src/Makefile-files
 include $(top_srcdir)/doc/Makefile-files

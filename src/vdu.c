@@ -1,5 +1,4 @@
 // $Id: vdu.c 2260 2006-01-22 11:56:28Z ensc $    --*- c -*--
-
 // Copyright (C) 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
@@ -15,6 +14,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
+#define _LARGEFILE64_SOURCE
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -332,3 +332,9 @@ int main(int argc, char *argv[])
 
   return EXIT_FAILURE;
 }
+
+/*
+ * Local variables:
+ *  c-basic-offset: 4
+ * End:
+ */

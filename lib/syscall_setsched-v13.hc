@@ -1,4 +1,4 @@
-// $Id: syscall_setsched-v13.hc 2367 2006-11-03 19:59:15Z dhozac $    --*- c -*--
+// $Id: syscall_setsched-v13.hc,v 1.3 2007/01/18 15:28:28 mef Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

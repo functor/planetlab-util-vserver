@@ -41,7 +41,7 @@ _EXEC_ULIMIT="$__PKGLIBDIR/exec-ulimit"
 _FAKE_RUNLEVEL="$__PKGLIBDIR/fakerunlevel"
 _FILETIME="$__PKGLIBDIR/filetime"
 _IFSPEC="$__LEGACYDIR/ifspec"
-_INITSYNC_MINIT_START=:
+_INITSYNC_MINIT_START=":"
 _KEEP_CTX_ALIVE="$__PKGLIBDIR/keep-ctx-alive"
 _LIB_FUNCTIONS="$__PKGLIBDIR/functions"
 _LIB_MAGIC="$__PKGLIBDIR/magic"
@@ -149,3 +149,5 @@ WORKAROUND_106057=1
 # %_dbpath variable therefore
 # http://distro2.conectiva.com.br/pipermail/apt-rpm/2003-October/001985.html
 WORKAROUND_APT_DBPATH=1
+# XXX Backward compatibility
+VROOTDIR=$__DEFAULT_VSERVERDIR

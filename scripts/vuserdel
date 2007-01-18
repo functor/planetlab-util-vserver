@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# userdel(8) wrapper for vservers
+#
+# Copyright (c) 2004  The Trustees of Princeton University (Trustees).
+#
+# $Id: vuserdel,v 1.9 2005/08/21 21:44:09 mlhuang Exp $
+#
+
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo "Can not find util-vserver installation; aborting..."
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+usage()
+{
+    echo "usage: $0 name"
+    exit 1
+}
+
+[ -z "$1" ] && usage
+[ "$1" == "--static" ] && { STATIC=yes; shift; }
+NAME=$1
+
+# read config file to get context ID
+. /etc/vservers/$NAME.conf
+CTX=$S_CONTEXT
+
+# don't bother stopping gracefully, just kill all the processes
+chcontext --silent --secure --ctx $CTX $__LEGACYDIR/vserverkillall
+
+# unmount any directories in vserver that are mount points
+for d in `sed -ne "s%^[^ ]* \($__DEFAULT_VSERVERDIR/$NAME/[^ ]*\) .*%\1%p" /proc/mounts`
+do
+        # use echo -e to turn escaped whitespace back into regular chars
+        # be careful about embedded backquotes here (i think we're safe)
+        dir=`echo -e "$d"`
+        echo "unmounting $dir"
+        umount -l "$dir"
+done
+
+# delete user
+[ -z "$STATIC" ] && userdel -r $NAME
+
+# remove vserver configuration file
+rm -f /etc/vservers/$NAME.conf
+
+# remove vserver profile
+rm -f /var/run/vservers/$NAME.ctx
+
+# destroy vserver
+if [ -d $__DEFAULT_VSERVERDIR/$NAME ] ; then
+    TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+    mv "$__DEFAULT_VSERVERDIR/$NAME" "$TMP"
+    rm -rf "$TMP"
+fi

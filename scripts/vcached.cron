@@ -1,0 +1,10 @@
+#
+# vcached: VServer cache allocator
+#
+# Mark Huang <mlhuang@cs.princeton.edu>
+# Copyright (c) 2004-2005 The Trustees of Princeton University
+#
+# $Id: vcached.cron,v 1.2 2005/09/01 18:52:53 mlhuang Exp $
+#
+
+*/15 * * * * root /usr/sbin/vcached
