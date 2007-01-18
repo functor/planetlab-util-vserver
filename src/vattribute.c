@@ -1,4 +1,4 @@
-// $Id: vattribute.c,v 1.14 2005/03/24 12:44:17 ensc Exp $    --*- c -*--
+// $Id: vattribute.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return 255;
 	break;
     }

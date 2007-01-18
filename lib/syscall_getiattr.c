@@ -1,4 +1,4 @@
-// $Id: syscall_getiattr.c,v 1.3 2004/03/05 04:40:59 ensc Exp $    --*- c++ -*--
+// $Id: syscall_getiattr.c 2207 2005-10-29 10:31:42Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #if defined(VC_ENABLE_API_FSCOMPAT) && defined(VC_ENABLE_API_V13)
 #  define VC_MULTIVERSION_SYSCALL	1

@@ -1,4 +1,4 @@
-dnl $Id: ensc_dietlibc.m4,v 1.15 2005/05/05 19:13:52 ensc Exp $
+dnl $Id: ensc_dietlibc.m4 2091 2005-05-05 19:13:52Z ensc $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

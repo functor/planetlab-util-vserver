@@ -1,4 +1,4 @@
-// $Id: getvserverbyctx-compat.hc,v 1.3 2004/06/27 13:01:28 ensc Exp $    --*- c -*--
+// $Id: getvserverbyctx-compat.hc 2182 2005-10-25 16:20:07Z ensc $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -67,7 +67,8 @@ handleLegacy(xid_t UNUSED xid)
 #endif
 
 static char *
-vc_getVserverByCtx_compat(xid_t ctx, vcCfgStyle *style, char const *revdir)
+vc_getVserverByCtx_compat(xid_t ctx, vcCfgStyle *style, char const *revdir,
+			  bool validate_result)
 {
   if (revdir==0) revdir = DEFAULT_PKGSTATEREVDIR;
 
@@ -92,8 +93,10 @@ vc_getVserverByCtx_compat(xid_t ctx, vcCfgStyle *style, char const *revdir)
   switch (cur_style) {
     case vcCFG_RECENT_SHORT	:
     case vcCFG_RECENT_FULL	:
-	// check if expected ctx == actual ctx
-      if (vc_getVserverCtx(path, vcCFG_RECENT_FULL, false, 0)!=ctx) return 0;
+	// check if expected ctx == actual ctx (but only when this check is
+	// request)
+      if (validate_result &&
+	  vc_getVserverCtx(path, vcCFG_RECENT_FULL, false, 0)!=ctx) return 0;
 
       if (style) *style = vcCFG_RECENT_FULL;
       return strdup(path);

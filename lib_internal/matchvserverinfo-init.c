@@ -1,4 +1,4 @@
-// $Id: matchvserverinfo-init.c,v 1.2 2005/03/24 00:09:58 ensc Exp $    --*- c -*--
+// $Id: matchvserverinfo-init.c 1970 2005-03-24 00:09:58Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

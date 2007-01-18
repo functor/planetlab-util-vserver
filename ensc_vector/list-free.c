@@ -1,4 +1,4 @@
-// $Id: list-free.c,v 1.2 2005/03/19 02:03:30 ensc Exp $    --*- c -*--
+// $Id: list-free.c 1935 2005-03-19 02:03:30Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
 //  

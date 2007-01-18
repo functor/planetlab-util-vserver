@@ -1,4 +1,4 @@
-// $Id: pathinfo.h,v 1.2 2004/07/02 23:44:53 ensc Exp $    --*- c -*--
+// $Id: pathinfo.h 1619 2004-07-02 23:44:53Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

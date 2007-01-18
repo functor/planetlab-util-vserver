@@ -1,4 +1,4 @@
-// $Id: vkill.c,v 1.8 2004/08/19 14:30:50 ensc Exp $    --*- c -*--
+// $Id: vkill.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,8 +21,9 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
 #include "util.h"
+
+#include "lib/virtual.h"
 
 #include <getopt.h>
 #include <signal.h>
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }

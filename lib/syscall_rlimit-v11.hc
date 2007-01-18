@@ -1,4 +1,4 @@
-// $Id: syscall_rlimit-v11.hc,v 1.5 2004/02/20 19:03:24 ensc Exp $    --*- c++ -*--
+// $Id: syscall_rlimit-v11.hc 976 2004-02-20 19:03:24Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: capability-compat.h,v 1.1 2005/01/27 20:38:12 ensc Exp $    --*- c -*--
+// $Id: capability-compat.h 1822 2005-01-27 20:38:12Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

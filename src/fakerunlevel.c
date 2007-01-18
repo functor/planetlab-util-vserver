@@ -1,4 +1,4 @@
-// $Id: fakerunlevel.c,v 1.6 2004/02/27 04:42:10 ensc Exp $
+// $Id: fakerunlevel.c 1022 2004-02-27 04:42:10Z ensc $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on fakerunlevel.cc by Jacques Gelinas

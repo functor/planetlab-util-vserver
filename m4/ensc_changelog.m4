@@ -1,4 +1,4 @@
-dnl $Id: ensc_changelog.m4,v 1.2 2003/11/04 01:31:56 ensc Exp $
+dnl $Id: ensc_changelog.m4 2313 2006-09-15 08:31:53Z hollow $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -15,17 +15,10 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-dnl Usage: ENSC_CHANGELOG(<CVS_TAG>)
+dnl Usage: ENSC_CHANGELOG()
 
 AC_DEFUN([ENSC_CHANGELOG],
 [
-	if test x"$1" != x; then
-		AC_SUBST(CVS2CL_TAG, ['-F $1'])
-	fi
-
-	AC_CHECK_PROGS(CVS2CL, [cvs2cl])
-	AM_CONDITIONAL(HAVE_CVS2CL,  [test x"$CVS2CL" != x])
-
-	AC_CHECK_PROGS(RCS2LOG, [rcs2log])
-	AM_CONDITIONAL(HAVE_RCS2LOG,  [test x"$RCS2LOG" != x])
+	AC_CHECK_PROGS(SVN2CL, [svn2cl])
+	AM_CONDITIONAL(HAVE_SVN2CL,  [test x"$SVN2CL" != x])
 ])

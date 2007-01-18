@@ -1,4 +1,4 @@
-// $Id: vwait.c,v 1.1 2005/05/05 09:22:03 ensc Exp $    --*- c -*--
+// $Id: vwait.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,7 +22,6 @@
 
 #include "lib/vserver.h"
 #include "lib/internal.h"
-#include "linuxvirtual.h"
 #include "util.h"
 
 #include <getopt.h>
@@ -30,6 +29,7 @@
 #include <time.h>
 #include <errno.h>
 #include <libgen.h>
+#include <assert.h>
 
 #define ENSC_WRAPPERS_PREFIX	"vwait: "
 #define ENSC_WRAPPERS_STDLIB	1
@@ -105,11 +105,12 @@ handler(int UNUSED num)
 static struct StatusType
 doit(struct Arguments const *args)
 {
-  time_t			end_time = 0;
+  time_t			end_time = 0, now = 0;
   struct StatusType		res;
   
   if (args->timeout>0) {
     end_time = time(0) + args->timeout;
+    siginterrupt(SIGALRM, 1);
     signal(SIGALRM, handler);
     alarm(args->timeout);
   }
@@ -118,11 +119,14 @@ doit(struct Arguments const *args)
     res.rc = vc_wait_exit(args->xid);
     
     if      (res.rc==-1 && errno!=EAGAIN && errno!=EINTR) {
+	// the error-case
       res.rc     = errno;
       res.status = stERROR;
       perror(ENSC_WRAPPERS_PREFIX "vc_wait_exit()");
     }
-    else if (res.rc==-1 && args->timeout>0 && time(0)>=end_time) {
+    else if (res.rc==-1 && args->timeout>0 && (now=time(0))>=end_time) {
+	// an EINTR or EAGAIN signal was delivered, a timeout was set and
+	// reached
       if (!args->do_terminate)
 	res.status = stTIMEOUT;
       else {
@@ -131,9 +135,21 @@ doit(struct Arguments const *args)
 	res.status = stKILLED;
       }
     }
-    else if (res.rc==-1)
-      continue;		// signal
+    else if (res.rc==-1) {
+	// an EINTR or EAGAIN signal was delivered but the timeout not set or
+	// not reached yet
+
+	// we are here, when args->timeout==0 or 'now' was initialized (and
+	// compared with 'end_time'). So, 'now' can be used below.
+      assert(args->timeout<=0 || (now < end_time));
+
+      if (args->timeout>0)	// (re)set the alarm-clock
+	alarm(end_time-now);
+
+      continue;
+    }
     else
+	// vc_wait_exit(2) finished successfully
       res.status = stFINISHED;
 
     break;
@@ -183,7 +199,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }

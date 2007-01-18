@@ -1,4 +1,4 @@
-// $Id: switchtowatchxid.c,v 1.4 2005/03/25 02:37:41 ensc Exp $    --*- c -*--
+// $Id: switchtowatchxid.c 1988 2005-03-25 02:37:41Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

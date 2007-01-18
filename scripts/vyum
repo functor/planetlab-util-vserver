@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vyum,v 1.2 2005/03/02 01:24:44 ensc Exp $
+# $Id: vyum 1880 2005-03-02 01:24:44Z ensc $
 
 # Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

@@ -1,4 +1,4 @@
-// $Id: unify-isiunlinkable.c,v 1.2 2005/03/18 00:22:06 ensc Exp $    --*- c -*--
+// $Id: unify-isiunlinkable.c 1917 2005-03-18 00:22:06Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

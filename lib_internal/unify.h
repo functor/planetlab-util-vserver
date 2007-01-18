@@ -1,4 +1,4 @@
-// $Id: unify.h,v 1.5 2005/03/18 03:55:03 ensc Exp $    --*- c -*--
+// $Id: unify.h 1926 2005-03-18 03:56:06Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

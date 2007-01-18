@@ -1,4 +1,4 @@
-// $Id: sys_personality.h,v 1.1 2005/04/28 18:01:16 ensc Exp $    --*- c -*--
+// $Id: sys_personality.h 2062 2005-04-28 18:01:16Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

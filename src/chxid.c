@@ -1,4 +1,4 @@
-// $Id: chxid.c,v 1.10 2004/08/19 14:28:57 ensc Exp $    --*- c -*--
+// $Id: chxid.c 1670 2004-08-19 14:28:57Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

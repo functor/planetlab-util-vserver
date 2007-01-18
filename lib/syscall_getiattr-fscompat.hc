@@ -1,4 +1,4 @@
-// $Id: syscall_getiattr-fscompat.hc,v 1.2 2005/07/15 18:06:27 ensc Exp $    --*- c -*--
+// $Id: syscall_getiattr-fscompat.hc 2151 2005-07-15 18:06:27Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

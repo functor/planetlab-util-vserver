@@ -1,4 +1,4 @@
-# $Id: vserver-build.rpm,v 1.6 2005/07/03 13:17:38 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.rpm 2263 2006-01-22 12:24:25Z ensc $	--*- sh -*--
 
 # Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -68,12 +68,15 @@ test "$OPTION_DEBUG" -lt 2 || rpm_dflt_opts=( "${rpm_dflt_opts[@]}" -v  )
 test "$OPTION_DEBUG" -lt 3 || rpm_dflt_opts=( "${rpm_dflt_opts[@]}" -v  )
 test -n "$OPTION_SILENT"   || rpm_dflt_opts=( "${rpm_dflt_opts[@]}" -vh )
 
+rpm.sanityCheck
+
 
 ######  init the filesystem
 
 base.initFilesystem    "$OPTION_FORCE"
 pkgmgmt.initFilesystem "$OPTION_FORCE"
 rpm.initFilesystem
+
 
 setup_writeOption "$VSERVER_NAME"
 setup_writeInitialFstab
@@ -82,11 +85,10 @@ setup_writeInitialFstab
 # when basedir is a non-local location, rpm will download it into the
 # current directory. Therefore, create and go into a temporay directory
 # before doing the operations.
-tmpdir=$($_MKTEMPDIR /var/tmp/vserver-build.rpm.XXXXXX)
-manifest=$($_MKTEMP /tmp/vserver-build.rpm.manifest.XXXXXX)
+tmpdir=$($_MKTEMPDIR -p /var/tmp vserver-build.rpm.XXXXXX)
+manifest=$($_MKTEMP vserver-build.rpm.manifest.XXXXXX)
 trap "rm -rf $tmpdir $manifest" EXIT
 cd "$tmpdir"			
-
 
 ######  do the real work
 

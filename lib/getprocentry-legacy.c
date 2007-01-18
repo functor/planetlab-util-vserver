@@ -1,4 +1,4 @@
-// $Id: getprocentry-legacy.c,v 1.4 2004/03/05 04:40:59 ensc Exp $    --*- c++ -*--
+// $Id: getprocentry-legacy.c 1091 2004-03-05 04:40:59Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

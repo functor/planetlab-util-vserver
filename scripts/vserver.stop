@@ -1,4 +1,4 @@
-# $Id: vserver.stop,v 1.29 2005/06/30 06:17:58 ensc Exp $  --*- sh -*--
+# $Id: vserver.stop 2312 2006-09-15 04:32:28Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -84,7 +84,9 @@ else
     "${INITCMD_STOP[@]}" || fail=1
 fi
 
-test -n "$fail" || waitForSync "$VSERVER_DIR" "$sync_fifo" "$vwait_statdir"
+vshelper.doStopSync
+
+waitForSync "$VSERVER_DIR" "$sync_fifo" "$vwait_statdir"
 
 vshelper.doDestroy "$VSERVER_DIR" "$S_CONTEXT"
 sendKillSequence   "$S_CONTEXT" "${INITKILL_SEQ[@]}"
@@ -98,4 +100,7 @@ execScriptlets    "$VSERVER_DIR" "$VSERVER_NAME" post-stop
 umountVserver     "$VSERVER_DIR" || :
 disableInterfaces "$VSERVER_DIR"
 
+saveDiskLimits    "$VSERVER_DIR"
+
 execScriptlets    "$VSERVER_DIR" "$VSERVER_NAME" postpost-stop
+removeCPUSET      "$VSERVER_DIR"

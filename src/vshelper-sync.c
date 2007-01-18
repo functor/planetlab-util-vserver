@@ -1,4 +1,4 @@
-// $Id: vshelper-sync.c,v 1.5 2005/05/05 09:21:21 ensc Exp $    --*- c -*--
+// $Id: vshelper-sync.c 2087 2005-05-05 09:21:21Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: utils-legacy.h,v 1.1 2003/10/16 14:02:54 ensc Exp $    --*- c++ -*--
+// $Id: utils-legacy.h 177 2003-10-16 14:02:54Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

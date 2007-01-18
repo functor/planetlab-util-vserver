@@ -1,4 +1,4 @@
-// $Id: getvservervdir.c,v 1.5 2005/03/22 14:59:46 ensc Exp $    --*- c -*--
+// $Id: getvservervdir.c 1954 2005-03-22 14:59:46Z ensc $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

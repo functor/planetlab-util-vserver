@@ -1,4 +1,4 @@
-// $Id: syscall_waitexit.c,v 1.1 2005/05/05 09:17:25 ensc Exp $    --*- c++ -*--
+// $Id: syscall_waitexit.c 2207 2005-10-29 10:31:42Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,7 +22,7 @@
 
 #include "vserver.h"
 #include "vserver-internal.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #if defined(VC_ENABLE_API_V13)
 #  include "syscall_waitexit-v13.hc"

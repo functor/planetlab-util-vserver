@@ -1,4 +1,4 @@
-// $Id: interface-print.c,v 1.2 2005/03/19 02:07:40 ensc Exp $    --*- c -*--
+// $Id: interface-print.c 1939 2005-03-19 02:07:40Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: syscall_getccaps.c,v 1.1 2004/03/07 19:35:59 ensc Exp $    --*- c -*--
+// $Id: syscall_getccaps.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,7 +22,7 @@
 
 #include "vserver.h"
 #include "vserver-internal.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #if defined(VC_ENABLE_API_V13)
 #  include "syscall_getccaps-v13.hc"

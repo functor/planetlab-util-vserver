@@ -1,4 +1,4 @@
-// $Id: filecfg-iteratemultiline.c,v 1.2 2004/12/07 11:13:29 ensc Exp $    --*- c -*--
+// $Id: filecfg-iteratemultiline.c 1763 2004-12-07 11:13:29Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

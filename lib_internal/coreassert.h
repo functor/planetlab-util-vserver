@@ -1,4 +1,4 @@
-// $Id: coreassert.h,v 1.2 2005/03/22 14:59:46 ensc Exp $    --*- c -*--
+// $Id: coreassert.h 1954 2005-03-22 14:59:46Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

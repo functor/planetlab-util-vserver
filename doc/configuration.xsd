@@ -4,7 +4,7 @@
 <xsd:annotation>
  <xsd:documentation xml:lang="en">
   Filesystem Database schema writen by Olivier Poitrey on 4/20/2004
-  Version $Id: configuration.xsd,v 1.1 2004/04/22 19:24:05 ensc Exp $
+  Version $Id: configuration.xsd 1496 2004-04-22 19:24:05Z ensc $
  </xsd:documentation>
 </xsd:annotation>
 

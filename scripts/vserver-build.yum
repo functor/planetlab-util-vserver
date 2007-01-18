@@ -1,4 +1,4 @@
-# $Id: vserver-build.yum,v 1.5 2005/06/30 06:13:09 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.yum 2162 2005-07-25 15:40:22Z ensc $	--*- sh -*--
 
 # Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -40,6 +40,9 @@ base.init
 pkgmgmt.initVariables
 rpm.initVariables
 yum.initVariables
+
+rpm.sanityCheck
+
 
 base.initFilesystem    "$OPTION_FORCE"
 pkgmgmt.initFilesystem "$OPTION_FORCE"

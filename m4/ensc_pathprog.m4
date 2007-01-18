@@ -1,4 +1,4 @@
-dnl $Id: ensc_pathprog.m4,v 1.2 2005/02/02 14:09:28 ensc Exp $
+dnl $Id: ensc_pathprog.m4 2324 2006-09-19 17:29:52Z dhozac $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -75,7 +75,10 @@ AC_DEFUN([ENSC_PATHPROG_STANDARD_TOOLS],
 	ENSC_PATHPROG(CP,        cp)
 	ENSC_PATHPROG(DIRNAME,   dirname)
 	ENSC_PATHPROG(EGREP,     egrep)
+	env_old_searchpath="${ensc_searchpath}"
+	ensc_searchpath="/bin:${ensc_searchpath:-$PATH}"
 	ENSC_PATHPROG(ENV,       env)
+	ensc_searchpath="${env_old_searchpath}"
 	ENSC_PATHPROG(GREP,      grep)
 	ENSC_PATHPROG(LN,        ln)
 	ENSC_PATHPROG(MKDIR,     mkdir)

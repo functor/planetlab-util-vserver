@@ -3,6 +3,7 @@
 
 #include "switch.h"
 
+
 /*  compatibiliy vserver commands */
 
 #define VCMD_new_s_context	VC_CMD(COMPAT, 1, 1)
@@ -40,9 +41,4 @@ struct	vcmd_set_ipv4root_v3 {
 #define VX_INFO_NAMESPACE	128	/* save private namespace */
 
 
-#ifdef	__KERNEL__
-extern int vc_new_s_context(uint32_t, void __user *);
-extern int vc_set_ipv4root(uint32_t, void __user *);
-
-#endif	/* __KERNEL__ */
 #endif	/* _VX_LEGACY_H */

@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions.pkgmgmt,v 1.9 2005/06/30 06:16:41 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.functions.pkgmgmt 2110 2005-06-30 06:16:58Z ensc $	--*- sh -*--
 
 # Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

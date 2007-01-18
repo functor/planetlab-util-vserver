@@ -1,4 +1,4 @@
-// $Id: syscall_gettasknid.c,v 1.1 2004/04/22 20:46:43 ensc Exp $    --*- c -*--
+// $Id: syscall_gettasknid.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 #include "vserver-internal.h"
 
 #ifdef VC_ENABLE_API_NET

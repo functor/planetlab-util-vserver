@@ -1,4 +1,4 @@
-// $Id: chbind-test.c,v 1.1 2004/02/09 23:30:20 ensc Exp $    --*- c -*--
+// $Id: chbind-test.c 847 2004-02-09 23:30:20Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

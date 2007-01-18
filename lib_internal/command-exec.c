@@ -1,4 +1,4 @@
-// $Id: command-exec.c,v 1.3 2005/03/22 15:25:54 ensc Exp $    --*- c -*--
+// $Id: command-exec.c 1957 2005-03-22 15:25:54Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

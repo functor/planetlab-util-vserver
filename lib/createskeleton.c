@@ -1,4 +1,4 @@
-// $Id: createskeleton.c,v 1.1 2004/02/18 04:42:38 ensc Exp $    --*- c -*--
+// $Id: createskeleton.c 934 2004-02-18 04:42:38Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

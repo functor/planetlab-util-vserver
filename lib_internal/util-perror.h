@@ -1,4 +1,4 @@
-// $Id: util-perror.h,v 1.2 2004/03/24 01:07:53 ensc Exp $    --*- c -*--
+// $Id: util-perror.h 1324 2004-03-24 01:07:53Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
