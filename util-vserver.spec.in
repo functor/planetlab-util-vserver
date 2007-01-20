@@ -467,11 +467,6 @@ fi
 * Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
 - add support for setting guaranteed CPU share flag in rspec
 
-* Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
-- fix bug in python/vserverimpl.c where attempting to adjust CPU share
-  for a context that didn't exist would cause an error (it should be a
-  safe no-op)
-
 * Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
 - do not require 'xalan' anymore by default
 - removed 'Requires: apt'; apt-rpm is not maintained upstream anymore
@@ -482,6 +477,11 @@ fi
 - added 'centos-release' to the list of packages in the copy-the-keys
   trigger script
 - create '/vservers/.hash' and add initial configuration for it
+
+* Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
+- fix bug in python/vserverimpl.c where attempting to adjust CPU share
+  for a context that didn't exist would cause an error (it should be a
+  safe no-op)
 
 * Fri Dec  2 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix bugs in python/vserverimpl.c where exceptions were not raised when
