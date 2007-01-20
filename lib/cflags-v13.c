@@ -43,6 +43,7 @@ static struct Mapping_uint64 const VALUES[] = {
   DECL("sched_hard",    VC_VXF_SCHED_HARD),
   DECL("sched_prio",    VC_VXF_SCHED_PRIO),
   DECL("sched_pause",   VC_VXF_SCHED_PAUSE),
+  DECL("sched_share",   VC_VXF_SCHED_SHARE),
 
   DECL("virt_mem",      VC_VXF_VIRT_MEM),
   DECL("virt_uptime",   VC_VXF_VIRT_UPTIME),

@@ -26,6 +26,7 @@ uint_least64_t
 vc_get_insecurebcaps()
 {
   return ( (1<<VC_CAP_LINUX_IMMUTABLE) | (1<<VC_CAP_NET_BROADCAST) |
+	   (1<<VC_CAP_NET_BIND_SERVICE) |
 	   (1<<VC_CAP_NET_ADMIN) | (1<<VC_CAP_NET_RAW) |
 	   (1<<VC_CAP_IPC_LOCK) | (1<<VC_CAP_IPC_OWNER) |
 	   (1<<VC_CAP_SYS_MODULE) | (1<<VC_CAP_SYS_RAWIO) |

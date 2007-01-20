@@ -167,6 +167,7 @@ lib_SRCS =  			lib/syscall.c \
 				lib/val2text-v2t-uint32.c \
 				lib/val2text-v2t-uint64.c \
 				lib/parselimit.c \
+				lib/planetlab.c \
 				$(lib_legacy_SRCS) \
 				$(lib_compat_SRCS) \
 				$(lib_management_SRCS) \
@@ -199,6 +200,7 @@ noinst_HEADERS +=		lib/syscall-compat.hc \
 				lib/syscall-alternative.h \
 				lib/syscall-wrap.h \
 				lib/utils-legacy.h \
+				lib/planetlab.h \
 				lib/vserver-internal.h
 
 LIBVSERVER_GLIBC =		lib/libvserver.la

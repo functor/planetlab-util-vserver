@@ -143,3 +143,14 @@ legacy @CONFIG@ @INITRDDIR@/rebootmgr
 legacy @CONFIG@ @INITRDDIR@/vservers-legacy
 legacy @CONFIG_NOREPLACE@ @SYSCONFDIR@/vservers.conf
 build  @CONFIG_NOREPLACE@ @CONFDIR@/.distributions/*/apt/sources.list
+core   %attr(4755,root,root) @SBINDIR@/vsh
+core   /bin/vsh
+core   @SBINDIR@/vuseradd
+core   @SBINDIR@/vuserdel
+core   @SBINDIR@/vadduser
+core   @SBINDIR@/vdeluser
+core   @SBINDIR@/vcached
+core   @SYSCONFDIR@/cron.d/vcached
+core   @SYSCONFDIR@/logrotate.d/vcached
+legacy  @PKGLIBDIR@/defaults/sample.conf
+@ENSC_HAVE_CXX_COMPILER_TRUE@legacy  @PKGLIBDIR@/vbuild

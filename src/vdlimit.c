@@ -1,4 +1,4 @@
-// $Id: vdlimit.c 2421 2006-12-09 16:12:18Z dhozac $    --*- c -*--
+// $Id: vdlimit.c,v 1.3 2007/01/18 15:28:28 mef Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
