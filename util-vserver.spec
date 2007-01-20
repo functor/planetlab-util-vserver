@@ -14,9 +14,9 @@
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
-%define name @PACKAGE@
-%define version @VERSION@
-%define release 15%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define name util-vserver
+%define version 0.30.212
+%define release 0%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -30,12 +30,12 @@ Distribution: PlanetLab 3.0
 URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
-Name:		@PACKAGE@
-Version:	@VERSION@
+Name:		util-vserver
+Version:	0.30.212
 Release:	%{release}
 License:	GPL
 Group:		System Environment/Base
-URL:		http://savannah.nongnu.org/projects/util-vserver/
+#URL:		http://savannah.nongnu.org/projects/util-vserver/
 Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2
 #Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
