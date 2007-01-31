@@ -1,4 +1,4 @@
-/* $Id: vserver.h 2415 2006-12-08 13:24:49Z dhozac $
+/* $Id: vserver.h,v 1.66 2005/07/15 16:27:02 ensc Exp $
 
 *  Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 *   
@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/types.h>
-#include <sched.h>
 
 #ifndef IS_DOXYGEN
 #if defined(__GNUC__)
@@ -176,19 +175,12 @@
 #define VC_VXF_VIRT_UPTIME		0x00020000ull
 #define VC_VXF_VIRT_CPU			0x00040000ull
 #define VC_VXF_VIRT_LOAD		0x00080000ull
-#define VC_VXF_VIRT_TIME		0x00100000ull
 
 #define VC_VXF_HIDE_MOUNT		0x01000000ull
 #define VC_VXF_HIDE_NETIF		0x02000000ull
-#define VC_VXF_HIDE_VINFO		0x04000000ull
 
 #define	VC_VXF_STATE_SETUP		(1ULL<<32)
 #define	VC_VXF_STATE_INIT		(1ULL<<33)
-#define VC_VXF_STATE_ADMIN		(1ULL<<34)
-
-#define VC_VXF_SC_HELPER		(1ULL<<36)
-#define VC_VXF_REBOOT_KILL		(1ULL<<37)
-#define VC_VXF_PERSISTENT		(1ULL<<38)
 
 #define VC_VXF_FORK_RSS			(1ULL<<48)
 #define VC_VXF_PROLIFIC			(1ULL<<49)
@@ -208,69 +200,14 @@
 #define VC_VXC_BINARY_MOUNT		0x00040000ull
 
 #define VC_VXC_QUOTA_CTL		0x00100000ull
-#define VC_VXC_ADMIN_MAPPER		0x00200000ull
-#define VC_VXC_ADMIN_CLOOP		0x00400000ull
 
 
-// the scheduler flags
-#define VC_VXSM_FILL_RATE		0x0001
-#define VC_VXSM_INTERVAL		0x0002
-#define VC_VXSM_FILL_RATE2		0x0004
-#define VC_VXSM_INTERVAL2		0x0008
-#define VC_VXSM_TOKENS			0x0010
-#define VC_VXSM_TOKENS_MIN		0x0020
-#define VC_VXSM_TOKENS_MAX		0x0040
-#define VC_VXSM_PRIO_BIAS		0x0100
-#define VC_VXSM_CPU_ID			0x1000
-#define VC_VXSM_BUCKET_ID		0x2000
-
-#define VC_VXSM_IDLE_TIME		0x0200
-#define VC_VXSM_FORCE			0x0400
-
-#define VC_VXSM_V3_MASK			0x0173
-
-
-// the network flags
-#define VC_NXF_INFO_LOCK		0x00000001ull
-#define VC_NXF_INFO_PRIVATE		0x00000008ull
-
-#define VC_NXF_SINGLE_IP		0x00000100ull
-
-#define VC_NXF_HIDE_NETIF		0x02000000ull
-
-#define VC_NXF_STATE_SETUP		(1ULL<<32)
-#define VC_NXF_STATE_ADMIN		(1ULL<<34)
-
-#define VC_NXF_SC_HELPER		(1ULL<<36)
-#define VC_NXF_PERSISTENT		(1ULL<<38)
-
-
-// the vserver specific limits
-#define VC_VLIMIT_NSOCK			16
-#define VC_VLIMIT_OPENFD		17
-#define VC_VLIMIT_ANON			18
-#define VC_VLIMIT_SHMEM			19
-#define VC_VLIMIT_SEMARY		20
-#define VC_VLIMIT_NSEMS			21
-#define VC_VLIMIT_DENTRY		22
-#define VC_VLIMIT_MAPPED		23
-
-
-// the VCI bit values
-#define VC_VCI_NO_DYNAMIC		(1 << 0)
-#define VC_VCI_SPACES			(1 << 10)
-
-
-#ifndef CLONE_NEWNS
-#  define CLONE_NEWNS			0x00020000
-#endif
-#ifndef CLONE_NEWUTS
-#  define CLONE_NEWUTS			0x04000000
-#endif
-#ifndef CLONE_NEWIPC
-#  define CLONE_NEWIPC			0x08000000
-#endif
-
+#define VC_VXSM_FILL_RATE          	0x0001
+#define VC_VXSM_INTERVAL           	0x0002
+#define VC_VXSM_TOKENS             	0x0010
+#define VC_VXSM_TOKENS_MIN         	0x0020
+#define VC_VXSM_TOKENS_MAX         	0x0040
+#define VC_VXSM_PRIO_BIAS          	0x0100
 
 
 #define VC_BAD_PERSONALITY		((uint_least32_t)(-1))
@@ -318,12 +255,6 @@ extern "C" {
      *	\returns The versionnumber of the kernel API
      */
   int	vc_get_version();
-
-    /** \brief   Returns the kernel configuration bits
-     *  \ingroup syscalls
-     *  \returns The kernel configuration bits
-     */
-  int   vc_get_vci();
   
     /** \brief   Moves current process into a context
      *  \ingroup syscalls
@@ -377,42 +308,6 @@ extern "C" {
      *  \param   xid  The new context
      *  \returns 0 on success, -1 on errors */
   int	vc_ctx_migrate(xid_t xid);
-
-    /** \brief   Statistics about a context */
-  struct vc_ctx_stat {
-      uint_least32_t	usecnt;	///< number of uses
-      uint_least32_t	tasks;	///< number of tasks
-  };
-
-    /** \brief   Get some statistics about a context.
-     *  \ingroup syscalls
-     *
-     *  \param   xid   The context to get stats about
-     *  \param   stat  Where to store the result
-     *
-     *  \returns 0 on success, -1 on errors. */
-  int   vc_ctx_stat(xid_t xid, struct vc_ctx_stat /*@out@*/ *stat) VC_ATTR_NONNULL((2));
-
-    /** \brief   Contains further statistics about a context. */
-  struct vc_virt_stat {
-      uint_least64_t	offset;
-      uint_least32_t	uptime;
-      uint_least32_t	nr_threads;
-      uint_least32_t	nr_running;
-      uint_least32_t	nr_uninterruptible;
-      uint_least32_t	nr_onhold;
-      uint_least32_t	nr_forks;
-      uint_least32_t	load[3];
-  };
-
-    /** \brief   Get more statistics about a context.
-     *  \ingroup syscalls
-     *
-     *  \param xid   The context to get stats about
-     *  \param stat  Where to store the result
-     *
-     *  \returns 0 on success, -1 on errors. */
-  int   vc_virt_stat(xid_t xid, struct vc_virt_stat /*@out@*/ *stat) VC_ATTR_NONNULL((2));
   
     /* rlimit related functions */
   
@@ -443,14 +338,6 @@ extern "C" {
       uint_least32_t	hard;	///< masks the resources supporting a hard limit
   };
 
-    /** \brief Statistics for a resource limit. */
-  struct  vc_rlimit_stat {
-      uint_least32_t	hits;	 ///< number of hits on the limit
-      uint_least64_t	value;	 ///< current value
-      uint_least64_t	minimum; ///< minimum value observed
-      uint_least64_t	maximum; ///< maximum value observed
-  };
-
     /** \brief   Returns the limits of \a resource.
      *  \ingroup syscalls
      *
@@ -473,23 +360,6 @@ extern "C" {
 		      struct vc_rlimit const /*@in@*/  *lim) VC_ATTR_NONNULL((3));
   int	vc_get_rlimit_mask(xid_t xid,
 			   struct vc_rlimit_mask *lim)       VC_ATTR_NONNULL((2));
-    /** \brief   Returns the current stats of \a resource.
-     *  \ingroup syscalls
-     *
-     *  \param  xid       The id of the context
-     *  \param  resource  The resource which will be queried
-     *  \param  stat      The result which will be filled with the stats
-     *
-     *  \returns 0 on success, and -1 on errors. */
-  int   vc_rlimit_stat(xid_t xid, int resource,
-		       struct vc_rlimit_stat /*@out@*/ *stat) VC_ATTR_NONNULL((3));
-    /** \brief   Resets the minimum and maximum observed values for all resources.
-     *  \ingroup syscalls
-     *
-     *  \param xid  The id of the context
-     *
-     *  \returns 0 on success, and -1 on errors. */
-  int   vc_reset_minmax(xid_t xid);
     /** \brief   Parses a string describing a limit
      *  \ingroup helper
      *
@@ -528,15 +398,13 @@ extern "C" {
   nid_t		vc_get_task_nid(pid_t pid);
   int		vc_get_nx_info(nid_t nid, struct vc_nx_info *) VC_ATTR_NONNULL((2));
 
-  typedef enum { vcNET_IPV4=1,      vcNET_IPV6=2,
-		 vcNET_IPV4B=0x101, vcNET_IPV6B=0x102,
-		 vcNET_ANY=~0 }		vc_net_nx_type;
-
+  typedef enum { vcNET_IPV4, vcNET_IPV6, vcNET_IPV4R, vcNET_IPV6R }	vc_net_nx_type;
+  
   struct vc_net_nx {
       vc_net_nx_type	type;
       size_t		count;
-      uint32_t		ip[4];
-      uint32_t		mask[4];
+      uint32_t		ip;
+      uint32_t		mask;
   };
 
   nid_t		vc_net_create(nid_t nid);
@@ -626,10 +494,9 @@ extern "C" {
     /** Returns true iff \a xid is a dynamic xid */
   bool		vc_is_dynamic_xid(xid_t xid);
 
-  int		vc_enter_namespace(xid_t xid, uint_least64_t mask);
-  int		vc_set_namespace(xid_t xid, uint_least64_t mask);
+  int		vc_enter_namespace(xid_t xid);
+  int		vc_set_namespace();
   int		vc_cleanup_namespace();
-  uint_least64_t vc_get_space_mask();
 
   
   /** \brief    Flags of process-contexts
@@ -808,14 +675,10 @@ extern "C" {
       uint_least32_t	set_mask;
       int_least32_t	fill_rate;
       int_least32_t	interval;
-      int_least32_t	fill_rate2;
-      int_least32_t	interval2;
       int_least32_t	tokens;
       int_least32_t	tokens_min;
       int_least32_t	tokens_max;
       int_least32_t	priority_bias;
-      int_least32_t	cpu_id;
-      int_least32_t	bucket_id;
   };
 
   int		vc_set_sched(xid_t xid, struct vc_set_sched const *);
@@ -854,8 +717,7 @@ extern "C" {
   typedef enum { vcFEATURE_VKILL,  vcFEATURE_IATTR,   vcFEATURE_RLIMIT,
 		 vcFEATURE_COMPAT, vcFEATURE_MIGRATE, vcFEATURE_NAMESPACE,
 		 vcFEATURE_SCHED,  vcFEATURE_VINFO,   vcFEATURE_VHI,
-                 vcFEATURE_VSHELPER0, vcFEATURE_VSHELPER, vcFEATURE_VWAIT,
-		 vcFEATURE_VNET }
+                 vcFEATURE_VSHELPER0, vcFEATURE_VSHELPER, vcFEATURE_VWAIT }
     vcFeatureSet;
 
   bool		vc_isSupported(vcFeatureSet) VC_ATTR_CONST;
@@ -880,8 +742,6 @@ extern "C" {
 
   /** Maps an xid given at '--xid' options to an xid_t */
   xid_t		vc_xidopt2xid(char const *, bool honor_static, char const **err_info);
-  /** Maps a  nid given at '--nid' options to a  nid_t */
-  nid_t		vc_nidopt2nid(char const *, bool honor_static, char const **err_info);
 
   vcCfgStyle	vc_getVserverCfgStyle(char const *id);
   
@@ -920,9 +780,6 @@ extern "C" {
       freed by the caller. */
   char *	vc_getVserverByCtx(xid_t ctx, /*@null@*/vcCfgStyle *style,
 				   /*@null@*/char const *revdir);
-
-  int		vc_compareVserverById(char const *lhs, vcCfgStyle lhs_style,
-				      char const *rhs, vcCfgStyle rhs_style);
  
 #define vcSKEL_INTERFACES	1u
 #define vcSKEL_PKGMGMT		2u

@@ -1,4 +1,4 @@
-// $Id: syscall_getvhiname-v13.hc 2242 2006-01-04 12:29:15Z ensc $    --*- c -*--
+// $Id: syscall_getvhiname-v13.hc,v 1.3 2005/07/03 17:49:56 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -44,6 +44,5 @@ vc_get_vhi_name_v13(xid_t xid, vc_uts_type type, char *val, size_t len)
 
   l = l>len ? len : l;
   strncpy(val, cmd.name, l);
-    /* DO NOT terminate 'val' with '\0' explicitly */
   return 0;
 }

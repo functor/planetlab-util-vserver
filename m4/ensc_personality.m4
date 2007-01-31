@@ -1,4 +1,4 @@
-dnl $Id: ensc_personality.m4 2159 2005-07-15 19:40:15Z ensc $
+dnl $Id: ensc_personality.m4,v 1.1 2005/07/15 19:40:15 ensc Exp $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

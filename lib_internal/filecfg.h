@@ -1,4 +1,4 @@
-// $Id: filecfg.h 1736 2004-10-19 21:05:15Z ensc $    --*- c -*--
+// $Id: filecfg.h,v 1.2 2004/10/19 21:05:15 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

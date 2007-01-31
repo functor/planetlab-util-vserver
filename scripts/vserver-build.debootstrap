@@ -1,4 +1,4 @@
-# $Id: vserver-build.debootstrap 2298 2006-09-12 11:21:38Z dhozac $	--*- sh -*--
+# $Id: vserver-build.debootstrap,v 1.13 2005/07/04 18:14:29 ensc Exp $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -48,11 +48,9 @@ function initFilesystem
 
 function findDebootstrap
 {
-    test ! -x "$DEBOOTSTRAP" || return 0
-
     pushd . &>/dev/null
     DEBOOTSTRAP=$(which debootstrap 2>/dev/null) || {
-        dir=$($_MKTEMPDIR -p /var/tmp debootstrap.XXXXXX)
+        dir=$($_MKTEMPDIR /var/tmp/debootstrap.XXXXXX)
         workdir=$dir
         dst=$dir/debootstrap.deb
         
@@ -68,7 +66,7 @@ ${tmp}..."
 		$_CAT <<EOF >&2
 ERROR: Could not download the debootstrap package from
 
-   $tmp
+   $dst
 
 Usually, this means that Debian released a new version which is unknown
 to util-vserver and removed the known ones. To fix this, go to
@@ -93,18 +91,6 @@ EOF
         tar xzf data.tar.gz
         export DEBOOTSTRAP_DIR=`pwd`/usr/lib/debootstrap
         DEBOOTSTRAP=`pwd`/usr/sbin/debootstrap
-
-	local arch
-	arch=$(uname -i 2>/dev/null) || \
-	    arch=$(arch 2>/dev/null) ||
-	    arch=
-
-	## Wash the calculated architecture
-	case $arch in
-	    (i?86|athlon)	arch=i386;;
-	esac
-
-	test -z "$arch" || echo "$arch" >$DEBOOTSTRAP_DIR/arch
     }
     popd &>/dev/null
 
@@ -121,26 +107,25 @@ function fixupDebian
 ###   main starts here <---
 
 
-tmp=$(getopt -o '+d:m:s:' --long debug -n "$0" -- "$@") || exit 1
+tmp=$(getopt -o '+d:m:' --long debug -n "$0" -- "$@") || exit 1
 eval set -- "$tmp"
 
 init
 
 while true; do
     case "$1" in
-	(-d)		DISTRIBUTION=$2; shift;;
-	(-m)		mirror=$2;       shift;;
-	(-s)            script=$2;       shift;;
-	(--debug)	set -x;;
-	(--)		shift; break ;;
-	(*)		echo "vserver-build.debootstrap: internal error: unrecognized option '$1'" >&2
+	-d)		DISTRIBUTION=$2; shift;;
+	-m)		mirror=$2;       shift;;
+	--debug)	set -x;;
+	--)		shift; break ;;
+	*)		echo "vserver-build.debootstrap: internal error: unrecognized option '$1'" >&2
 			exit 1
 			;;
     esac
     shift
 done
 
-getDistribution '' 1
+getDistribution
 
 initVariables  
 initFilesystem "$OPTION_FORCE"
@@ -152,7 +137,7 @@ findDebootstrap
 
 test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS"
 mv "$VDIR"/dev "$VDIR"/dev.X
-"$DEBOOTSTRAP" "$@" "$DISTRIBUTION" "$VDIR" "$mirror" "$script" || :   ## HACK: ignore all errors...
+"$DEBOOTSTRAP" "$@" "$DISTRIBUTION" "$VDIR" "$mirror" || :	## HACK: ignore all errors...
 fixupDebian "$VDIR"
 test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS"
 

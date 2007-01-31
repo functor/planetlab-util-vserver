@@ -1,4 +1,4 @@
-// $Id: chbind.c 2403 2006-11-24 23:06:08Z dhozac $
+// $Id: chbind.c,v 1.9 2004/03/16 14:30:10 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on chbind.cc by Jacques Gelinas
@@ -24,8 +24,6 @@
 #include "vserver.h"
 #include "util.h"
 
-#include <lib/internal.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,7 +41,6 @@
 #define ENSC_WRAPPERS_PREFIX	"chbind: "
 #define ENSC_WRAPPERS_IO	1
 #define ENSC_WRAPPERS_UNISTD	1
-#define ENSC_WRAPPERS_VSERVER	1
 #include "wrappers.h"
 
 #define CMD_HELP	0x1000
@@ -52,7 +49,6 @@
 #define CMD_SILENT	0x2000
 #define CMD_IP		0x2001
 #define CMD_BCAST	0x2002
-#define CMD_NID		0x2003
 
 int wrapper_exit_code = 255;
 
@@ -64,7 +60,6 @@ CMDLINE_OPTIONS[] = {
   { "silent",   no_argument,  0, CMD_SILENT },
   { "ip",       required_argument, 0, CMD_IP },
   { "bcast",    required_argument, 0, CMD_BCAST },
-  { "nid",	required_argument, 0, CMD_NID },
   { 0,0,0,0 }
 };
 
@@ -74,7 +69,7 @@ showHelp(int fd, char const *cmd, int res)
   WRITE_MSG(fd, "Usage:\n  ");
   WRITE_STR(fd, cmd);
   WRITE_MSG(fd,
-	    " [--silent] [--nid <nid>] [--ip <ip_num>[/<mask>]] [--bcast <broadcast>] [--] <commands> <args>*\n\n"
+	    " [--silent] [--ip <ip_num>[/<mask>]] [--bcast <broadcast>] [--] <commands> <args>*\n\n"
 	    "Please report bugs to " PACKAGE_BUGREPORT "\n");
 
   exit(res);
@@ -242,61 +237,6 @@ readBcast(char const *str, uint32_t *bcast)
   }
 }
 
-#if defined(VC_ENABLE_API_NET)
-static void
-make_nx(nid_t nid, uint32_t bcast, size_t nbaddrs, struct vc_ip_mask_pair *ips)
-{
-  size_t i;
-  struct vc_net_nx addr;
-
-  if (nid == VC_DYNAMIC_NID) {
-    nid = vc_net_create(VC_DYNAMIC_NID);
-    if (nid == (nid_t) -1) {
-      perror("chbind: vc_net_create()");
-      exit(wrapper_exit_code);
-    }
-  }
-  else {
-    if (vc_net_create(nid) == (nid_t) -1) {
-      if (errno == EEXIST) {
-        if (vc_net_migrate(nid) != 0) {
-          perror("chbind: vc_net_migrate()");
-          exit(wrapper_exit_code);
-        }
-        else
-          return;
-      }
-      else {
-        perror("chbind: vc_net_create()");
-        exit(wrapper_exit_code);
-      }
-    }
-  }
-
-  addr.type = vcNET_IPV4B;
-  addr.count = 1;
-  addr.ip[0] = bcast;
-  addr.mask[0] = 0;
-
-  if (vc_net_add(nid, &addr) != 1) {
-    perror("chbind: vc_net_add()");
-    exit(wrapper_exit_code);
-  }
-
-  for (i = 0; i < nbaddrs; i++) {
-    addr.type = vcNET_IPV4;
-    addr.count = 1;
-    addr.ip[0] = ips[i].ip;
-    addr.mask[0] = ips[i].mask;
-
-    if (vc_net_add(nid, &addr) != 1) {
-      perror("chbind: vc_net_add()");
-      exit(wrapper_exit_code);
-    }
-  }
-}
-#endif
-
 int main (int argc, char *argv[])
 {
   size_t const			nb_ipv4root = vc_get_nb_ipv4root();
@@ -304,7 +244,6 @@ int main (int argc, char *argv[])
   struct vc_ip_mask_pair	ips[nb_ipv4root];
   size_t			nbaddrs = 0;
   uint32_t			bcast   = 0xffffffff;
-  nid_t				nid	= VC_DYNAMIC_NID;
   
   while (1) {
     int		c = getopt_long(argc, argv, "+", CMDLINE_OPTIONS, 0);
@@ -315,11 +254,6 @@ int main (int argc, char *argv[])
       case CMD_VERSION		:  showVersion();
       case CMD_SILENT		:  is_silent = true; break;
       case CMD_BCAST		:  readBcast(optarg, &bcast); break;
-#if defined(VC_ENABLE_API_NET)
-      case CMD_NID		:  nid = Evc_nidopt2nid(optarg,true); break;
-#else
-      case CMD_NID		:  WRITE_MSG(2, "WARNING: --nid is not supported by this version\n"); break;
-#endif
       case CMD_IP		:
 	if (nbaddrs>=nb_ipv4root) {
 	  WRITE_MSG(2, "Too many IP numbers, max 16\n");
@@ -331,7 +265,7 @@ int main (int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help' for more information.\n");
+	WRITE_MSG(2, " --help\" for more information.\n");
 	exit(wrapper_exit_code);
 	break;
     }
@@ -342,27 +276,11 @@ int main (int argc, char *argv[])
     exit(wrapper_exit_code);
   }
   
-#if !defined(VC_ENABLE_API_NET) && !defined(VC_ENABLE_API_COMPAT) && !defined(VC_ENABLE_API_LEGACY)
-#  error can not build 'chbind' without network virtualization API
-#endif
-  
-#if defined(VC_ENABLE_API_NET)
-  if (vc_isSupported(vcFEATURE_VNET)) {
-    make_nx(nid, bcast, nbaddrs, ips);
-  }
-  else
-#endif
-#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
+
   if (vc_set_ipv4root(bcast,nbaddrs,ips)!=0) {
     perror("chbind: vc_set_ipv4root()");
     exit(wrapper_exit_code);
   }
-#else
-  {
-    WRITE_MSG(2, "chbind: kernel does not provide network virtualization\n");
-    exit(wrapper_exit_code);
-  }
-#endif
 
   if (!is_silent) {
     size_t		i;

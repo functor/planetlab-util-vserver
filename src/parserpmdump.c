@@ -1,4 +1,4 @@
-// $Id: parserpmdump.c 2 2003-09-29 22:01:59Z ensc $
+// $Id: parserpmdump.c,v 1.1 2003/09/29 22:01:57 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on parserpmdump.cc by Jacques Gelinas

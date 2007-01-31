@@ -1,4 +1,4 @@
-# $Id: vserver-build.skeleton 2200 2005-10-28 18:40:56Z ensc $	--*- sh -*--
+# $Id: vserver-build.skeleton,v 1.5 2005/06/30 06:13:09 ensc Exp $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -35,7 +35,7 @@ while true; do
     shift
 done
 
-getDistribution '' 1
+getDistribution
 
 base.init
 test -z "$use_pkgmgmt" || pkgmgmt.initVariables
@@ -50,5 +50,3 @@ setup_writeInitialFstab
 test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS"
 test -z "$1" || "$@"
 test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS"
-
-base.setSuccess

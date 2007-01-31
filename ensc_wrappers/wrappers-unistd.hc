@@ -1,4 +1,4 @@
-// $Id: wrappers-unistd.hc 2307 2006-09-12 17:09:08Z dhozac $    --*- c -*--
+// $Id: wrappers-unistd.hc,v 1.9 2005/07/03 12:33:44 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -155,12 +155,6 @@ inline static void
 Esetgroups(size_t size, const gid_t *list)
 {
   FatalErrnoError(setgroups(size, list)==-1, "setgroups()");
-}
-
-inline static void
-Einitgroups(const char *user, gid_t group)
-{
-  FatalErrnoError(initgroups(user, group)==-1, "initgroups()");
 }
 #endif
 

@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2255 2006-01-22 11:23:47Z ensc $  -*- makefile -*-
+## $Id: Makefile-files,v 1.18 2005/07/04 22:35:47 ensc Exp $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -96,9 +96,7 @@ lib_internal_libinternal_common_SRCS = \
 				lib_internal/unify-isiunlinkable.c \
 				lib_internal/util-canonify.c \
 				lib_internal/util-exitlikeprocess.c \
-				lib_internal/util-isnumber.hc \
 				lib_internal/util-isnumber.c \
-				lib_internal/util-isnumberunsigned.c \
 				lib_internal/util-lockfile.c \
 				lib_internal/util-safechdir.c \
 				$(command_SRCS) \

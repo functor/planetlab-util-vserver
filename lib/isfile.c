@@ -1,4 +1,4 @@
-// $Id: isfile.c 1654 2004-08-19 13:56:47Z ensc $    --*- c -*--
+// $Id: isfile.c,v 1.1 2004/08/19 13:56:47 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

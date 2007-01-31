@@ -1,4 +1,4 @@
-// $Id: chain-echo.c 1469 2004-04-20 17:54:40Z ensc $    --*- c -*--
+// $Id: chain-echo.c,v 1.1 2004/04/20 17:54:40 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

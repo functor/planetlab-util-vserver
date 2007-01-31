@@ -1,4 +1,4 @@
-// $Id: interface-read.c 1980 2005-03-24 12:44:17Z ensc $    --*- c -*--
+// $Id: interface-read.c,v 1.3 2005/03/24 12:44:17 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

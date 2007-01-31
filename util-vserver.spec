@@ -1,12 +1,13 @@
-# $Id: util-vserver.spec.in 2283 2006-09-10 17:07:57Z hollow $
+# $Id: util-vserver.spec.in,v 1.49 2005/07/15 19:06:58 ensc Exp $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
-## --with xalan              ...   require/use the xalan xslt processor
+## --without xalan           ...   do not require/use the xalan xslt processor
 
 %global confdir		%_sysconfdir/vservers
 %global confdefaultdir	%confdir/.defaults
 %global pkglibdir	%_libdir/%name
+%global __chattr	/usr/bin/chattr
 %global chkconfig	/sbin/chkconfig
 
 %global _localstatedir	%_var
@@ -15,8 +16,8 @@
 %{!?release_func:%global release_func() %1%{?dist}}
 
 %define name util-vserver
-%define version 0.30.212
-%define release 0%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define version 0.30.208
+%define release 15%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -31,13 +32,12 @@ URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.212
+Version:	0.30.208
 Release:	%{release}
 License:	GPL
 Group:		System Environment/Base
 #URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2
-#Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2.asc
+Source0:	http://savannah.nongnu.org/download/util-vserver/stable.pkg/%version/%name-%version.tar.bz2
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -49,11 +49,10 @@ BuildRequires:	mount vconfig gawk iproute iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel beecrypt-devel
 BuildRequires:	doxygen tetex-latex
-Requires(post):		%name-core
 Requires(pre):		%pkglibdir
 Requires(postun):	%pkglibdir
 %{!?_without_dietlibc:BuildRequires:	dietlibc >= 0:0.25}
-%{?_with_xalan:BuildRequires:	xalan-j}
+%{!?_without_xalan:BuildRequires:	xalan-j}
 
 %package lib
 Summary:		Dynamic libraries for util-vserver
@@ -71,7 +70,6 @@ Requires:		rpm wget binutils tar e2fsprogs
 Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
-Requires(post):		%name-core
 
 %package sysv
 Summary:		SysV-initscripts for vserver
@@ -231,15 +229,10 @@ rm -rf $RPM_BUILD_ROOT
 test -d /vservers      || mkdir -m0000 /vservers
 test -d /vservers/.pkg || mkdir -m0755 /vservers/.pkg
 
-f="%confdefaultdir/vdirbase";  test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
-f="%confdefaultdir/run.rev";   test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
-f="%confdefaultdir/cachebase"; test -L "$f" -o -e "$f" || ln -s %_localstatedir/cache/vservers   "$f"
+f="%confdefaultdir/vdirbase"; test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
+f="%confdefaultdir/run.rev";  test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
 
-%_sbindir/setattr --barrier /vservers /vservers/.pkg || :
-
-
-%preun
-test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
+%_sbindir/setattr --barrier /vservers || :
 
 # add /bin/vsh to list of secure shells
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
@@ -277,7 +270,7 @@ fi
 #test "$1" = 0  || %_initrddir/vprocunhide condrestart >/dev/null || :
 
 
-%triggerin build -- fedora-release, centos-release
+%triggerin build -- fedora-release
 function copy()
 {
     base=$1
@@ -292,16 +285,6 @@ function copy()
 }
 copy fedora /usr/share/doc/fedora-release-*/RPM-GPG-*
 copy fedora /etc/pki/rpm-gpg/RPM-GPG-*
-copy centos /usr/share/doc/centos-*/RPM-GPG-KEY-*
-
-
-%post build
-test -d /vservers/.hash || mkdir -m0700 /vservers/.hash
-
-f="%confdefaultdir/apps/vunify/hash"; test -e "$f"/method -o -e "$f"/00 || \
-	ln -s /vservers/.hash "$f"/00
-
-%_sbindir/setattr --barrier /vservers/.hash || :
 
 
 %preun build
@@ -354,11 +337,9 @@ done
 %dir %confdefaultdir/apps
 %dir %confdefaultdir/files
 %dir %pkglibdir/defaults
-%ghost %confdefaultdir/cachebase
 %ghost %confdefaultdir/vdirbase
 %ghost %confdefaultdir/run.rev
 
-%dir %_localstatedir/cache/vservers
 %dir %_localstatedir/run/vservers
 %dir %_localstatedir/run/vservers.rev
 %dir %_localstatedir/run/vshelper
@@ -467,17 +448,6 @@ fi
 * Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
 - add support for setting guaranteed CPU share flag in rspec
 
-* Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
-- do not require 'xalan' anymore by default
-- removed 'Requires: apt'; apt-rpm is not maintained upstream anymore
-- removed 'chattr' leftovers
-- create the '/etc/vservers/.defaults/cachebase' symlink
-- added /var/cache/vservers and the needed support
-- set barrier attribute on /vservers/.pkg and /vservers/.hash
-- added 'centos-release' to the list of packages in the copy-the-keys
-  trigger script
-- create '/vservers/.hash' and add initial configuration for it
-
 * Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
 - fix bug in python/vserverimpl.c where attempting to adjust CPU share
   for a context that didn't exist would cause an error (it should be a
@@ -498,10 +468,6 @@ fi
 
 * Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix Python modules to handling scheduling parameters correctly
-
-* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.209-0
-- version 0.30.209
-- copy centos keys
 
 * Fri Oct 28 2005 Steve Muir <smuir@cs.princeton.edu>
 - raise exception about being over disk limit after setting usage values
@@ -525,11 +491,7 @@ fi
 * Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
 - add bwlimit and cpulimit modules
 
-* Sat Jul 16 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-2
-- updated URLs
-
 * Fri Jul 15 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-1
-- version 0.30.208
 - require the -lib subpackage by -devel
 - copy GPG keys from /etc/pki/rpm-gpg/
 

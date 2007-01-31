@@ -1,4 +1,4 @@
-// $Id: reducecap.c 2279 2006-01-22 19:31:53Z ensc $
+// $Id: reducecap.c,v 1.18 2005/03/24 12:44:17 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on reducecap.cc by Jacques Gelinas
@@ -143,10 +143,6 @@ int wrapper_exit_code	= 255;
 static void
 showHelp(int fd, char const *cmd, int res)
 {
-#if !defined(VC_ENABLE_API_COMPAT) && !defined(VC_ENABLE_API_LEGACY)
-  WRITE_MSG(1, "ERROR: tools were built without legacy API support; reducecap will not work!\n\n");
-#endif
-  
   WRITE_MSG(fd, "Usage:\n  ");
   WRITE_STR(fd, cmd);
   WRITE_MSG(fd,
@@ -210,8 +206,6 @@ show(pid_t pid)
   printReducecap(&user);
 }
 
-#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
-
 static uint32_t
 getCap(char const *cap)
 {
@@ -225,8 +219,6 @@ getCap(char const *cap)
 
   return (1<<bit);
 }
-
-#endif
 
 int main (int argc, char *argv[])
 {
@@ -256,10 +248,9 @@ int main (int argc, char *argv[])
     switch (c) {
       case CMD_HELP		:  showHelp(1, argv[0], 0);
       case CMD_VERSION		:  showVersion();
+      case CMD_SECURE		:  remove  = vc_get_insecurebcaps(); break;
       case CMD_SHOW		:  do_show = true;  break; 
       case CMD_PID		:  pid     = atoi(optarg);   break;
-#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
-      case CMD_SECURE		:  remove  = vc_get_insecurebcaps(); break;
       case CMD_CAP		:  remove  = getCap(optarg); break;
       case CMD_FLAG		: {
 	struct vc_err_listparser	err;
@@ -273,11 +264,6 @@ int main (int argc, char *argv[])
 	}
 	break;
       }
-#else
-      case CMD_SECURE		:  
-      case CMD_CAP		:
-      case CMD_FLAG		:  flags = 0; remove = 0; break;
-#endif
     }
   }
 
@@ -293,7 +279,6 @@ int main (int argc, char *argv[])
 
   if (do_show && optind==argc)
     show(pid);
-#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
   else {
     Evc_new_s_context(VC_SAMECTX, remove, flags);
     if (do_show) show(pid);
@@ -301,14 +286,6 @@ int main (int argc, char *argv[])
     WRITE_MSG(2, "Executing\n");
     Eexecvp(argv[optind], argv+optind);
   }
-#else
-  else if (do_show)
-    show(pid);
-  else {
-    WRITE_MSG(2, "reducecap: tools were built without legacy API support; can not continue\n");
-    exit(wrapper_exit_code);
-  }
-#endif
-    
+
   return EXIT_SUCCESS;
 }

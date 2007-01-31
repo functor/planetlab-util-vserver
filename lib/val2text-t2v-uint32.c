@@ -1,4 +1,4 @@
-// $Id: val2text-t2v-uint32.c 1132 2004-03-07 19:35:59Z ensc $    --*- c -*--
+// $Id: val2text-t2v-uint32.c,v 1.1 2004/03/07 19:35:59 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

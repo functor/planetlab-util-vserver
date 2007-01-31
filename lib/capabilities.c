@@ -1,4 +1,4 @@
-// $Id: capabilities.c 2150 2005-07-15 16:32:05Z ensc $    --*- c -*--
+// $Id: capabilities.c,v 1.5 2005/07/15 16:32:05 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE database SYSTEM "configuration.dtd" []>
-<!-- $Id: configuration.xml 2397 2006-11-24 14:12:22Z dhozac $ -->
+<!-- $Id: configuration.xml,v 1.36 2005/07/03 14:03:42 ensc Exp $ -->
 
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="file:configuration.xsd">
@@ -18,13 +18,6 @@
       <description>A link to the default vserver rootdirectory.</description>
     </link>
 
-    <link name="cachebase">
-      <default>/var/cache/vservers</default>
-      <description>
-A link to the directory which will hold cached information about
-vservers.
-      </description>
-    </link>
 
     <boolean id="global-nonamespace" name="nonamespace">
       <description>
@@ -36,20 +29,6 @@ In this mode the <directory>/vservers</directory> directory must have
 the 'barrier' attribute. Else, common chroot(2) exploits are possible.
       </description>
     </boolean>
-
-    <boolean id="global-nonamespace-cleanup" name="nonamespace-cleanup">
-      <description>
-Disable namespace cleanup globally. It can be overridden for a single vserver
-by setting the <optionref ref="namespace-cleanup">namespace-cleanup</optionref> flag
-there.
-      </description>
-    </boolean>
-
-    <list id="global-namespace-cleanup-skip" name="namespace-cleanup-skip">
-      <description>
-List of paths to skip during namespace cleanup.
-      </description>
-    </list>
 
     <link name="run.rev">
       <description>
@@ -67,7 +46,7 @@ a vserver specific setting.
       <collection name="pkgmgmt">
 	<link name="base">
 	  <default>/vservers/.pkg</default>
-	</link>
+	</link> 
 	<data name="apt.conf">
 	  <description>The default apt.conf which is going to be used. It is overridden by
 distribution specific configuration file.
@@ -131,7 +110,7 @@ skipped.
       <collection name="vprocunhide">
 	<list name="files">
 	  <description>
-A list of files which will be made visible by vprocunhide. Wildcards are
+A list of files which will be made visibly by vprocunhide. Wildcards are
 allowed and anything ending in '/' will be processed recursively. When this file exists,
 it overrides the defaults in SYSDEFAULTDIR/vprocunhide-files. The entries there must be
 absolute filenames inclusive the leading '/proc'.
@@ -146,13 +125,6 @@ A symlink to the TTY device where input/output will be redirected from/to
 at startup via initscript.
           </description>
 	</link>
-
-	<hash id="global-environment" name="environment" since="0.30.211">
-	  <description>
-The environment to set when starting guests. Contains one VAR=VAL
-pair per line.
-	  </description>
-	</hash>
       </collection>
       
       <collection name="vunify">
@@ -196,23 +168,6 @@ operation will fail. Most tools assume 'on' as the default value.
 	</boolean>
 
       </collection>
-
-      <collection name="vlogin">
-	<boolean id="vlogin-disable" name="disable" since="0.30.212">
-	  <description>
-When this file exists, vlogin isn't used on vserver &lt;guest&gt; enter.
-	  </description>
-	</boolean>
-      </collection>
-    </collection>
-
-    <collection name="interfaces" use="optional">
-      <boolean id="global-vlandev" name="vlandev" since="0.30.211">
-	<description>
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed.
-	</description>
-      </boolean>
     </collection>
   </collection>
     
@@ -253,9 +208,9 @@ Script which will be executed before packages will be installed.
 The configuration directory of the vserver which is going to be set up.
             </description>
 	  </parameter>
-	  <parameter name="util-vserver-vars">
+	  <parameter name="vserver">
 	    <description>
-The pathname of the util-vserver-vars file.
+The pathname of the vserver binary.
             </description>
 	  </parameter>
 	</parameterList>
@@ -272,7 +227,7 @@ The configuration directory of the vserver which is going to be set up.
 	  </parameter>
 	  <parameter name="vserver">
 	    <description>
-The pathname of the util-vserver-vars file.
+The pathname of the vserver binary.
             </description>
 	  </parameter>
 	</parameterList>
@@ -328,18 +283,10 @@ this distribution.
     <description>
 The configuration directory for the vserver vserver-name.
     </description>
-
-    <link name="cache">
-      <default>../.defaults/cachebase/VSERVERNAME</default>
-      <description>
-Path of the storage area for cached information about this vserver.
-      </description>
-    </link>
     
     <link name="vdir">
-      <default>../.defaults/vdirbase/VSERVERNAME</default>
       <description>
-Path of the vserver root directory.
+Path of the vserver root directory
       </description>
     </link>
 
@@ -352,22 +299,16 @@ the vserver is stopped, this can be a dangling symlink.
 
     <list id="bcapabilities" name="bcapabilities">
       <description>
-Contains the system capabilities. See
-<ulink url="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/bcaps-v13.c">lib/bcaps-v13.c</ulink>
+[experimental; name is subject of possible change] Contains the system capabilities. See
+<ulink url="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/bcaps-v13.c?rev=HEAD">lib/bcaps-v13.c</ulink>
 for possible values.
       </description>
     </list>
     <list name="ccapabilities">
       <description>
-Contains the context capabilities. See <ulink
-url="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/ccaps-v13.c">lib/ccaps-v13.c</ulink>
-for possible values.
-      </description>
-    </list>
-    <list name="ncapabilities" since="0.30.212">
-      <description>
-Contains the network capabilities. See <ulink
-url="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/ncaps-net.c">lib/ncaps-net.c</ulink>
+[experimental; name is subject of possible change] Contains the
+context capabilities. See <ulink
+url="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/ccaps-v13.c?rev=HEAD">lib/ccaps-v13.c</ulink>
 for possible values.
       </description>
     </list>
@@ -388,24 +329,9 @@ the 'barrier' attribute. Else, common chroot(2) exploits are possible.
       </description>
     </boolean>
 
-    <boolean id="namespace-cleanup" name="namespace-cleanup">
-      <description>
-Overrides the global <optionref ref="global-nonamespace-cleanup">nonamespace-cleanup</optionref> flag and enables
-namespace cleanup for the current vserver.
-      </description>
-    </boolean>
-
-    <list name="namespace-cleanup-skip">
-      <description>
-List of paths to skip during namespace cleanup. This overrides the global
-<optionref ref="global-namespace-cleanup-skip">namespace-cleanup-skip</optionref>
-file.
-      </description>
-    </list>
-
     <hash name="schedule">
       <description>
-[deprecated; use <optionref ref="sched">sched</optionref> instead] Contains the
+[experimental; name is subject of possible change] Contains the
 scheduler parameters, one per line.
 
 The Hard CPU limit uses a mechanism called a Token Bucket.  the
@@ -416,9 +342,6 @@ a running process consumes one token from the bucket, unless the
 bucket is empty. If the bucket is empty the process is put in the
 hold queue. When the bucket has been refilled to at least M tokens,
 all on hold processes are rescheduled.
-
-See the <ulink url="http://linux-vserver.org/Scheduler+Parameters">Linux
-VServer Wiki</ulink> for more information about this file.
       </description>
       <keys>
 	<key id="fill_rate" name="fill-rate">
@@ -488,10 +411,9 @@ values.
     <list name="flags">
       <description>
 Contains per line a flag. See <ulink
-url="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/cflags-v13.c">lib/cflags-v13.c</ulink>
+url="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/cflags-v13.c?rev=HEAD">lib/cflags-v13.c</ulink>
 for possible values.
       </description>
-      <!--
       <elements>
 	<element name="fakeinit">
 	  <description>
@@ -515,7 +437,7 @@ The new process and its children will share a common
 	  <description>
 Limit the number of process in the vserver according to
 ulimit setting. Normally, ulimit is a per user thing.
-With this flag, it becomes a per vserver thing.
+With this flag, it becomes a per vserver thing.  
           </description>
 	</element>
 	<element name="private">
@@ -529,14 +451,6 @@ Apply the current ulimit to the whole context
           </description>
 	</element>
       </elements>
-      -->
-    </list>
-    <list name="nflags" since="0.30.212">
-      <description>
-Contains a network flag per line. See <ulink
-url="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/nflags-net.c">lib/nflags-net.c</ulink>
-for possible values.
-      </description>
     </list>
     <scalar name="context">
       <description>
@@ -577,6 +491,7 @@ Contains the init-style.
 	    <enumeration value="sysv"/>
 	    <enumeration value="plain"/>
 	    <enumeration value="minit"/>
+	    <enumeration value="gento"/>
 	  </restriction>
 	</scalar>
 	
@@ -666,13 +581,6 @@ will be stopped before its dependencies. Content of this file are
 vserver ids (one name per line).
           </description>
 	</list>
-
-	<hash name="environment" since="0.30.211">
-	  <description>
-The environment to set when starting the guest. Contains one VAR=VAL
-pair per line.
-	  </description>
-	</hash>
       </collection>
       
       <collection name="vshelper">
@@ -680,7 +588,7 @@ pair per line.
 	  <default>30</default>
 	  <description>
 The timeout in seconds which is used when synchronising vserver
-startup/shutdown with the vshelper. When not set, 30 seconds will be
+startup/shutdown with the vshelper. When no set, 30 seconds will be
 assumed.
 	  </description>
 	</scalar>
@@ -821,47 +729,6 @@ environment variable must be set by one of the in-shellcontext scripts
 (the non-executable ones).
       </description>
       
-      <program name="initialize" since="0.30.211">
-	<description>
-The scriptlet which will be executed before the root filesystem is mounted and
-the configuration has been loaded. Before executing the script, the
-configuration directory will be made the working directory.
-        </description>
-	<parameterList>
-	  <parameter name="action">
-	    <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-            </description>
-	  </parameter>
-	  <parameter name="vserver-name">
-	    <description>
-The name of the current vserver.
-            </description>
-	  </parameter>
-	</parameterList>
-      </program>
-      <collection name="initialize.d" since="0.30.211">
-	<description>
-Repository of initialize like scripts.  Before executing the script,
-the configuration directory will be made the working directory.
-        </description>
-	<program name="script" type="symbolic">
-	  <description>See initialize.</description>
-	  <parameterList>
-	    <parameter name="action">
-	      <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-              </description>
-	    </parameter>
-	    <parameter name="vserver-name">
-	      <description>
-The name of the current vserver.
-              </description>
-	    </parameter>
-	  </parameterList>
-	</program>
-      </collection>
-      
       <program name="prepre-start">
 	<description>
 The scriptlet which will be executed before the network-interfaces are
@@ -869,14 +736,19 @@ enabled and the directories are mounted. Before executing the script,
 the configuration directory will be made the working directory.
         </description>
 	<parameterList>
-	  <parameter name="action">
+	  <parameter name="vserver-dir">
 	    <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
+The configuration directory of the current vserver.
             </description>
 	  </parameter>
 	  <parameter name="vserver-name">
 	    <description>
 The name of the current vserver.
+            </description>
+	  </parameter>
+	  <parameter name="action">
+	    <description>
+The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
             </description>
 	  </parameter>
 	</parameterList>
@@ -885,18 +757,23 @@ The name of the current vserver.
 	<description>
 Repository of prepre-start like scripts.  Before executing the script,
 the configuration directory will be made the working directory.
-        </description>
+        </description>                                                                                                                 
 	<program name="script" type="symbolic">
 	  <description>See prepre-start.</description>
 	  <parameterList>
-	    <parameter name="action">
+	    <parameter name="vserver-dir">
 	      <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
+The configuration directory of the current vserver.
               </description>
 	    </parameter>
 	    <parameter name="vserver-name">
 	      <description>
 The name of the current vserver.
+              </description>
+	    </parameter>
+	    <parameter name="action">
+	      <description>
+The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
               </description>
 	    </parameter>
 	  </parameterList>
@@ -911,14 +788,19 @@ been started.  Before executing the script, the vserver root directory
 will be made the working directory.
         </description>
 	<parameterList>
-	  <parameter name="action">
+	  <parameter name="vserver-dir">
 	    <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
+The configuration directory of the current vserver.
             </description>
 	  </parameter>
 	  <parameter name="vserver-name">
 	    <description>
 The name of the current vserver.
+            </description>
+	  </parameter>
+	  <parameter name="action">
+	    <description>
+The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
             </description>
 	  </parameter>
 	</parameterList>
@@ -927,18 +809,21 @@ The name of the current vserver.
 	<description>
 Repository of pre-start like scripts. Before executing these scripts,
 the vserver root directory will be made the working directory.
-        </description>
+        </description>                                                                                                                 
 	<program name="script" type="symbolic">
 	  <description>See pre-start.</description>
 	  <parameterList>
-	    <parameter name="action">
+	    <parameter name="vserver-dir">
 	      <description>
-The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
+The configuration directory of the current vserver.
               </description>
 	    </parameter>
 	    <parameter name="vserver-name">
+	      <description>The name of the current vserver.</description>
+	    </parameter>
+	    <parameter name="action">
 	      <description>
-The name of the current vserver.
+The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
               </description>
 	    </parameter>
 	  </parameterList>
@@ -953,14 +838,15 @@ started. Before executing the script, the vserver root directory
 will be made the working directory.
         </description>
 	<parameterList>
+	  <parameter name="vserver-dir">
+	    <description>The configuration directory of the current vserver.</description>
+	  </parameter>
+	  <parameter name="vserver-name">
+	    <description>The name of the current vserver.</description>
+	  </parameter>
 	  <parameter name="action">
 	    <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-            </description>
-	  </parameter>
-	  <parameter name="vserver-name">
-	    <description>
-The name of the current vserver.
             </description>
 	  </parameter>
 	</parameterList>
@@ -973,14 +859,15 @@ the vserver root directory will be made the working directory.
 	<program name="script" type="symbolic">
 	  <description>See post-start.</description>
 	  <parameterList>
+	    <parameter name="vserver-dir">
+	      <description>The configuration directory of the current vserver.</description>
+	    </parameter>
+	    <parameter name="vserver-name">
+	      <description>The name of the current vserver.</description>
+	    </parameter>
 	    <parameter name="action">
 	      <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-              </description>
-	    </parameter>
-	    <parameter name="vserver-name">
-	      <description>
-The name of the current vserver.
               </description>
 	    </parameter>
 	  </parameterList>
@@ -995,14 +882,15 @@ stopped. Before executing the script, the vserver root directory
 will be made the working directory.
         </description>
 	<parameterList>
+	  <parameter name="vserver-dir">
+	    <description>The configuration directory of the current vserver.</description>
+	  </parameter>
+	  <parameter name="vserver-name">
+	    <description>The name of the current vserver.</description>
+	  </parameter>
 	  <parameter name="action">
 	    <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-            </description>
-	  </parameter>
-	  <parameter name="vserver-name">
-	    <description>
-The name of the current vserver.
             </description>
 	  </parameter>
 	</parameterList>
@@ -1011,18 +899,19 @@ The name of the current vserver.
 	<description>
 Repository of pre-stop like scripts. Before executing the script, the
 vserver root directory will be made the working directory.
-        </description>
+        </description>                                                                                                                 
 	<program name="script" type="symbolic">
 	  <description>See pre-stop.</description>
 	  <parameterList>
+	    <parameter name="vserver-dir">
+	      <description>The configuration directory of the current vserver.</description>
+	    </parameter>
+	    <parameter name="vserver-name">
+	      <description>The name of the current vserver.</description>
+	    </parameter>
 	    <parameter name="action">
 	      <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-              </description>
-	    </parameter>
-	    <parameter name="vserver-name">
-	      <description>
-The name of the current vserver.
               </description>
 	    </parameter>
 	  </parameterList>
@@ -1037,14 +926,15 @@ interfaces disabled. Before executing the script, the vserver root
 directory will be made the working directory.
         </description>
 	<parameterList>
+	  <parameter name="vserver-dir">
+	    <description>The configuration directory of the current vserver.</description>
+	  </parameter>
+	  <parameter name="vserver-name">
+	    <description>The name of the current vserver.</description>
+	  </parameter>
 	  <parameter name="action">
 	    <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-            </description>
-	  </parameter>
-	  <parameter name="vserver-name">
-	    <description>
-The name of the current vserver.
             </description>
 	  </parameter>
 	</parameterList>
@@ -1057,14 +947,15 @@ vserver root directory will be made the working directory.
 	<program name="script" type="symbolic">
 	  <description>See post-stop.</description>
 	  <parameterList>
+	    <parameter name="vserver-dir">
+	      <description>The configuration directory of the current vserver.</description>
+	    </parameter>
+	    <parameter name="vserver-name">
+	      <description>The name of the current vserver.</description>
+	    </parameter>
 	    <parameter name="action">
 	      <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-              </description>
-	    </parameter>
-	    <parameter name="vserver-name">
-	      <description>
-The name of the current vserver.
               </description>
 	    </parameter>
 	  </parameterList>
@@ -1078,14 +969,15 @@ completely. Before executing the script, the vserver root directory
 will be made the working directory.
         </description>
 	<parameterList>
+	  <parameter name="vserver-dir">
+	    <description>The configuration directory of the current vserver.</description>
+	  </parameter>
+	  <parameter name="vserver-name">
+	    <description>The name of the current vserver.</description>
+	  </parameter>
 	  <parameter name="action">
 	    <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-            </description>
-	  </parameter>
-	  <parameter name="vserver-name">
-	    <description>
-The name of the current vserver.
             </description>
 	  </parameter>
 	</parameterList>
@@ -1098,14 +990,15 @@ the vserver root directory will be made the working directory.
 	<program name="script" type="symbolic">
 	  <description>See postpost-stop.</description>
 	  <parameterList>
+	    <parameter name="vserver-dir">
+	      <description>The configuration directory of the current vserver.</description>
+	    </parameter>
+	    <parameter name="vserver-name">
+	      <description>The name of the current vserver.</description>
+	    </parameter>
 	    <parameter name="action">
 	      <description>
 The fixed value of the current action (e.g. 'prepre-start', 'post-stop'...).
-              </description>
-	    </parameter>
-	    <parameter name="vserver-name">
-	      <description>
-The name of the current vserver.
               </description>
 	    </parameter>
 	  </parameterList>
@@ -1129,20 +1022,6 @@ The name of the current vserver.
       <scalar name="scope">
 	<description>The default scope of the network interfaces.</description>
       </scalar>
-      <boolean id="local-vlandev" name="vlandev" since="0.30.211">
-	<description>
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed for all interfaces of this vserver.
-	</description>
-      </boolean>
-      <boolean id="local-novlandev" name="novlandev">
-	<description>
-When this file exists, the steps which setup and destroy a VLAN
-interface will be skipped. This overrides the global
-<optionref ref="global-vlandev">vlandev</optionref> setting for
-this vserver.
-	</description>
-      </boolean>
       
       <collection name="iface" type="symbolic">
 	<description>
@@ -1189,43 +1068,30 @@ already. This can be used to assign primary interfaces which are
 created by the host or another vserver.
 	  </description>
 	</boolean>
-	<boolean name="novlandev">
-	  <description>
-When this file exists, the steps which setup and destroy a VLAN
-interface will be skipped. This will override the global
-<optionref ref="global-vlandev">vlandev</optionref> and the per-guest
-<optionref ref="local-vlandev">vlandev</optionref>.
-	  </description>
-	</boolean>
-	<boolean name="vlandev" since="0.30.211">
-	  <description>
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed.
-	  </description>
-	</boolean>
       </collection>
     </collection>
     
     <collection name="ulimits">
       <description>
 A directory with ulimits. Possible resources are cpu, data, fsize,
-locks, memlock, nofile, nproc, rss and/or stack.
-      </description>
+locks, memlock, nofile, nproc, rss and/or stack. This configuration
+will be honored for kernel 2.4 only.
+      </description>                                                                                                                 
       <scalar name="resource" type="symbolic">
 	<description>
 A file which contains the hard- and soft-limit of the given resource
 in the first line. The special keyword 'inf' is recognized.
 	</description>
-      </scalar>
+      </scalar>                                                                            
       <scalar name="resource.hard" type="symbolic">
 	<description>
-A file which contains the hard-limit of the given resource in the first
+A file which contains the hard- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</description>
-      </scalar>
+      </scalar>                                                                                             
       <scalar name="resource.soft" type="symbolic">
 	<description>
-A file which contains the soft-limit of the given resource in the first
+A file which contains the soft- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</description>
       </scalar>
@@ -1234,31 +1100,30 @@ line. The special keyword 'inf' is recognized.
     <collection name="rlimits">
       <description>
 A directory with resource limits. Possible resources are cpu, fsize,
-data, stack, core, rss, nproc, nofile, memlock, as, locks, msgqueue,
-nsock, openfd, anon, shmem, semary, nsems and dentry. This
+data, stack, core, rss, nproc, nofile, memlock, as and locks. This
 configuration will be honored for kernel 2.6 only.
-      </description>
+      </description>                                                                                                                 
       <scalar name="resource" type="symbolic">
 	<description>
 A file which contains the hard- and soft-limit of the given resource
 in the first line. The special keyword 'inf' is recognized.
 	</description>
-      </scalar>
+      </scalar>                                                                            
       <scalar name="resource.hard" type="symbolic">
 	<description>
-A file which contains the hard-limit of the given resource in the first
+A file which contains the hard- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</description>
-      </scalar>
+      </scalar>                                                                                             
       <scalar name="resource.soft" type="symbolic">
 	<description>
-A file which contains the soft-limit of the given resource in the first
+A file which contains the soft- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</description>
       </scalar>
       <scalar name="resource.min" type="symbolic">
 	<description>
-A file which contains the guaranteed minimum of the given resource in
+A file which contains the guaranted minimum of the given resource in
 the first line. The special keyword 'inf' is recognized.
         </description>
       </scalar>
@@ -1290,110 +1155,6 @@ tools and can *not* be modified.
       <scalar name="domainname">
 	<description>The NIS domainname of the vserver</description>
       </scalar>
-    </collection>
-
-    <collection name="dlimits" since="0.30.210">
-      <collection name="dlimit" type="symbolic">
-        <scalar name="directory">
-          <description>The directory to which the limit should be applied</description>
-        </scalar>
-        <scalar name="inodes_total">
-          <description>The amount of inodes this vserver should be limited to</description>
-        </scalar>
-        <scalar name="space_total">
-          <description>The amount of space this vserver should be limited to (measured in blocks of 1024 bytes)</description>
-        </scalar>
-        <scalar name="reserved">
-          <description>How much space (percentage-wise) should be reserved for the root user</description>
-        </scalar>
-      </collection>
-    </collection>
-
-    <collection name="cpuset" since="0.30.211">
-      <scalar name="name">
-        <description>The name of the cpuset for this vserver</description>
-      </scalar>
-      <scalar name="cpus">
-        <description>The list of CPUs in this cpuset</description>
-      </scalar>
-      <scalar name="mems">
-        <description>The list of Memory Nodes in this cpuset</description>
-      </scalar>
-      <scalar name="cpu_exclusive">
-        <description>Is the CPU assignment exclusive?</description>
-      </scalar>
-      <scalar name="mems_exclusive">
-        <description>Is the memory node assignment exclusive?</description>
-      </scalar>
-      <scalar name="nocreate">
-        <description>When this file exists, the cpuset will be assumed to exist already</description>
-      </scalar>
-    </collection>
-
-    <collection id="sched" name="sched" since="0.30.212">
-      <scalar id="global-tokens" name="tokens">
-        <description>The initial amount of tokens to put in the bucket</description>
-      </scalar>
-      <scalar id="global-tokens-min" name="tokens-min">
-        <description>The minimum amount of tokens required to unhold the context</description>
-      </scalar>
-      <scalar id="global-tokens-max" name="tokens-max">
-        <description>The bucket's size</description>
-      </scalar>
-      <scalar id="global-fill-rate" name="fill-rate">
-        <description>Amount of tokens to add each <optionref ref="global-interval">interval</optionref></description>
-      </scalar>
-      <scalar id="global-interval" name="interval">
-        <description>The interval between refills of the bucket</description>
-      </scalar>
-      <scalar id="global-priority-bias" name="priority-bias">
-        <description>Bias added to priorities calculated within the guest (result is clamped to -20/+19)</description>
-      </scalar>
-      <scalar id="global-fill-rate2" name="fill-rate2">
-        <description>Amount of tokens to add each <optionref ref="global-interval2">interval2</optionref> when advancing idle time</description>
-      </scalar>
-      <scalar id="global-interval2" name="interval2">
-        <description>The interval between refills of the bucket when advancing idle time</description>
-      </scalar>
-      <boolean id="global-idle-time" name="idle-time">
-        <description>When this file exists, advancing idle time is activated</description>
-      </boolean>
-      <collection name="cpu-id" type="symbolic">
-        <description>This directory contains per-CPU and/or per-bucket specific settings. Remember to set the <optionref ref="cpu-id">cpu-id</optionref> file. All CPUs inherit the global settings.</description>
-        <scalar name="tokens">
-          <description>The initial amount of tokens to put in the bucket</description>
-        </scalar>
-        <scalar name="tokens-min">
-          <description>The minimum amount of tokens required to unhold the context</description>
-        </scalar>
-        <scalar name="tokens-max">
-          <description>The bucket's size</description>
-        </scalar>
-        <scalar name="fill-rate">
-          <description>Amount of tokens to add each <optionref ref="local-interval">interval</optionref></description>
-        </scalar>
-        <scalar id="local-interval" name="interval">
-          <description>The interval between refills of the bucket</description>
-        </scalar>
-        <scalar name="priority-bias">
-          <description>Bias added to priorities calculated within the guest (result is clamped to -20/+19)</description>
-        </scalar>
-        <scalar name="fill-rate2">
-          <description>Amount of tokens to add each <optionref ref="local-interval2">interval2</optionref> when advancing idle time</description>
-        </scalar>
-        <scalar id="local-interval2" name="interval2">
-          <description>The interval between refills of the bucket when advancing idle time</description>
-        </scalar>
-        <boolean name="idle-time">
-          <description>When this file exists, advancing idle time is activated</description>
-        </boolean>
-        <scalar id="cpu-id" name="cpu-id">
-          <description>The CPU to apply these settings to</description>
-        </scalar>
-        <scalar name="bucket-id">
-          <description>The bucket to apply these settings to</description>
-        </scalar>
-      </collection>
     </collection>
   </collection>
   </database>

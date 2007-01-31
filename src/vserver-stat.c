@@ -1,4 +1,4 @@
-// $Id: vserver-stat.c 2403 2006-11-24 23:06:08Z dhozac $
+// $Id: vserver-stat.c,v 1.22 2005/07/03 12:31:25 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vserver-stat.cc by Guillaum Dallaire and Jacques Gelinas
@@ -501,8 +501,6 @@ fillName(void *obj_v, void UNUSED * a)
     default		: {
       char *		cfgpath;
 
-      obj->cfgstyle  = vcCFG_AUTO;
-
       if ((cfgpath   = vc_getVserverByCtx(obj->xid, &obj->cfgstyle, 0))==0 ||
 	  (obj->name = vc_getVserverName(cfgpath, obj->cfgstyle))==0) {
 	obj->name     = 0;
@@ -543,7 +541,7 @@ int main(int argc, char **argv)
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help' for more information.\n");
+	WRITE_MSG(2, " --help\" for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }
@@ -568,7 +566,7 @@ int main(int argc, char **argv)
     WRITE_MSG(2,
 	      "WARNING: can not access /proc/uptime. Usually, this is caused by\n"
 	      "         procfs-security. Please read the FAQ for more details\n"
-	      "         http://linux-vserver.org/Proc-Security\n");
+	      "         http://www.linux-vserver.org/index.php?page=Linux-Vserver+FAQ\n");
 
   Vector_init(&xid_data, sizeof(struct XidData));
 

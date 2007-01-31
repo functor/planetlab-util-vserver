@@ -1,4 +1,4 @@
-// $Id: wrappers.h 2306 2006-09-12 16:55:42Z dhozac $    --*- c++ -*--
+// $Id: wrappers.h,v 1.5 2005/02/25 23:31:19 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -105,14 +105,6 @@
 
 #ifdef ENSC_WRAPPERS_SOCKET
 #  include "wrappers-socket.hc"
-#endif
-
-#ifdef ENSC_WRAPPERS_STAT
-#  include "wrappers-stat.hc"
-#endif
-
-#ifdef ENSC_WRAPPERS_TERMIOS
-#  include "wrappers-termios.hc"
 #endif
 
 #undef ENSC_DETAIL2

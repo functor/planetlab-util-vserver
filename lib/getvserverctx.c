@@ -1,4 +1,4 @@
-// $Id: getvserverctx.c 2210 2005-10-29 12:06:19Z ensc $    --*- c -*--
+// $Id: getvserverctx.c,v 1.8 2004/06/27 13:02:07 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -24,7 +24,6 @@
 #include "pathconfig.h"
 #include "compat-c99.h"
 #include "lib_internal/util.h"
-#include "internal.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -93,28 +92,23 @@ getCtxFromFile(char const *pathname)
 
   fd = open(pathname, O_RDONLY);
 
-  if (fd==-1) return VC_NOCTX;
-  if ((len=lseek(fd, 0, SEEK_END))==-1 ||
+  if (fd==-1 ||
+      (len=lseek(fd, 0, SEEK_END))==-1 ||
       (len>50) ||
-      (lseek(fd, 0, SEEK_SET)==-1)) {
-    close(fd);
+      (lseek(fd, 0, SEEK_SET)==-1))
     return VC_NOCTX;
-  }
 
   {
   char		buf[len+1];
   char		*errptr;
   xid_t		res;
   
-  if (TEMP_FAILURE_RETRY(read(fd, buf, len+1))!=len) res = VC_NOCTX;
-  else {
-    buf[len] = '\0';
+  if (TEMP_FAILURE_RETRY(read(fd, buf, len+1))!=len)
+    return VC_NOCTX;
 
-    res = strtol(buf, &errptr, 10);
-    if (*errptr!='\0' && *errptr!='\n') res = VC_NOCTX;
-  }
+  res = strtol(buf, &errptr, 10);
+  if (*errptr!='\0' && *errptr!='\n') return VC_NOCTX;
 
-  close(fd);
   return res;
   }
 }
@@ -147,44 +141,14 @@ vc_getVserverCtx(char const *id, vcCfgStyle style, bool honor_static, bool *is_r
       memcpy(buf+idx, "/run", 5);	// appends '\0' too
       
       res = getCtxFromFile(buf);
-
-	// when context information could be read, we have to verify that
-	// it belongs to a running vserver and the both vservers are
-	// identically
-      if (res!=VC_NOCTX) {
-	char			*cur_name;
-	struct vc_vx_info	info;
-
-	  // determine the vserver which is associated with the xid resp. skip
-	  // this step when the context does not exist. When checking whether
-	  // the context exists, do not rely on the success of
-	  // vc_get_vx_info() alone but check 'errno' for ESRCH also. Else,
-	  // wrong results will be caused e.g. for xid 1 which will fail with
-	  // ENOSYS.
-	cur_name = (vc_get_vx_info(res, &info)!=-1 || errno!=ESRCH ?
-		    vc_getVserverByCtx_Internal(res, &style, 0, false) :
-		    0);
-
-	buf[idx] = '\0';	// cut off the '/run' from the vserver name
-	
-	res      = ((cur_name!=0 &&
-		     vc_compareVserverById(buf,      vcCFG_RECENT_FULL,
-					  cur_name, vcCFG_RECENT_FULL)==0)
-		    ? res
-		    : VC_NOCTX);	// correct the value of 'res'
-	  
-	free(cur_name);
-      }
-      
-      if (is_running)			// fill 'is_running' information...
-	*is_running = res!=VC_NOCTX;
+      if (is_running) *is_running = res!=VC_NOCTX;
       
       if (res==VC_NOCTX && honor_static) {
 	memcpy(buf+idx, "/context", 9);	// appends '\0' too
 
 	res = getCtxFromFile(buf);
       }
-
+      
       return res;
     }
     default			:  return VC_NOCTX;

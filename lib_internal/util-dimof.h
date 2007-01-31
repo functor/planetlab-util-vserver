@@ -1,4 +1,4 @@
-// $Id: util-dimof.h 1009 2004-02-26 13:07:15Z ensc $    --*- c -*--
+// $Id: util-dimof.h,v 1.1 2004/02/26 13:03:00 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

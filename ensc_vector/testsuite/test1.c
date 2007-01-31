@@ -1,4 +1,4 @@
-// $Id: test1.c 1894 2005-03-17 14:49:01Z ensc $    --*- c -*--
+// $Id: test1.c,v 1.4 2005/03/17 14:49:01 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

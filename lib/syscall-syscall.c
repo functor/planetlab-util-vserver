@@ -1,4 +1,4 @@
-// $Id: syscall-syscall.c 1655 2004-08-19 13:57:53Z ensc $    --*- c -*--
+// $Id: syscall-syscall.c,v 1.2 2004/08/19 13:57:53 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

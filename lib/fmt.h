@@ -1,4 +1,4 @@
-// $Id: fmt.h 1583 2004-06-16 10:06:03Z ensc $    --*- c -*--
+// $Id: fmt.h,v 1.7 2004/06/16 10:06:03 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

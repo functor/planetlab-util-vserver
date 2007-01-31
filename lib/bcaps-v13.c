@@ -1,4 +1,4 @@
-// $Id: bcaps-v13.c 2148 2005-07-15 16:27:37Z ensc $    --*- c -*--
+// $Id: bcaps-v13.c,v 1.5 2005/07/15 16:27:37 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  

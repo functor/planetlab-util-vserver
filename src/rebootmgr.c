@@ -1,4 +1,4 @@
-// $Id: rebootmgr.c 923 2004-02-17 19:55:54Z ensc $
+// $Id: rebootmgr.c,v 1.8 2004/02/17 19:55:54 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on rebootmgr.cc by Jacques Gelinas

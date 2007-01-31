@@ -1,4 +1,4 @@
-// $Id: ioctl-setxflg.hc 702 2004-01-23 20:47:32Z ensc $    --*- c -*--
+// $Id: ioctl-setxflg.hc,v 1.4 2004/01/23 20:47:32 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

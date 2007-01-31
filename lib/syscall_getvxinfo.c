@@ -1,4 +1,4 @@
-// $Id: syscall_getvxinfo.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
+// $Id: syscall_getvxinfo.c,v 1.2 2004/03/05 04:40:59 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "virtual.h"
+#include "linuxvirtual.h"
 
 #if defined(VC_ENABLE_API_OLDPROC) && defined(VC_ENABLE_API_V13)
 #  define VC_MULTIVERSION_SYSCALL	1

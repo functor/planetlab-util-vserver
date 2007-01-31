@@ -1,4 +1,4 @@
-// $Id: getvservercfgstyle.c 1804 2005-01-26 23:29:06Z ensc $    --*- c -*--
+// $Id: getvservercfgstyle.c,v 1.6 2005/01/26 23:29:06 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

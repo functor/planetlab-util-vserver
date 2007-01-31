@@ -1,4 +1,4 @@
-// $Id: vreboot.c 19 2003-09-30 20:16:53Z ensc $
+// $Id: vreboot.c,v 1.2 2003/09/30 20:16:53 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on vreboot.cc by Jacques Gelinas

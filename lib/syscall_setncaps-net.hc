@@ -1,4 +1,4 @@
-// $Id: syscall_setncaps-net.hc 1501 2004-04-22 20:46:44Z ensc $    --*- c -*--
+// $Id: syscall_setncaps-net.hc,v 1.1 2004/04/22 20:46:43 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

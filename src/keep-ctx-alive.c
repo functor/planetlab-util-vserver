@@ -1,4 +1,4 @@
-// $Id: keep-ctx-alive.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: keep-ctx-alive.c,v 1.3 2004/12/16 00:11:01 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help' for more information.\n");
+	WRITE_MSG(2, " --help\" for more information.\n");
 	return 255;
 	break;
     }

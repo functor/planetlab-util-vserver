@@ -1,4 +1,4 @@
-// $Id: matchlist-appendfiles.c 1423 2004-04-06 08:43:20Z ensc $    --*- c -*--
+// $Id: matchlist-appendfiles.c,v 1.2 2004/04/06 08:42:46 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

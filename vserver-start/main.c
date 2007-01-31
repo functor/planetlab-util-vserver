@@ -1,4 +1,4 @@
-// $Id: main.c 1939 2005-03-19 02:07:40Z ensc $    --*- c -*--
+// $Id: main.c,v 1.5 2005/03/19 02:07:40 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

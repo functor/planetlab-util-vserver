@@ -1,4 +1,4 @@
-// $Id: vps.c 2396 2006-11-23 23:56:02Z dhozac $    --*- c -*--
+// $Id: vps.c,v 1.13 2005/03/24 12:44:17 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
     WRITE_MSG(2,
 	      "WARNING: can not access /proc/uptime. Usually, this is caused by\n"
 	      "         procfs-security. Please read the FAQ for more details\n"
-	      "         http://linux-vserver.org/Proc-Security\n");
+	      "         http://www.linux-vserver.org/index.php?page=Linux-Vserver+FAQ\n");
 
   Epipe(p);
   pid = Efork();

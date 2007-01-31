@@ -1,4 +1,4 @@
-// $Id: syscall_ctxmigrate.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
+// $Id: syscall_ctxmigrate.c,v 1.1 2004/04/14 23:19:51 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,26 +21,17 @@
 #endif
 
 #include "vserver.h"
-#include "virtual.h"
-
-#if defined(VC_ENABLE_API_V13) && defined(VC_ENABLE_API_V21)
-#  define VC_MULTIVERSION_SYSCALL 1
-#endif
 #include "vserver-internal.h"
+#include "linuxvirtual.h"
 
 #if defined(VC_ENABLE_API_V13)
 #  include "syscall_ctxmigrate-v13.hc"
 #endif
 
-#if defined(VC_ENABLE_API_V21)
-#  include "syscall_ctxmigrate-v21.hc"
-#endif
-
-#if defined(VC_ENABLE_API_V13) || defined(VC_ENABLE_API_V21)
+#if defined(VC_ENABLE_API_V13)
 int
 vc_ctx_migrate(xid_t xid)
 {
-  CALL_VC(CALL_VC_SPACES(vc_ctx_migrate, xid),
-	  CALL_VC_V13A  (vc_ctx_migrate, xid));
+  CALL_VC(CALL_VC_V13A(vc_ctx_migrate, xid));
 }
 #endif

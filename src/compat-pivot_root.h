@@ -1,4 +1,4 @@
-// $Id: compat-pivot_root.h 2081 2005-05-02 21:44:06Z ensc $    --*- c++ -*--
+// $Id: compat-pivot_root.h,v 1.3 2005/05/02 21:44:06 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

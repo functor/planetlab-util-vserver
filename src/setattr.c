@@ -1,4 +1,4 @@
-// $Id: setattr.c 1112 2004-03-05 19:50:45Z ensc $    --*- c -*--
+// $Id: setattr.c,v 1.11 2004/03/05 19:50:45 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

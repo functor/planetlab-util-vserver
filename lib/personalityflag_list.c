@@ -1,4 +1,4 @@
-// $Id: personalityflag_list.c 2055 2005-04-28 17:51:43Z ensc $    --*- c -*--
+// $Id: personalityflag_list.c,v 1.1 2005/04/28 17:51:43 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

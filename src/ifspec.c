@@ -1,4 +1,4 @@
-// $Id: ifspec.c 965 2004-02-20 16:59:40Z ensc $
+// $Id: ifspec.c,v 1.4 2004/02/20 16:59:40 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on ifspec.cc by Jacques Gelinas

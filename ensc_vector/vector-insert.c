@@ -1,4 +1,4 @@
-// $Id: vector-insert.c 824 2004-02-06 16:42:56Z ensc $    --*- c -*--
+// $Id: vector-insert.c,v 1.2 2004/02/06 16:42:56 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

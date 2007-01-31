@@ -1,4 +1,4 @@
-// $Id: matchlist-destroy.c 1911 2005-03-18 00:18:38Z ensc $    --*- c -*--
+// $Id: matchlist-destroy.c,v 1.2 2005/03/18 00:18:38 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

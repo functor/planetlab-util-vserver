@@ -1,4 +1,4 @@
-// $Id: listparser.hc 2037 2005-04-24 20:23:11Z ensc $    --*- c -*--
+// $Id: listparser.hc,v 1.5 2005/04/24 20:23:11 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

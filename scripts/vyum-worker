@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vyum-worker 2361 2006-11-01 19:46:02Z dhozac $
+# $Id: vyum-worker,v 1.5 2005/04/08 19:18:06 ensc Exp $
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -37,9 +37,12 @@ test -z "$_YUM" || {
     ${YUM:=$_YUM}
 }
 
-function check(){
-    python -c "$1" &>/dev/null || {
-	warning "\
+yum=${YUM:-yum}
+conf=yum.conf
+case $(yum --version) in
+    (2.[0123]*)
+	python -c 'import yum,sys; sys.exit(not hasattr(yum.config.yumconf, "getRootedPath"))' &>/dev/null || {
+	    warning "\
 You are using a version of yum which is insecure and broken in chroot
 related operations; either apply the patches shipped in the 'contrib/'
 directory of util-vserver, or ask the author of yum to apply them
@@ -49,30 +52,9 @@ In the meantime, 'vyum' will continue with dirty hacks which might not
 work when the vserver is running and local DOS attacks are possible.
 
 Execution will continue in 5 seconds..."
-	sleep 5
-	conf=yum-hack.conf
-    }
-}
-
-yum=${YUM:-yum}
-conf=yum.conf
-case $($yum --version|tail -n 1) in
-    (2.[012345]*)
-	check 'import yum,sys; sys.exit(not hasattr(yum.config.yumconf, "getRootedPath"))'
-	;;
-    (2.[6789]*|3.0*)
-	check 'import yum,sys; sys.exit(not hasattr(yum.config.YumConf, "getRootedPath"))'
-	;;
-    (*)
-	warning "\
-You are using a version of yum which current status is unknown to vyum.
-
-Just to be sure, 'vyum' will use dirty hacks which might not work when
-the vsrever is running and local DOS attacks are possible.
-
-Execution will continue in 5 seconds..."
-	sleep 5
-	conf=yum-hack.conf
+	    sleep 5
+	    conf=yum-hack.conf
+	}
 	;;
 esac
 

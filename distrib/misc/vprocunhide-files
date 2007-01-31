@@ -5,6 +5,7 @@
 -/proc/sys/dev/
 /proc/sysvipc/
 /proc/tty/
+/proc/cmdline
 /proc/cpuinfo
 /proc/crypto
 /proc/devices
@@ -26,5 +27,4 @@
 /proc/stat
 /proc/swaps
 /proc/uptime
--/proc/cmdline
 /proc/version

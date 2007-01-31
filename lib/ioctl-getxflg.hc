@@ -1,4 +1,4 @@
-// $Id: ioctl-getxflg.hc 685 2004-01-22 13:36:30Z ensc $    --*- c -*--
+// $Id: ioctl-getxflg.hc,v 1.3 2004/01/22 13:36:30 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

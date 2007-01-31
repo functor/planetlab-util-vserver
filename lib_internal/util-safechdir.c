@@ -1,4 +1,4 @@
-// $Id: util-safechdir.c 956 2004-02-19 22:25:50Z ensc $    --*- c -*--
+// $Id: util-safechdir.c,v 1.2 2004/02/19 22:25:50 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

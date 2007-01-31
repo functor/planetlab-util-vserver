@@ -1,4 +1,4 @@
-// $Id: command-wait.c 1618 2004-07-02 23:44:33Z ensc $    --*- c -*--
+// $Id: command-wait.c,v 1.2 2004/07/02 23:44:33 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

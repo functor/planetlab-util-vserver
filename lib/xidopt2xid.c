@@ -1,4 +1,4 @@
-// $Id: xidopt2xid.c 1656 2004-08-19 13:58:40Z ensc $    --*- c -*--
+// $Id: xidopt2xid.c,v 1.2 2004/08/19 13:58:40 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

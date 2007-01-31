@@ -1,4 +1,4 @@
-// $Id: util-isnumber.c 2255 2006-01-22 11:23:47Z ensc $    --*- c -*--
+// $Id: util-isnumber.c,v 1.1 2005/07/04 22:35:47 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,15 +21,18 @@
 #endif
 
 #include "util.h"
-#include "util-isnumber.hc"
-#include <limits.h>
 
-static inline bool
-checkConstraints(signed long val, unsigned int fac)
+bool
+isNumber(char const *str, signed long *result)
 {
-  if (val>0 && (signed long)(LONG_MAX/fac) <= val) return false;
-  if (val<0 && (signed long)(LONG_MIN/fac) >= val) return false;
-  return true;
-}
+  char *	errptr;
+  signed long	val;
 
-ENSC_DECL_UTIL_ISNUMBER(isNumber, signed long, strtol)
+  val = strtol(str, &errptr, 0);
+  if (*errptr!='\0' || errptr==str)
+    return false;
+  else {
+    if (result) *result = val;
+    return true;
+  }
+}

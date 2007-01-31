@@ -1,4 +1,4 @@
-// $Id: getctx.c 675 2004-01-21 19:01:01Z ensc $    --*- c++ -*--
+// $Id: getctx.c,v 1.9 2004/01/21 19:01:01 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: syscall_enternamespace-v13.hc 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
+// $Id: syscall_enternamespace-v13.hc,v 1.1 2004/02/20 17:58:43 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,9 +23,7 @@
 #include "vserver.h"
 
 static inline ALWAYSINLINE int
-vc_enter_namespace_v13(xid_t xid, uint_least64_t mask)
+vc_enter_namespace_v13(xid_t xid)
 {
-  if ((mask & (CLONE_NEWNS|CLONE_FS)) == 0)
-    return 0;
-  return vserver(VCMD_enter_space_v0, CTX_USER2KERNEL(xid), 0);
+  return vserver(VCMD_enter_namespace, CTX_USER2KERNEL(xid), 0);
 }

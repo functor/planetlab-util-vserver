@@ -1,6 +1,6 @@
-## $Id: Makefile.am 2367 2006-11-03 19:59:15Z dhozac $
+## $Id: Makefile.am,v 1.70 2005/07/03 17:51:00 ensc Exp $
 
-# Copyright (C) 2003,2004,2005,2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+# Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,8 +20,8 @@
 ACLOCAL_AMFLAGS		=  -I m4
 SUBDIRS			=  . distrib
 
-SVN2CL_AMFLAGS		=  $(SVN2CL_TAG) --authors=svnusers.map
-SVN2CL_ALLFLAGS        :=  $(SVN2CL_AMFLAGS) $(SVN2CL_FLAGS)
+CVS2CL_AMFLAGS		=  $(CVS2CL_TAG) -U cvsusers.map --show-dead -S --no-wrap
+CVS2CL_ALLFLAGS        :=  $(CVS2CL_AMFLAGS) $(CVS2CL_FLAGS)
 
 confdir			=  $(sysconfdir)/vservers
 confdefaultsdir		=  $(confdir)/.defaults
@@ -53,12 +53,36 @@ sysconf_DATA =
 
 DIETPROGS =		$(LIBENSCVECTOR_DIET)
 
-BUILT_SOURCES =		pathconfig.h \
+BUILT_SOURCES =		pathconfig.h linuxvirtual.h \
 			.fixups
 
 man_MANS =
 
-kernel_HDRS =		$(wildcard kernel/*.h)
+kernel_HDRS =		kernel/context.h	\
+			kernel/context_cmd.h	\
+			kernel/cvirt.h		\
+			kernel/cvirt_cmd.h	\
+			kernel/cvirt_def.h	\
+			kernel/debug.h		\
+			kernel/debug_cmd.h	\
+			kernel/dlimit.h		\
+			kernel/dlimit_cmd.h	\
+			kernel/inode.h		\
+			kernel/inode_cmd.h	\
+			kernel/legacy.h		\
+			kernel/limit.h		\
+			kernel/limit_cmd.h	\
+			kernel/limit_def.h	\
+			kernel/namespace.h	\
+			kernel/namespace_cmd.h	\
+			kernel/network.h	\
+			kernel/network_cmd.h	\
+			kernel/sched.h		\
+			kernel/sched_cmd.h	\
+			kernel/sched_def.h	\
+			kernel/signal_cmd.h	\
+			kernel/switch.h		\
+			kernel/xid.h
 
 
 EXTRA_PROGRAMS =
@@ -103,16 +127,23 @@ endif
 VSERVER_LDADDS =	$(LIBVSERVER) $(DIET_COMPAT_LDADDS)
 
 silent.%:		FORCE
-			@t=$$($(MKTEMP) -d /tmp/build.XXXXXX) && \
-			trap "rm -rf $$t" EXIT && \
-			mkfifo $$t/fifo && \
-			( grep --line-buffered -v \
-				     -e ': In function' \
-				     -e 'your code still has assertions enabled' \
-				     -e ' is obsoleted' \
-				     -e 'warning: #warning' <$$t/fifo & ) && \
-			exec 2>$$t/fifo && \
-			$(MAKE) '$*' -s >/dev/null
+			@t=$$(mktemp /tmp/build.XXXXXX) && \
+			$(MAKE) '$*' -s 2>$$t >/dev/null && \
+			( cat $$t | \
+				grep -v ': In function' | \
+				grep -v 'your code still has assertions enabled' | \
+				grep -v ' is obsoleted' | \
+				grep -v 'warning: #warning'; \
+				rm -f $$t || : )
+
+
+linuxvirtual.h:
+if ENSC_ENABLE_INTERNAL_HEADERS
+			ln -sf '$(top_srcdir)/lib/virtual.h' '$@'
+else
+			ln -sf '$(kernelincludedir)/linux/virtual.h' '$@' && test -e '$@' || \
+			ln -sf '$(top_srcdir)/lib/virtual.h' '$@'
+endif
 
 pathsubst_RULES =	s!@'PKGLIBDIR'@!$(pkglibdir)!g; \
 			s!@'LEGACYDIR'@!$(legacydir)!g; \
@@ -120,7 +151,6 @@ pathsubst_RULES =	s!@'PKGLIBDIR'@!$(pkglibdir)!g; \
 			s!@'CONFDIR'@!$(confdir)!g; \
 			s!@'SYSCONFDIR'@!$(sysconfdir)!g; \
 			s!@'PKGSTATEDIR'@!$(pkgstatedir)!g; \
-			s!@'PKGCACHEDIR'@!$(pkgcachedir)!g; \
 			s!@'PKGSTATEREVDIR'@!$(pkgstaterevdir)!g; \
 			s!@'VSERVERDIR'@!$(vserverdir)!g; \
 			s!@'VSERVERPKGDIR'@!$(vserverpkgdir)!g; \
@@ -157,7 +187,6 @@ pathconfig.h:		.pathconfig.h.pathsubst.stamp
 			@chmod a-w '$*'
 			@touch '$@'
 
-pkgcachedir =		$(localstatedir)/cache/vservers
 pkgstatedir =		$(localstatedir)/run/vservers
 pkgstaterevdir =	$(confdefaultsdir)/run.rev
 vserverpkgdir =		$(vserverdir)/.pkg
@@ -174,12 +203,10 @@ update-doc:		doc
 install-data-hook:	install-fix-script-paths install-create-dirs
 
 install-create-dirs:
-			$(mkinstalldirs) -m 0755 $(DESTDIR)$(pkgstatedir) $(DESTDIR)$(pkgstatedir).rev $(DESTDIR)$(vshelperstatedir)
-			$(mkinstalldirs) -m 0700 $(DESTDIR)$(pkgcachedir)
-			$(mkinstalldirs) -m 0755 $(DESTDIR)$(confdefaultsdir)
-			f=$(DESTDIR)$(confdefaultsdir)/vdirbase;  test -e "$$f" || ln -sf '$(vserverdir)'      "$$f"
-			f=$(DESTDIR)$(confdefaultsdir)/cachebase; test -e "$$f" || ln -sf '$(pkgcachedir)'     "$$f"
-			f=$(DESTDIR)$(pkgstaterevdir);            test -e "$$f" || ln -sf '$(pkgstatedir).rev' "$$f"
+			$(mkinstalldirs) -m 755 $(DESTDIR)$(pkgstatedir) $(DESTDIR)$(pkgstatedir).rev $(DESTDIR)$(vshelperstatedir)
+			$(mkinstalldirs) -m 755 $(DESTDIR)$(confdefaultsdir)
+			f=$(DESTDIR)$(confdefaultsdir)/vdirbase; test -e "$$f" || ln -sf '$(vserverdir)'      "$$f"
+			f=$(DESTDIR)$(pkgstaterevdir);           test -e "$$f" || ln -sf '$(pkgstatedir).rev' "$$f"
 
 install-fix-script-paths:
 			test "/usr/lib/util-vserver" = "$(pkglibdir)" || \

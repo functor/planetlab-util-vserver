@@ -1,4 +1,4 @@
-// $Id: command-reset.c 1605 2004-06-27 14:40:17Z ensc $    --*- c -*--
+// $Id: command-reset.c,v 1.1 2004/06/27 14:38:06 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

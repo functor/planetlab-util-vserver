@@ -1,4 +1,4 @@
-// $Id: interface-remove.c 1939 2005-03-19 02:07:40Z ensc $    --*- c -*--
+// $Id: interface-remove.c,v 1.2 2005/03/19 02:07:40 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

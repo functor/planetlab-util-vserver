@@ -6,6 +6,10 @@
 
 #define VCMD_task_nid		VC_CMD(VINFO, 2, 0)
 
+#ifdef	__KERNEL__
+extern int vc_task_nid(uint32_t, void __user *);
+
+#endif	/* __KERNEL__ */
 
 #define VCMD_nx_info		VC_CMD(VINFO, 6, 0)
 
@@ -14,6 +18,10 @@ struct	vcmd_nx_info_v0 {
 	/* more to come */
 };
 
+#ifdef	__KERNEL__
+extern int vc_nx_info(uint32_t, void __user *);
+
+#endif	/* __KERNEL__ */
 
 #define VCMD_net_create_v0	VC_CMD(VNET, 1, 0)
 #define VCMD_net_create		VC_CMD(VNET, 1, 1)
@@ -36,6 +44,14 @@ struct	vcmd_net_addr_v0 {
 };
 
 
+#ifdef	__KERNEL__
+extern int vc_net_create(uint32_t, void __user *);
+extern int vc_net_migrate(uint32_t, void __user *);
+
+extern int vc_net_add(uint32_t, void __user *);
+extern int vc_net_remove(uint32_t, void __user *);
+
+#endif	/* __KERNEL__ */
 
 
 /* flag commands */
@@ -48,6 +64,11 @@ struct	vcmd_net_flags_v0 {
 	uint64_t mask;
 };
 
+#ifdef	__KERNEL__
+extern int vc_get_nflags(uint32_t, void __user *);
+extern int vc_set_nflags(uint32_t, void __user *);
+
+#endif	/* __KERNEL__ */
 
 
 /* network caps commands */
@@ -60,4 +81,9 @@ struct	vcmd_net_caps_v0 {
 	uint64_t cmask;
 };
 
+#ifdef	__KERNEL__
+extern int vc_get_ncaps(uint32_t, void __user *);
+extern int vc_set_ncaps(uint32_t, void __user *);
+
+#endif	/* __KERNEL__ */
 #endif	/* _VX_CONTEXT_CMD_H */

@@ -1,4 +1,4 @@
-// $Id: syscall-compat.hc 1450 2004-04-14 23:21:23Z ensc $    --*- c++ -*--
+// $Id: syscall-compat.hc,v 1.11 2004/04/14 23:21:23 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

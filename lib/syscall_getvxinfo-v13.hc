@@ -1,4 +1,4 @@
-// $Id: syscall_getvxinfo-v13.hc 970 2004-02-20 17:04:12Z ensc $    --*- c -*--
+// $Id: syscall_getvxinfo-v13.hc,v 1.4 2004/02/20 17:04:12 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

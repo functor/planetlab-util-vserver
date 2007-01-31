@@ -1,4 +1,4 @@
-// $Id: jailintotempdir.c 1250 2004-03-15 21:37:06Z ensc $    --*- c -*--
+// $Id: jailintotempdir.c,v 1.2 2004/03/15 21:37:06 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

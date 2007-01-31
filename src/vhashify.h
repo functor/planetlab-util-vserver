@@ -1,4 +1,4 @@
-// $Id: vhashify.h 1922 2005-03-18 00:25:37Z ensc $    --*- c -*--
+// $Id: vhashify.h,v 1.2 2005/03/18 00:25:37 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

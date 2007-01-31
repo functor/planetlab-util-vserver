@@ -1,4 +1,4 @@
-// $Id: listparser_uint64.c 1067 2004-03-05 03:12:18Z ensc $    --*- c -*--
+// $Id: listparser_uint64.c,v 1.1 2004/03/05 03:12:18 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

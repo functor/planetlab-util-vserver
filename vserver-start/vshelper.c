@@ -1,4 +1,4 @@
-// $Id: vshelper.c 1677 2004-08-19 16:06:37Z ensc $    --*- c -*--
+// $Id: vshelper.c,v 1.2 2004/08/19 16:06:37 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

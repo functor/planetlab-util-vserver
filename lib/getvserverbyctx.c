@@ -1,4 +1,4 @@
-// $Id: getvserverbyctx.c 2182 2005-10-25 16:20:07Z ensc $    --*- c -*--
+// $Id: getvserverbyctx.c,v 1.6 2004/03/11 04:40:29 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -31,21 +31,11 @@
 #include "getvserverbyctx-compat.hc"
 #include "getvserverbyctx-v13.hc"
 
-
-char *
-vc_getVserverByCtx_Internal(xid_t ctx, /*@null@*/vcCfgStyle *style,
-			    /*@null@*/char const *revdir,
-			    bool validate_result)
-{
-  if (vc_isSupported(vcFEATURE_MIGRATE))
-    return vc_getVserverByCtx_v13(ctx, style, revdir, validate_result);
-  else
-    return vc_getVserverByCtx_compat(ctx, style, revdir, validate_result);
-}
-
 char *
 vc_getVserverByCtx(xid_t ctx, vcCfgStyle *style, char const *revdir)
 {
-  return vc_getVserverByCtx_Internal(ctx, style, revdir, true);
-  
+  if (vc_isSupported(vcFEATURE_MIGRATE))
+    return vc_getVserverByCtx_v13(ctx, style, revdir);
+  else
+    return vc_getVserverByCtx_compat(ctx, style, revdir);
 }

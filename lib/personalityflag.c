@@ -1,4 +1,4 @@
-// $Id: personalityflag.c 2159 2005-07-15 19:40:15Z ensc $    --*- c -*--
+// $Id: personalityflag.c,v 1.2 2005/07/15 19:40:15 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  

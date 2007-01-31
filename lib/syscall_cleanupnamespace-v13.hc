@@ -1,4 +1,4 @@
-// $Id: syscall_cleanupnamespace-v13.hc 1023 2004-02-27 04:42:25Z ensc $    --*- c -*--
+// $Id: syscall_cleanupnamespace-v13.hc,v 1.1 2004/02/27 04:39:09 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: vector.hc 2113 2005-07-03 09:12:31Z ensc $    --*- c++ -*--
+// $Id: vector.hc,v 1.3 2005/07/03 09:12:31 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2002,2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

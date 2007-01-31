@@ -1,4 +1,4 @@
-// $Id: compat.h 2283 2006-09-10 17:07:57Z hollow $    --*- c++ -*--
+// $Id: compat.h,v 1.17 2004/04/22 20:47:31 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

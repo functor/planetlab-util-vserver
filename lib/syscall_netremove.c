@@ -1,4 +1,4 @@
-// $Id: syscall_netremove.c 2249 2006-01-18 23:40:15Z ensc $    --*- c -*--
+// $Id: syscall_netremove.c,v 1.1 2004/04/22 20:46:43 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,13 +22,13 @@
 
 #include "vserver.h"
 #include "vserver-internal.h"
-#include "virtual.h"
+#include "linuxvirtual.h"
 
 #if defined(VC_ENABLE_API_NET)
 #  include "syscall_netremove-net.hc"
 #endif
 
-#if defined(VC_ENABLE_API_NET)
+#if defined(VC_ENABLE_API_NET) && 0
 int
 vc_net_remove(nid_t nid, struct vc_net_nx const *info)
 {

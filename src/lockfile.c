@@ -1,4 +1,4 @@
-// $Id: lockfile.c 1447 2004-04-13 08:27:50Z ensc $    --*- c -*--
+// $Id: lockfile.c,v 1.4 2004/04/13 08:27:50 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

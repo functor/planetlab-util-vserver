@@ -1,4 +1,4 @@
-// $Id: syscall-wrap.h 2076 2005-05-02 21:42:05Z ensc $    --*- c -*--
+// $Id: syscall-wrap.h,v 1.2 2005/05/02 21:42:05 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

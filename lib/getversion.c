@@ -1,4 +1,4 @@
-// $Id: getversion.c 720 2004-01-29 11:00:41Z ensc $    --*- c++ -*--
+// $Id: getversion.c,v 1.5 2004/01/29 11:00:41 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

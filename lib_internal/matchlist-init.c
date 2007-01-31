@@ -1,4 +1,4 @@
-// $Id: matchlist-init.c 910 2004-02-17 02:33:20Z ensc $    --*- c -*--
+// $Id: matchlist-init.c,v 1.1 2004/02/17 02:33:20 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

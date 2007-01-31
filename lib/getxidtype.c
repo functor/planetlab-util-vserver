@@ -1,4 +1,4 @@
-// $Id: getxidtype.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
+// $Id: getxidtype.c,v 1.1 2005/03/09 14:38:51 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,21 +21,14 @@
 #endif
 
 #include "vserver.h"
-#include "internal.h"
+#include "virtual.h"
 
 vcXidType
 vc_getXIDType(xid_t xid)
 {
-  static xid_t	MIN_D_CONTEXT = 0;
-  const xid_t	MAX_S_CONTEXT = 65535;
-  if (MIN_D_CONTEXT == 0 && (utilvserver_checkCompatConfig() & VC_VCI_NO_DYNAMIC) == 0)
-    MIN_D_CONTEXT = 49152;
-  else
-    MIN_D_CONTEXT = MAX_S_CONTEXT;
-
-  if (xid==0)					return vcTYPE_MAIN;
-  if (xid==1)					return vcTYPE_WATCH;
-  if (xid>1              && xid<MIN_D_CONTEXT)	return vcTYPE_STATIC;
-  if (xid>=MIN_D_CONTEXT && xid<MAX_S_CONTEXT)	return vcTYPE_DYNAMIC;
+  if (xid==0)                                  return vcTYPE_MAIN;
+  if (xid==1)                                  return vcTYPE_WATCH;
+  if (xid>1              && xid<MIN_D_CONTEXT) return vcTYPE_STATIC;
+  if (xid>=MIN_D_CONTEXT && xid<MAX_S_CONTEXT) return vcTYPE_DYNAMIC;
   return vcTYPE_INVALID;
 }

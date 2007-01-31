@@ -1,4 +1,4 @@
-// $Id: syscall_enternamespace.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
+// $Id: syscall_enternamespace.c,v 1.1 2004/02/20 17:58:43 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,26 +21,16 @@
 #endif
 
 #include "vserver.h"
-#include "virtual.h"
+#include "linuxvirtual.h"
 
-#if defined(VC_ENABLE_API_V13) && defined(VC_ENABLE_API_V21)
-#  define VC_MULTIVERSION_SYSCALL 1
-#endif
 #include "vserver-internal.h"
 
 #ifdef VC_ENABLE_API_V13
 #  include "syscall_enternamespace-v13.hc"
 #endif
 
-#ifdef VC_ENABLE_API_V21
-#  include "syscall_enternamespace-v21.hc"
-#endif
-
-#if defined(VC_ENABLE_API_V13) || defined(VC_ENABLE_API_V21)
 int
-vc_enter_namespace(xid_t xid, uint_least64_t mask)
+vc_enter_namespace(xid_t xid)
 {
-  CALL_VC(CALL_VC_SPACES(vc_enter_namespace, xid, mask),
-	  CALL_VC_V13   (vc_enter_namespace, xid, mask));
+  CALL_VC(CALL_VC_V13(vc_enter_namespace, xid));
 }
-#endif

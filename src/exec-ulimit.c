@@ -1,4 +1,4 @@
-// $Id: exec-ulimit.c 2371 2006-11-05 17:46:33Z dhozac $    --*- c -*--
+// $Id: exec-ulimit.c,v 1.7 2004/05/08 01:40:25 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -33,13 +33,6 @@
 #define ENSC_WRAPPERS_FCNTL	1
 #define ENSC_WRAPPERS_RESOURCE	1
 #include <wrappers.h>
-
-/* dietlibc specifies this as (~0UL>>1), which is what's returned from
- * sys_old_getrlimit, called on some arches for getrlimit.
- * Reset it here so the kernel will have the correct values when we set it. */
-#undef RLIM_INFINITY
-#define RLIM_INFINITY (~0UL)
-#define OLD_RLIM_INFINITY (~0UL>>1)
 
 #define DECLARE_LIMIT(RES,FNAME) { #FNAME, RLIMIT_##RES }
 
@@ -166,7 +159,6 @@ int main(int argc, char *argv[])
 {
   size_t		i;
   int			cur_fd = Eopen(".", O_RDONLY, 0);
-  bool			in_dir = false;
 
   if (argc==2) {
     if (strcmp(argv[1], "--help")==0)    showHelp(1,argv[0],0);
@@ -179,29 +171,15 @@ int main(int argc, char *argv[])
   }
 
   if (chdir(argv[1])!=-1) {
-    in_dir = true;
-  }
-  for (i=0; i<sizeof(LIMITS)/sizeof(LIMITS[0]); ++i) {
-    struct rlimit	limit;
+    for (i=0; i<sizeof(LIMITS)/sizeof(LIMITS[0]); ++i) {
+      struct rlimit	limit;
 
-    Egetrlimit(LIMITS[i].code, &limit);
-    /* if this arch uses sys_old_getrlimit... */
-    if (limit.rlim_cur == OLD_RLIM_INFINITY)
-      limit.rlim_cur = RLIM_INFINITY;
-    if (in_dir && readSingleLimit(&limit, LIMITS[i].fname))
-      Esetrlimit(LIMITS[i].code, &limit);
-    else if (LIMITS[i].code != RLIMIT_NOFILE) {
-      limit.rlim_max = RLIM_INFINITY;
-      Esetrlimit(LIMITS[i].code, &limit);
+      Egetrlimit(LIMITS[i].code, &limit);
+      if (readSingleLimit(&limit, LIMITS[i].fname))
+	Esetrlimit(LIMITS[i].code, &limit);
     }
-    else {
-      /* RLIMIT_NOFILE can't be set to infinity, 1024*1024 seems to be the limit in most kernels */
-      limit.rlim_max = 1024*1024;
-      setrlimit(LIMITS[i].code, &limit);
-    }
-  }
-  if (in_dir)
     Efchdir(cur_fd);
+  }
   Eclose(cur_fd);
 
   Eexecv(argv[2], argv+2);

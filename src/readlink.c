@@ -1,4 +1,4 @@
-// $Id: readlink.c 1980 2005-03-24 12:44:17Z ensc $
+// $Id: readlink.c,v 1.4 2005/03/24 12:44:17 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

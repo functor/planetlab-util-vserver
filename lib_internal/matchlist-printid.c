@@ -1,4 +1,4 @@
-// $Id: matchlist-printid.c 1954 2005-03-22 14:59:46Z ensc $    --*- c -*--
+// $Id: matchlist-printid.c,v 1.2 2005/03/22 14:59:46 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

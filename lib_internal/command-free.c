@@ -1,4 +1,4 @@
-// $Id: command-free.c 1665 2004-08-19 14:09:34Z ensc $    --*- c -*--
+// $Id: command-free.c,v 1.2 2004/08/19 14:09:22 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

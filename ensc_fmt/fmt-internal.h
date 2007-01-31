@@ -1,4 +1,4 @@
-// $Id: fmt-internal.h 1647 2004-08-19 13:53:54Z ensc $    --*- c -*--
+// $Id: fmt-internal.h,v 1.2 2004/08/19 13:53:54 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

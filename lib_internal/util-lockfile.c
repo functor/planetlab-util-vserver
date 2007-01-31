@@ -1,4 +1,4 @@
-// $Id: util-lockfile.c 1616 2004-07-02 23:34:52Z ensc $    --*- c -*--
+// $Id: util-lockfile.c,v 1.1 2004/07/02 23:34:52 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

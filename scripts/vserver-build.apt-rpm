@@ -1,4 +1,4 @@
-# $Id: vserver-build.apt-rpm 2162 2005-07-25 15:40:22Z ensc $	--*- sh -*--
+# $Id: vserver-build.apt-rpm,v 1.15 2005/07/03 13:17:38 ensc Exp $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -41,9 +41,6 @@ base.init
 pkgmgmt.initVariables
 rpm.initVariables
 apt.initVariables
-
-rpm.sanityCheck
-
 
 base.initFilesystem    "$OPTION_FORCE"
 pkgmgmt.initFilesystem "$OPTION_FORCE"

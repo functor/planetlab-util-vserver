@@ -1,4 +1,4 @@
-// $Id: sys_clone.h 2421 2006-12-09 16:12:18Z dhozac $    --*- c -*--
+// $Id: sys_clone.h,v 1.3 2005/04/28 18:01:37 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,50 +19,33 @@
 #ifndef H_UTIL_VSERVER_SRC_SYS_CLONE_H
 #define H_UTIL_VSERVER_SRC_SYS_CLONE_H
 
-#include <unistd.h>
 #include "lib/syscall-wrap.h"
-#define __NR__sys_clone		__NR_clone
+#define __NR_sys_clone		__NR_clone
 
-#ifndef ENSC_SYSCALL_TRADITIONAL
-#  include <errno.h>
-
-#  if defined(__s390__)
-inline static UNUSED ALWAYSINLINE
-_syscall2(int, _sys_clone, void *, child_stack, int, flags)
-#  else
-inline static UNUSED ALWAYSINLINE
-_syscall2(int, _sys_clone, int, flags, void *, child_stack)
-#  endif
+#ifndef CLONE_NEWNS
+#  define CLONE_NEWNS 0x00020000
 #endif
 
+#ifdef ENSC_SYSCALL_TRADITIONAL
+#include <unistd.h>
+
 inline static UNUSED ALWAYSINLINE
-int sys_clone(int flags, void *child_stack)
+int sys_clone(int flags, void *stack)
 {
-  int ret;
-#ifdef __sparc__
-  int parent = getpid();
-#endif
-#if defined(__dietlibc__) && defined(ENSC_SYSCALL_TRADITIONAL)
+#if defined __dietlibc__
   extern long int syscall (long int __sysno, ...);
 #endif
-
-#if   defined(__s390__) && defined(ENSC_SYSCALL_TRADITIONAL)
-  ret = syscall(__NR__sys_clone, child_stack, flags);
-#elif defined(__s390__)
-  ret = _sys_clone(child_stack, flags);
-#elif defined(ENSC_SYSCALL_TRADITIONAL)
-  ret = syscall(__NR__sys_clone, flags, child_stack);
-#else
-  ret = _sys_clone(flags, child_stack);
-#endif
-#ifdef __sparc__
-  if (ret == parent)
-    ret = 0;
-#endif
-  return ret;
+ 
+  return syscall(__NR_sys_clone, flags, stack);
 }
+#else
+#include <errno.h>
 
-#undef __NR__sys_clone
+inline static UNUSED ALWAYSINLINE
+_syscall2(int, sys_clone, int, flags, void *, child_stack)
+#endif
+
+#undef __NR_sys_clone
 
 #define ENSC_HAVE_SYSCLONE		1
   

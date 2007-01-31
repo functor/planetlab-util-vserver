@@ -1,4 +1,4 @@
-// $Id: util-unixsock.h 2241 2006-01-04 12:27:02Z ensc $    --*- c -*--
+// $Id: util-unixsock.h,v 1.1 2004/03/05 03:17:39 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,9 +19,9 @@
 #ifndef H_UTIL_VSERVER_LIB_INTERNAL_UTIL_UNIXSOCK_H
 #define H_UTIL_VSERVER_LIB_INTERNAL_UTIL_UNIXSOCK_H
 
-#define ENSC_INIT_UNIX_SOCK(ADDR, FILENAME)				\
-  (ADDR).sun_family = AF_UNIX;						\
-  strncpy((ADDR).sun_path, FILENAME, sizeof((ADDR).sun_path)-1);	\
+#define ENSC_INIT_UNIX_SOCK(ADDR, FILENAME)			\
+  (ADDR).sun_family = AF_UNIX;					\
+  strncpy((ADDR).sun_path, FILENAME, sizeof((ADDR).sun_path));	\
   (ADDR).sun_path[sizeof((ADDR).sun_path)-1] = '\0';
 
 #endif	//  H_UTIL_VSERVER_LIB_INTERNAL_UTIL_UNIXSOCK_H

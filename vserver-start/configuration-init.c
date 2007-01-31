@@ -1,4 +1,4 @@
-// $Id: configuration-init.c 1746 2004-10-19 21:11:10Z ensc $    --*- c -*--
+// $Id: configuration-init.c,v 1.3 2004/10/19 21:11:10 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

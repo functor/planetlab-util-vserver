@@ -1,4 +1,4 @@
-// $Id: personalitytype.c 2159 2005-07-15 19:40:15Z ensc $    --*- c -*--
+// $Id: personalitytype.c,v 1.2 2005/07/15 19:40:15 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

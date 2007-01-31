@@ -1,4 +1,4 @@
-// $Id: copy.c 1924 2005-03-18 03:33:34Z ensc $    --*- c -*--
+// $Id: copy.c,v 1.1 2005/03/18 03:33:34 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

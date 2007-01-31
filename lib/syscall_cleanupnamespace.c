@@ -1,4 +1,4 @@
-// $Id: syscall_cleanupnamespace.c 2207 2005-10-29 10:31:42Z ensc $    --*- c++ -*--
+// $Id: syscall_cleanupnamespace.c,v 1.1 2004/02/27 04:39:09 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "virtual.h"
+#include "linuxvirtual.h"
 
 #include "vserver-internal.h"
 

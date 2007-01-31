@@ -1,4 +1,4 @@
-// $Id: syscall_getdlimit-v13.hc 1881 2005-03-02 01:29:44Z ensc $    --*- c -*--
+// $Id: syscall_getdlimit-v13.hc,v 1.2 2005/03/02 01:29:44 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

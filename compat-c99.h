@@ -1,4 +1,4 @@
-// $Id: compat-c99.h 2283 2006-09-10 17:07:57Z hollow $    --*- c -*--
+// $Id: compat-c99.h,v 1.1 2003/12/26 00:49:32 uid68581 Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

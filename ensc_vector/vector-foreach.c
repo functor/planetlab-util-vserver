@@ -1,4 +1,4 @@
-// $Id: vector-foreach.c 2113 2005-07-03 09:12:31Z ensc $    --*- c -*--
+// $Id: vector-foreach.c,v 1.1 2005/07/03 09:12:31 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

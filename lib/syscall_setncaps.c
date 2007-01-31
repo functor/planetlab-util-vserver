@@ -1,4 +1,4 @@
-// $Id: syscall_setncaps.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
+// $Id: syscall_setncaps.c,v 1.1 2004/04/22 20:46:43 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -22,7 +22,7 @@
 
 #include "vserver.h"
 #include "vserver-internal.h"
-#include "virtual.h"
+#include "linuxvirtual.h"
 
 #if defined(VC_ENABLE_API_NET)
 #  include "syscall_setncaps-net.hc"

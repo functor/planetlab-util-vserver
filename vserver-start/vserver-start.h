@@ -1,4 +1,4 @@
-// $Id: vserver-start.h 1746 2004-10-19 21:11:10Z ensc $    --*- c -*--
+// $Id: vserver-start.h,v 1.2 2004/10/19 21:11:10 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

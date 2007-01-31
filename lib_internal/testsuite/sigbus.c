@@ -1,4 +1,4 @@
-// $Id: sigbus.c 1979 2005-03-24 12:42:56Z ensc $    --*- c -*--
+// $Id: sigbus.c,v 1.3 2005/03/24 12:42:56 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

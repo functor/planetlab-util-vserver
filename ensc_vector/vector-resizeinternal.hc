@@ -1,4 +1,4 @@
-// $Id: vector-resizeinternal.hc 814 2004-02-06 14:47:18Z ensc $    --*- c -*--
+// $Id: vector-resizeinternal.hc,v 1.1 2004/02/06 14:47:18 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-dnl $Id: ensc_release.m4 476 2003-12-26 00:22:49Z uid68581 $
+dnl $Id: ensc_release.m4,v 1.2 2003/12/26 00:22:49 uid68581 Exp $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

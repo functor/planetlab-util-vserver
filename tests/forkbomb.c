@@ -1,4 +1,4 @@
-// $Id: forkbomb.c 495 2003-12-26 00:48:26Z uid68581 $
+// $Id: forkbomb.c,v 1.2 2003/12/26 00:48:26 uid68581 Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on tests/forkbomb.cc by Jacques Gelinas

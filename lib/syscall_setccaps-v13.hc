@@ -1,4 +1,4 @@
-// $Id: syscall_setccaps-v13.hc 2367 2006-11-03 19:59:15Z dhozac $    --*- c -*--
+// $Id: syscall_setccaps-v13.hc,v 1.2 2004/03/24 01:07:11 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -25,9 +25,9 @@ vc_set_ccaps_v13(xid_t xid, struct vc_ctx_caps const *caps)
 {
   struct vcmd_ctx_caps_v0	k_caps;
 
-  k_caps.bcaps = (caps->bcaps & caps->bmask) | ~caps->bmask;
+  k_caps.bcaps = caps->bcaps & caps->bmask;
   k_caps.ccaps = caps->ccaps;
   k_caps.cmask = caps->cmask;
   
-  return vserver(VCMD_set_ccaps_v0, CTX_USER2KERNEL(xid), &k_caps);
+  return vserver(VCMD_set_ccaps, CTX_USER2KERNEL(xid), &k_caps);
 }

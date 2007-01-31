@@ -1,4 +1,4 @@
-// $Id: syscall_gettaskxid-v13.hc 701 2004-01-22 21:35:36Z ensc $    --*- c -*--
+// $Id: syscall_gettaskxid-v13.hc,v 1.4 2004/01/22 21:35:36 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

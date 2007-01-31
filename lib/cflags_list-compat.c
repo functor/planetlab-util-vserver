@@ -1,4 +1,4 @@
-// $Id: cflags_list-compat.c 1449 2004-04-14 23:19:51Z ensc $    --*- c -*--
+// $Id: cflags_list-compat.c,v 1.1 2004/04/14 23:19:51 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <>
 //  

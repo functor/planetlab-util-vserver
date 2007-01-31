@@ -1,4 +1,4 @@
-// $Id: syscall_ctxmigrate-v13.hc 2339 2006-09-29 22:15:14Z dhozac $    --*- c -*--
+// $Id: syscall_ctxmigrate-v13.hc,v 1.1 2004/04/14 23:19:51 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,5 +23,5 @@
 static inline ALWAYSINLINE int
 vc_ctx_migrate_v13(xid_t xid)
 {
-  return vserver(VCMD_ctx_migrate_v0, CTX_USER2KERNEL(xid), NULL);
+  return vserver(VCMD_ctx_migrate, CTX_USER2KERNEL(xid), 0);
 }

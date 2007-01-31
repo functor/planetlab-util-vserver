@@ -1,4 +1,4 @@
-// $Id: capchroot.c 2403 2006-11-24 23:06:08Z dhozac $
+// $Id: capchroot.c,v 1.7 2004/03/24 01:41:28 ensc Exp $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on capchroot.cc by Jacques Gelinas
@@ -66,11 +66,6 @@ static void
 showHelp(int fd, char const *cmd, int res)
 {
   VSERVER_DECLARE_CMD(cmd);
-
-#if !defined(VC_ENABLE_API_COMPAT) && !defined(VC_ENABLE_API_LEGACY)
-  WRITE_MSG(1, "ERROR: tools were built without legacy API support; capchroot will not work!\n\n");
-#endif
-  
   WRITE_MSG(fd, "Usage:  ");
   WRITE_STR(fd, cmd);
   WRITE_MSG(fd,
@@ -97,11 +92,11 @@ showVersion()
   exit(0);
 }
 
-static UNUSED void
+static void
 setUser(char const *user)
 {
   struct passwd		*p = 0;
-  if (user!=0 && strcmp(user, "root")!=0 && strcmp(user, "0")!=0) {
+  if (user!=0 && strcmp(user, "root")!=0) {
     errno = 0;
     p     = getpwnam(user);
     if (p==0) {
@@ -140,13 +135,12 @@ int main (int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help' for more information.\n");
+	WRITE_MSG(2, " --help\" for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }
   }
 
-#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
   if (optind==argc)
     WRITE_MSG(2, "No directory specified; try '--help' for more information\n");
   else if (optind+1==argc)
@@ -165,9 +159,6 @@ int main (int argc, char *argv[])
     setUser(suid_user);
     EexecvpD(argv[optind+1], argv+optind+1);
   }
-#else
-  WRITE_MSG(2, "capchroot: tools were built without legacy API support; can not continue\n");
-#endif
-  
+
   return EXIT_FAILURE;
 }

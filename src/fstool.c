@@ -1,4 +1,4 @@
-// $Id: fstool.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: fstool.c,v 1.8 2004/08/19 14:29:25 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -156,13 +156,8 @@ processFile(char const *path)
   }
 
   if (S_ISDIR(st.st_mode) && !global_args->do_display_dir) {
-    int		cur_dir = Eopen(".", O_RDONLY, 0);
-    uint64_t	ret;
     Echdir(path);
-    ret = iterateFilesystem(path);
-    Efchdir(cur_dir);
-    Eclose(cur_dir);
-    return ret;
+    return iterateFilesystem(path);
   }
   else
     return handleFile(path, path) ? 0 : 1;
@@ -218,7 +213,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help' for more information.\n");
+	WRITE_MSG(2, " --help\" for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }

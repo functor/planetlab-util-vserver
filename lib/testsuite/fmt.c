@@ -1,4 +1,4 @@
-// $Id: fmt.c 2185 2005-10-25 16:23:45Z ensc $    --*- c -*--
+// $Id: fmt.c,v 1.4 2004/04/28 18:07:41 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -28,14 +28,11 @@
 #define TEST(VAL, EXP) {			\
     char	buf[512];			\
     size_t	l;				\
-    memset(buf+1, '\23', sizeof(buf)-2);	\
-    buf[0] = buf[sizeof(EXP)] = '\42';		\
+    memset(buf, '\23', sizeof buf);		\
     l = FUNC(buf+1, VAL);			\
     assert(l==sizeof(EXP)-1);			\
     assert(memcmp(buf+1, EXP, l)==0);		\
-    assert(buf[0]  =='\42');			\
-    assert(buf[l+1]=='\42');			\
-    assert(buf[l+2]=='\23');			\
+    assert(buf[l+1]=='\23');			\
   }
 
 int main()

@@ -1,4 +1,4 @@
-// $Id: vunify.h 1926 2005-03-18 03:56:06Z ensc $    --*- c -*--
+// $Id: vunify.h,v 1.7 2005/03/18 03:56:06 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

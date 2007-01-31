@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vapt-get-worker 1870 2005-02-25 21:51:02Z ensc $
+# $Id: vapt-get-worker,v 1.8 2005/02/25 21:51:02 ensc Exp $
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

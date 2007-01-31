@@ -1,4 +1,4 @@
-// $Id: getversion-internal.hc 2207 2005-10-29 10:31:42Z ensc $    --*- c++ -*--
+// $Id: getversion-internal.hc,v 1.6 2004/01/22 21:35:36 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -24,7 +24,7 @@
 #endif
 
 #define _LINUX_TYPES_H 1
-#include "virtual.h"
+#include "linuxvirtual.h"
 
 static inline ALWAYSINLINE UNUSED int
 vc_get_version_internal(int cat)

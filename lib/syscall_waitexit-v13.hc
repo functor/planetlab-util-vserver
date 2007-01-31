@@ -1,4 +1,4 @@
-// $Id: syscall_waitexit-v13.hc 2317 2006-09-15 21:18:21Z dhozac $    --*- c++ -*--
+// $Id: syscall_waitexit-v13.hc,v 1.1 2005/05/05 09:17:25 ensc Exp $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,7 +23,7 @@
 static inline ALWAYSINLINE int
 vc_wait_exit_v13b(xid_t ctx)
 {
-  struct vcmd_wait_exit_v0	param = { .reboot_cmd = 0, .exit_code = 0 };
+  struct vcmd_wait_exit_v0	param = { .a = 0, .b = 0 };
 
   return vserver(VCMD_wait_exit, CTX_USER2KERNEL(ctx), &param);
 }

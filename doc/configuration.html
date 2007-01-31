@@ -4,11 +4,11 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>The /etc/vservers directory</title>
-    <link rel="alternate stylesheet" title="gras" type="text/css" href="css/configuration-lsd.css" />
+    <link rel="stylesheet" title="gras" type="text/css" href="css/configuration-lsd.css" />
     <link rel="alternate stylesheet" title="gras1" type="text/css" href="css/configuration-lsd1.css" />
     <link rel="alternate stylesheet" title="flower" type="text/css" href="css/configuration-flower.css" />
     <link rel="alternate stylesheet" title="boring" type="text/css" href="configuration.css" />
-    <link rel="stylesheet" title="weedpage" type="text/css" href="css/WeedPageStyle.css" />
+    <link rel="alternate stylesheet" title="weedpage" type="text/css" href="css/WeedPageStyle.css" />
   </head>
   <body>
     <h1>The content of the /etc/vservers directory</h1>
@@ -17,21 +17,6 @@
         <span class="directory">/etc/vservers/<span class="">.defaults</span></span>
         <br />
         <ul>
-          <li>
-            <span class="symlink" title="/etc/vservers/.defaults/cachebase">cachebase</span>
-            <br />
-            <div class="description">
-A link to the directory which will hold cached information about
-vservers.
-      </div>
-          </li>
-          <li id="global-namespace-cleanup-skip">
-            <span class="list" title="/etc/vservers/.defaults/namespace-cleanup-skip">namespace-cleanup-skip</span>
-            <br />
-            <div class="description">
-List of paths to skip during namespace cleanup.
-      </div>
-          </li>
           <li id="global-nonamespace">
             <span class="boolean" title="/etc/vservers/.defaults/nonamespace">nonamespace</span>
             <br />
@@ -42,15 +27,6 @@ there.
 
 In this mode the <span class="directoryname">/vservers</span> directory must have
 the 'barrier' attribute. Else, common chroot(2) exploits are possible.
-      </div>
-          </li>
-          <li id="global-nonamespace-cleanup">
-            <span class="boolean" title="/etc/vservers/.defaults/nonamespace-cleanup">nonamespace-cleanup</span>
-            <br />
-            <div class="description">
-Disable namespace cleanup globally. It can be overridden for a single vserver
-by setting the <a class="optionref" href="#namespace-cleanup">namespace-cleanup</a> flag
-there.
       </div>
           </li>
           <li>
@@ -100,14 +76,6 @@ from this uri and install it at a temporary place.
                 <span class="directory">/etc/vservers/<span class="">.defaults</span>/<span class="">apps</span>/<span class="">init</span></span>
                 <br />
                 <ul>
-                  <li id="global-environment">
-                    <span class="hash" title="/etc/vservers/.defaults/apps/init/environment">environment</span>
-                    <br />
-                    <div class="description">
-The environment to set when starting guests. Contains one VAR=VAL
-pair per line.
-	  </div>
-                  </li>
                   <li>
                     <span class="symlink" title="/etc/vservers/.defaults/apps/init/tty">tty</span>
                     <br />
@@ -136,19 +104,6 @@ distribution specific configuration file.
                 </ul>
               </li>
               <li>
-                <span class="directory">/etc/vservers/<span class="">.defaults</span>/<span class="">apps</span>/<span class="">vlogin</span></span>
-                <br />
-                <ul>
-                  <li id="vlogin-disable">
-                    <span class="boolean" title="/etc/vservers/.defaults/apps/vlogin/disable">disable</span>
-                    <br />
-                    <div class="description">
-When this file exists, vlogin isn't used on vserver &lt;guest&gt; enter.
-	  </div>
-                  </li>
-                </ul>
-              </li>
-              <li>
                 <span class="directory">/etc/vservers/<span class="">.defaults</span>/<span class="">apps</span>/<span class="">vprocunhide</span></span>
                 <br />
                 <ul>
@@ -156,7 +111,7 @@ When this file exists, vlogin isn't used on vserver &lt;guest&gt; enter.
                     <span class="list" title="/etc/vservers/.defaults/apps/vprocunhide/files">files</span>
                     <br />
                     <div class="description">
-A list of files which will be made visible by vprocunhide. Wildcards are
+A list of files which will be made visibly by vprocunhide. Wildcards are
 allowed and anything ending in '/' will be processed recursively. When this file exists,
 it overrides the defaults in SYSDEFAULTDIR/vprocunhide-files. The entries there must be
 absolute filenames inclusive the leading '/proc'.
@@ -278,20 +233,6 @@ filesystem.
                 <span class="data" title="/etc/vservers/.defaults/init/mtab">mtab</span>
                 <br />
                 <div class="description">Default mtab file</div>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <span class="directory">/etc/vservers/<span class="">.defaults</span>/<span class="">interfaces</span></span>
-            <br />
-            <ul>
-              <li id="global-vlandev">
-                <span class="boolean" title="/etc/vservers/.defaults/interfaces/vlandev">vlandev</span>
-                <br />
-                <div class="description">
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed.
-	</div>
               </li>
             </ul>
           </li>
@@ -425,16 +366,9 @@ The configuration directory for the vserver vserver-name.
             <span class="list" title="/etc/vservers/$vserver-name/bcapabilities">bcapabilities</span>
             <br />
             <div class="description">
-Contains the system capabilities. See
-<a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/bcaps-v13.c">lib/bcaps-v13.c</a>
+[experimental; name is subject of possible change] Contains the system capabilities. See
+<a href="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/bcaps-v13.c?rev=HEAD">lib/bcaps-v13.c</a>
 for possible values.
-      </div>
-          </li>
-          <li>
-            <span class="symlink" title="/etc/vservers/$vserver-name/cache">cache</span>
-            <br />
-            <div class="description">
-Path of the storage area for cached information about this vserver.
       </div>
           </li>
           <li>
@@ -449,7 +383,8 @@ only; for 2.6 use <a class="optionref" href="#bcapabilities">bcapabilities</a>.
             <span class="list" title="/etc/vservers/$vserver-name/ccapabilities">ccapabilities</span>
             <br />
             <div class="description">
-Contains the context capabilities. See <a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/ccaps-v13.c">lib/ccaps-v13.c</a>
+[experimental; name is subject of possible change] Contains the
+context capabilities. See <a href="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/ccaps-v13.c?rev=HEAD">lib/ccaps-v13.c</a>
 for possible values.
       </div>
           </li>
@@ -464,9 +399,54 @@ Contains the context which shall be used for the vserver.
             <span class="list" title="/etc/vservers/$vserver-name/flags">flags</span>
             <br />
             <div class="description">
-Contains per line a flag. See <a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/cflags-v13.c">lib/cflags-v13.c</a>
+Contains per line a flag. See <a href="http://savannah.nongnu.org/cgi-bin/viewcvs/util-vserver/util-vserver/lib/cflags-v13.c?rev=HEAD">lib/cflags-v13.c</a>
 for possible values.
       </div>
+            <div class="elements">
+              <dl>
+                <dt class="elements">fakeinit</dt>
+                <dd class="elements">
+                  <div class="description">
+The new process will believe it is process number 1. Useful to run a
+real /sbin/init in a vserver. Warning: this flag should not be used
+unless you know what you are doing. Often, it is better to use the
+'plain' initstyle.
+          </div>
+                </dd>
+                <dt class="elements">lock</dt>
+                <dd class="elements">
+                  <div class="description">
+The new process is trapped and can't use chcontext anymore.
+          </div>
+                </dd>
+                <dt class="elements">nproc</dt>
+                <dd class="elements">
+                  <div class="description">
+Limit the number of process in the vserver according to
+ulimit setting. Normally, ulimit is a per user thing.
+With this flag, it becomes a per vserver thing.  
+          </div>
+                </dd>
+                <dt class="elements">private</dt>
+                <dd class="elements">
+                  <div class="description">
+No one can join this security context once created.
+          </div>
+                </dd>
+                <dt class="elements">sched</dt>
+                <dd class="elements">
+                  <div class="description">
+The new process and its children will share a common
+          </div>
+                </dd>
+                <dt class="elements">ulimit</dt>
+                <dd class="elements">
+                  <div class="description">
+Apply the current ulimit to the whole context
+          </div>
+                </dd>
+              </dl>
+            </div>
           </li>
           <li id="fstab">
             <span class="data" title="/etc/vservers/$vserver-name/fstab">fstab</span>
@@ -503,39 +483,6 @@ will be assumed as this name.
             <div class="description">
 Overrides the global <a class="optionref" href="#global-nonamespace">nonamespace</a> flag and enables
 namespace usage for the current vserver.
-      </div>
-          </li>
-          <li id="namespace-cleanup">
-            <span class="boolean" title="/etc/vservers/$vserver-name/namespace-cleanup">namespace-cleanup</span>
-            <br />
-            <div class="description">
-Overrides the global <a class="optionref" href="#global-nonamespace-cleanup">nonamespace-cleanup</a> flag and enables
-namespace cleanup for the current vserver.
-      </div>
-          </li>
-          <li>
-            <span class="list" title="/etc/vservers/$vserver-name/namespace-cleanup-skip">namespace-cleanup-skip</span>
-            <br />
-            <div class="description">
-List of paths to skip during namespace cleanup. This overrides the global
-<a class="optionref" href="#global-namespace-cleanup-skip">namespace-cleanup-skip</a>
-file.
-      </div>
-          </li>
-          <li>
-            <span class="list" title="/etc/vservers/$vserver-name/ncapabilities">ncapabilities</span>
-            <br />
-            <div class="description">
-Contains the network capabilities. See <a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/ncaps-net.c">lib/ncaps-net.c</a>
-for possible values.
-      </div>
-          </li>
-          <li>
-            <span class="list" title="/etc/vservers/$vserver-name/nflags">nflags</span>
-            <br />
-            <div class="description">
-Contains a network flag per line. See <a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/nflags-net.c">lib/nflags-net.c</a>
-for possible values.
       </div>
           </li>
           <li>
@@ -577,7 +524,7 @@ the vserver is stopped, this can be a dangling symlink.
             <span class="hash" title="/etc/vservers/$vserver-name/schedule">schedule</span>
             <br />
             <div class="description">
-[deprecated; use <a class="optionref" href="#sched">sched</a> instead] Contains the
+[experimental; name is subject of possible change] Contains the
 scheduler parameters, one per line.
 
 The Hard CPU limit uses a mechanism called a Token Bucket.  the
@@ -588,9 +535,6 @@ a running process consumes one token from the bucket, unless the
 bucket is empty. If the bucket is empty the process is put in the
 hold queue. When the bucket has been refilled to at least M tokens,
 all on hold processes are rescheduled.
-
-See the <a href="http://linux-vserver.org/Scheduler+Parameters">Linux
-VServer Wiki</a> for more information about this file.
       </div>
           </li>
           <li>
@@ -605,7 +549,7 @@ Contains the pathname of the shell which will be used by the "vserver
             <span class="symlink" title="/etc/vservers/$vserver-name/vdir">vdir</span>
             <br />
             <div class="description">
-Path of the vserver root directory.
+Path of the vserver root directory
       </div>
           </li>
           <li>
@@ -669,14 +613,6 @@ the current vserver can be started. At shutdown, the current vserver
 will be stopped before its dependencies. Content of this file are
 vserver ids (one name per line).
           </div>
-                  </li>
-                  <li>
-                    <span class="hash" title="/etc/vservers/$vserver-name/apps/init/environment">environment</span>
-                    <br />
-                    <div class="description">
-The environment to set when starting the guest. Contains one VAR=VAL
-pair per line.
-	  </div>
                   </li>
                   <li>
                     <span class="file" title="/etc/vservers/$vserver-name/apps/init/killseq">killseq</span>
@@ -785,7 +721,7 @@ the vs_reboot() function in the kernel for more details.
                     <br />
                     <div class="description">
 The timeout in seconds which is used when synchronising vserver
-startup/shutdown with the vshelper. When not set, 30 seconds will be
+startup/shutdown with the vshelper. When no set, 30 seconds will be
 assumed.
 	  </div>
                   </li>
@@ -890,74 +826,6 @@ filesystem.
             </ul>
           </li>
           <li>
-            <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">cpuset</span></span>
-            <br />
-            <ul>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/cpu_exclusive">cpu_exclusive</span>
-                <br />
-                <div class="description">Is the CPU assignment exclusive?</div>
-              </li>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/cpus">cpus</span>
-                <br />
-                <div class="description">The list of CPUs in this cpuset</div>
-              </li>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/mems">mems</span>
-                <br />
-                <div class="description">The list of Memory Nodes in this cpuset</div>
-              </li>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/mems_exclusive">mems_exclusive</span>
-                <br />
-                <div class="description">Is the memory node assignment exclusive?</div>
-              </li>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/name">name</span>
-                <br />
-                <div class="description">The name of the cpuset for this vserver</div>
-              </li>
-              <li>
-                <span class="file" title="/etc/vservers/$vserver-name/cpuset/nocreate">nocreate</span>
-                <br />
-                <div class="description">When this file exists, the cpuset will be assumed to exist already</div>
-              </li>
-            </ul>
-          </li>
-          <li>
-            <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">dlimits</span></span>
-            <br />
-            <ul>
-              <li>
-                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">dlimits</span>/<span class="symbolic">dlimit</span></span>
-                <br />
-                <ul>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/directory">directory</span>
-                    <br />
-                    <div class="description">The directory to which the limit should be applied</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/inodes_total">inodes_total</span>
-                    <br />
-                    <div class="description">The amount of inodes this vserver should be limited to</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/reserved">reserved</span>
-                    <br />
-                    <div class="description">How much space (percentage-wise) should be reserved for the root user</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/space_total">space_total</span>
-                    <br />
-                    <div class="description">The amount of space this vserver should be limited to (measured in blocks of 1024 bytes)</div>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </li>
-          <li>
             <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">interfaces</span></span>
             <br />
             <ul>
@@ -976,16 +844,6 @@ filesystem.
                 <br />
                 <div class="description">The default network mask.</div>
               </li>
-              <li id="local-novlandev">
-                <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/novlandev">novlandev</span>
-                <br />
-                <div class="description">
-When this file exists, the steps which setup and destroy a VLAN
-interface will be skipped. This overrides the global
-<a class="optionref" href="#global-vlandev">vlandev</a> setting for
-this vserver.
-	</div>
-              </li>
               <li>
                 <span class="file" title="/etc/vservers/$vserver-name/interfaces/prefix">prefix</span>
                 <br />
@@ -995,14 +853,6 @@ this vserver.
                 <span class="file" title="/etc/vservers/$vserver-name/interfaces/scope">scope</span>
                 <br />
                 <div class="description">The default scope of the network interfaces.</div>
-              </li>
-              <li id="local-vlandev">
-                <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/vlandev">vlandev</span>
-                <br />
-                <div class="description">
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed for all interfaces of this vserver.
-	</div>
               </li>
               <li>
                 <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">interfaces</span>/<span class="symbolic">iface</span></span>
@@ -1059,16 +909,6 @@ created by the host or another vserver.
 	  </div>
                   </li>
                   <li>
-                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/novlandev">novlandev</span>
-                    <br />
-                    <div class="description">
-When this file exists, the steps which setup and destroy a VLAN
-interface will be skipped. This will override the global
-<a class="optionref" href="#global-vlandev">vlandev</a> and the per-guest
-<a class="optionref" href="#local-vlandev">vlandev</a>.
-	  </div>
-                  </li>
-                  <li>
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/prefix">prefix</span>
                     <br />
                     <div class="description">The network prefix-length.</div>
@@ -1077,14 +917,6 @@ interface will be skipped. This will override the global
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/scope">scope</span>
                     <br />
                     <div class="description">The scope of the network interface.</div>
-                  </li>
-                  <li>
-                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/vlandev">vlandev</span>
-                    <br />
-                    <div class="description">
-When this file exists, the steps which setup and destroy a VLAN
-interface will be executed.
-	  </div>
                   </li>
                 </ul>
               </li>
@@ -1095,8 +927,7 @@ interface will be executed.
             <br />
             <div class="description">
 A directory with resource limits. Possible resources are cpu, fsize,
-data, stack, core, rss, nproc, nofile, memlock, as, locks, msgqueue,
-nsock, openfd, anon, shmem, semary, nsems and dentry. This
+data, stack, core, rss, nproc, nofile, memlock, as and locks. This
 configuration will be honored for kernel 2.6 only.
       </div>
             <ul>
@@ -1112,7 +943,7 @@ in the first line. The special keyword 'inf' is recognized.
                 <span class="file" title="/etc/vservers/$vserver-name/rlimits/$resource.hard">resource.hard</span>
                 <br />
                 <div class="description">
-A file which contains the hard-limit of the given resource in the first
+A file which contains the hard- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</div>
               </li>
@@ -1120,7 +951,7 @@ line. The special keyword 'inf' is recognized.
                 <span class="file" title="/etc/vservers/$vserver-name/rlimits/$resource.min">resource.min</span>
                 <br />
                 <div class="description">
-A file which contains the guaranteed minimum of the given resource in
+A file which contains the guaranted minimum of the given resource in
 the first line. The special keyword 'inf' is recognized.
         </div>
               </li>
@@ -1128,122 +959,9 @@ the first line. The special keyword 'inf' is recognized.
                 <span class="file" title="/etc/vservers/$vserver-name/rlimits/$resource.soft">resource.soft</span>
                 <br />
                 <div class="description">
-A file which contains the soft-limit of the given resource in the first
+A file which contains the soft- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</div>
-              </li>
-            </ul>
-          </li>
-          <li id="sched">
-            <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">sched</span></span>
-            <br />
-            <ul id="sched">
-              <li id="global-fill-rate">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/fill-rate">fill-rate</span>
-                <br />
-                <div class="description">Amount of tokens to add each <a class="optionref" href="#global-interval">interval</a></div>
-              </li>
-              <li id="global-fill-rate2">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/fill-rate2">fill-rate2</span>
-                <br />
-                <div class="description">Amount of tokens to add each <a class="optionref" href="#global-interval2">interval2</a> when advancing idle time</div>
-              </li>
-              <li id="global-idle-time">
-                <span class="boolean" title="/etc/vservers/$vserver-name/sched/idle-time">idle-time</span>
-                <br />
-                <div class="description">When this file exists, advancing idle time is activated</div>
-              </li>
-              <li id="global-interval">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/interval">interval</span>
-                <br />
-                <div class="description">The interval between refills of the bucket</div>
-              </li>
-              <li id="global-interval2">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/interval2">interval2</span>
-                <br />
-                <div class="description">The interval between refills of the bucket when advancing idle time</div>
-              </li>
-              <li id="global-priority-bias">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/priority-bias">priority-bias</span>
-                <br />
-                <div class="description">Bias added to priorities calculated within the guest (result is clamped to -20/+19)</div>
-              </li>
-              <li id="global-tokens">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/tokens">tokens</span>
-                <br />
-                <div class="description">The initial amount of tokens to put in the bucket</div>
-              </li>
-              <li id="global-tokens-max">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/tokens-max">tokens-max</span>
-                <br />
-                <div class="description">The bucket's size</div>
-              </li>
-              <li id="global-tokens-min">
-                <span class="file" title="/etc/vservers/$vserver-name/sched/tokens-min">tokens-min</span>
-                <br />
-                <div class="description">The minimum amount of tokens required to unhold the context</div>
-              </li>
-              <li>
-                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">sched</span>/<span class="symbolic">cpu-id</span></span>
-                <br />
-                <div class="description">This directory contains per-CPU and/or per-bucket specific settings. Remember to set the <a class="optionref" href="#cpu-id">cpu-id</a> file. All CPUs inherit the global settings.</div>
-                <ul>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/bucket-id">bucket-id</span>
-                    <br />
-                    <div class="description">The bucket to apply these settings to</div>
-                  </li>
-                  <li id="cpu-id">
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/cpu-id">cpu-id</span>
-                    <br />
-                    <div class="description">The CPU to apply these settings to</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/fill-rate">fill-rate</span>
-                    <br />
-                    <div class="description">Amount of tokens to add each <a class="optionref" href="#local-interval">interval</a></div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/fill-rate2">fill-rate2</span>
-                    <br />
-                    <div class="description">Amount of tokens to add each <a class="optionref" href="#local-interval2">interval2</a> when advancing idle time</div>
-                  </li>
-                  <li>
-                    <span class="boolean" title="/etc/vservers/$vserver-name/sched/$cpu-id/idle-time">idle-time</span>
-                    <br />
-                    <div class="description">When this file exists, advancing idle time is activated</div>
-                  </li>
-                  <li id="local-interval">
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/interval">interval</span>
-                    <br />
-                    <div class="description">The interval between refills of the bucket</div>
-                  </li>
-                  <li id="local-interval2">
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/interval2">interval2</span>
-                    <br />
-                    <div class="description">The interval between refills of the bucket when advancing idle time</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/priority-bias">priority-bias</span>
-                    <br />
-                    <div class="description">Bias added to priorities calculated within the guest (result is clamped to -20/+19)</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/tokens">tokens</span>
-                    <br />
-                    <div class="description">The initial amount of tokens to put in the bucket</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/tokens-max">tokens-max</span>
-                    <br />
-                    <div class="description">The bucket's size</div>
-                  </li>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/sched/$cpu-id/tokens-min">tokens-min</span>
-                    <br />
-                    <div class="description">The minimum amount of tokens required to unhold the context</div>
-                  </li>
-                </ul>
               </li>
             </ul>
           </li>
@@ -1258,15 +976,6 @@ environment variable must be set by one of the in-shellcontext scripts
 (the non-executable ones).
       </div>
             <ul>
-              <li>
-                <span class="script" title="/etc/vservers/$vserver-name/scripts/initialize">initialize</span>
-                <br />
-                <div class="description">
-The scriptlet which will be executed before the root filesystem is mounted and
-the configuration has been loaded. Before executing the script, the
-configuration directory will be made the working directory.
-        </div>
-              </li>
               <li>
                 <span class="script" title="/etc/vservers/$vserver-name/scripts/post-start">post-start</span>
                 <br />
@@ -1322,21 +1031,6 @@ The scriptlet which will be executed before the network-interfaces are
 enabled and the directories are mounted. Before executing the script,
 the configuration directory will be made the working directory.
         </div>
-              </li>
-              <li>
-                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">scripts</span>/<span class="">initialize.d</span></span>
-                <br />
-                <div class="description">
-Repository of initialize like scripts.  Before executing the script,
-the configuration directory will be made the working directory.
-        </div>
-                <ul>
-                  <li>
-                    <span class="script" title="/etc/vservers/$vserver-name/scripts/initialize.d/$script">script</span>
-                    <br />
-                    <div class="description">See initialize.</div>
-                  </li>
-                </ul>
               </li>
               <li>
                 <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">scripts</span>/<span class="">post-start.d</span></span>
@@ -1435,7 +1129,8 @@ the configuration directory will be made the working directory.
             <br />
             <div class="description">
 A directory with ulimits. Possible resources are cpu, data, fsize,
-locks, memlock, nofile, nproc, rss and/or stack.
+locks, memlock, nofile, nproc, rss and/or stack. This configuration
+will be honored for kernel 2.4 only.
       </div>
             <ul>
               <li>
@@ -1450,7 +1145,7 @@ in the first line. The special keyword 'inf' is recognized.
                 <span class="file" title="/etc/vservers/$vserver-name/ulimits/$resource.hard">resource.hard</span>
                 <br />
                 <div class="description">
-A file which contains the hard-limit of the given resource in the first
+A file which contains the hard- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</div>
               </li>
@@ -1458,7 +1153,7 @@ line. The special keyword 'inf' is recognized.
                 <span class="file" title="/etc/vservers/$vserver-name/ulimits/$resource.soft">resource.soft</span>
                 <br />
                 <div class="description">
-A file which contains the soft-limit of the given resource in the first
+A file which contains the soft- of the given resource in the first
 line. The special keyword 'inf' is recognized.
 	</div>
               </li>

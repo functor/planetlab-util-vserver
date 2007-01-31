@@ -54,25 +54,13 @@ function doInternalMethod
 	    case "$ACTION" in
 		(restart)
 		    logging $"Restarting vserver '$VSERVER'"
-
-		    local sync_dir
-		    vshelper.initStopSync sync_dir
-
-		    spawn $_VSERVER --defaulttty "$VSERVER" restart &
-
-		    disown %%
-		    vshelper.waitForStopSync "$sync_dir"
+		    spawn   killContext "$XID"
+		    execute $_VSERVER --defaulttty "$VSERVER" restart
 		    ;;
 		(halt|poweroff)
 		    logging $"Stopping vserver '$VSERVER'"
-
-		    local sync_dir
-		    vshelper.initStopSync sync_dir
-
-		    spawn $_VSERVER --defaulttty "$VSERVER" stop &
-
-		    disown %%
-		    vshelper.waitForStopSync "$sync_dir"
+		    spawn   killContext "$XID"
+		    execute $_VSERVER --defaulttty "$VSERVER" stop
 		    ;;
 		(swsusp)
 		    ## TODO: any senseful action here? Perhaps shutdown scheduler for it?

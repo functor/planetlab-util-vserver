@@ -1,4 +1,4 @@
-# $Id: vserver.functions 2418 2006-12-08 13:28:02Z dhozac $  --*- sh -*--
+# $Id: vserver.functions,v 1.57 2005/07/03 17:47:06 ensc Exp $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -42,7 +42,6 @@ declare -a OPTS_VCONTEXT_MIGRATE=()
 declare -a OPTS_VCONTEXT_ENTER=()
 declare -a OPTS_VATTRIBUTE=( --flag fakeinit )
 declare -a OPTS_VSCHED=()
-declare -a OPTS_ENV=()
 
 declare -a STOPCMD_PREPARE=()
 
@@ -73,44 +72,22 @@ else
     SILENT_OPT='--silent'
 fi
 
-function _readFileToArray
-{
-    local _rfta_f="$1"
-    local _rfta_a="$2"
-    local _rfta_p="$3"
-    local _rfta_v
-
-    test -e "$_rfta_f" || return 0
-    while read _rfta_v; do
-	case x"$_rfta_v" in
-	    (x|x\#*)	;;
-	    (*)		eval "$_rfta_a=( \"\${$_rfta_a[@]}\" $_rfta_p \"$_rfta_v\" )";;
-	esac
-    done <"$_rfta_f"
-}
-
 function _generateChbindOptions
 {
     local vdir="$1"
     local i
     local bcast=
-    local nid=
 
     test -n "$_HAVE_INTERFACE_OPTIONS" || _generateInterfaceOptions "$vdir"
 
     local f=$vdir/interfaces/bcast
     getFileValue bcast "$f"
-
-    getFileValue nid "$vdir/ncontext" "$vdir/context"
     
-    CHBIND_OPTS=( $SILENT_OPT --secure ${nid:+--nid "$nid"} ${bcast:+--bcast "$bcast"} )
+    CHBIND_OPTS=( $SILENT_OPT ${bcast:+--bcast "$bcast"} )
 
     for i in "${INTERFACES[@]}"; do
 	CHBIND_OPTS=( "${CHBIND_OPTS[@]}" --ip "$i" )
     done
-
-    _readFileToArray "$vdir"/nflags        CHBIND_OPTS --flag
-    _readFileToArray "$vdir"/ncapabilities CHBIND_OPTS --ncap
 
     _HAVE_CHBIND_OPTIONS=1
 }
@@ -118,13 +95,12 @@ function _generateChbindOptions
 function _generateNiceCommand
 {
     local vdir=$1
-    local nice=0
-    local current_nice=`$_NICE`
+    local nice
 
-    test -r "$vdir/nice" && read nice <"$vdir"/nice
+    test -r "$vdir/nice" || return 0;
+    read nice <"$vdir"/nice
 
-    let nice=$nice-$current_nice || :
-    NICE_CMD=( $_NICE -n $nice )
+    NICE_CMD=( $_NICE -$nice )
 }
 
 
@@ -158,15 +134,31 @@ function _generatePersonalityOptions
 function _generateCCapabilityOptions
 {
     local vdir=$1
-
-    _readFileToArray "$vdir"/ccapabilities OPTS_VATTRIBUTE --ccap
+    local cap
+    local f="$vdir"/ccapabilities
+    
+    test -e "$f" || return 0
+    while read cap; do
+	case x"$cap" in
+	    (x|x\#)	;;
+	    (*)		OPTS_VATTRIBUTE=( "${OPTS_VATTRIBUTE[@]}" --ccap "$cap" );;
+	esac
+    done <"$f"
 }
 
 function _generateBCapabilityOptions
 {
     local vdir=$1
-
-    _readFileToArray "$vdir"/bcapabilities OPTS_VATTRIBUTE --bcap
+    local cap
+    local f="$vdir"/bcapabilities
+    
+    test -e "$f" || return 0
+    while read cap; do
+	case x"$cap" in
+	    (x|x\#)	;;
+	    (*)		OPTS_VATTRIBUTE=( "${OPTS_VATTRIBUTE[@]}" --bcap "$cap" );;
+	esac
+    done <"$f"
 }
 
 function _generateCapabilityOptions
@@ -184,7 +176,7 @@ function _generateCapabilityOptions
 
     while read cap; do
 	case x"$cap" in
-	    (x|x\#*)	;;
+	    (x|x\#)	;;
 	    (!CAP_SYSCHROOT)
 		CAP_OPTS=( "${CAP_OPTS[@]}" --cap "$cap" )
 		CAPCHROOT_OPTS=( "${CAPCHROOT_OPTS[@]}" --nochroot )
@@ -250,22 +242,18 @@ function _generateInitOptions
     CHCONTEXT_INIT_OPTS=()
 
 
-    test x"$INITSTYLE" = xrescue || \
-      getFileValue INITSTYLE    "$cfgdir"/style
+    getFileValue INITSTYLE      "$cfgdir"/style
     getFileValue RUNLEVEL_START "$cfgdir"/runlevel
     getFileValue RUNLEVEL_START "$cfgdir"/runlevel.start
     getFileValue RUNLEVEL_STOP  "$cfgdir"/runlevel.stop
     getFileArray INITKILL_SEQ	"$cfgdir"/killseq || :
 
-    findFile _gio_env		"$cfgdir"/environment \
-	"$__CONFDIR"/.defaults/apps/init/environment \
-	"$__PKGLIBDEFAULTDIR"/environment
-    getFileArray OPTS_ENV	"$_gio_env" || :
-
     case x"$INITSTYLE" in
 	(xrescue)
 	    INITCMD_START=( "${INITCMD_RESCUE[@]}" )
 	    INITCMD_STOP=( /sbin/killall5 )
+	    _IS_FAKEINIT=1
+	    _NEED_VSHELPER_SYNC=
 	    ;;
 	    
 	(xsysv)
@@ -301,30 +289,13 @@ function _generateInitOptions
 	    ;;
 
 	(xgentoo)
-	    test -n "$RUNLEVEL_START" || RUNLEVEL_START="default"
-
-	    INITCMD_START=( /lib/rcscripts/sh/init-vserver.sh "$RUNLEVEL_START" )
-	    INITCMD_STOP=( /sbin/rc shutdown )
-	    INITCMD_PREPARE=( $_FAKE_RUNLEVEL 3 /var/run/utmp )
-
-	    pushd "$vdir"/vdir &>/dev/null
-	    basever=$($_CHROOT_SH cat /etc/gentoo-release | $_AWK '{print $5}')
-	    popd &>/dev/null
-
-	    basemaj=${basever/.*}
-	    basemin=${basever#*.}
-	    basemin=${basemin/.*}
-
-	    test "$basemaj" -lt 1 -o "$basemin" -lt 13 && \
-	    panic "\
-Using init-style 'gentoo' requires >=baselayout-1.13 inside the vserver!
-
-Your vserver ($(basename "$vdir")) seems to have baselayout-$basever,
-please use 'plain' init-style instead!"
+	    INITCMD_START=( /sbin/rc default  )
+	    INITCMD_STOP=(  /sbin/rc shutdown )
 	    ;;
 
 	(x) ;;
-	(*) panic "Unknown init-style '$INITSTYLE'; aborting";;
+	(*) echo "Unknown init-style '$INITSTYLE'; aborting" >&2;
+	    exit 1;;
     esac
 
     if test x"$INITSTYLE" != xrescue; then
@@ -357,7 +328,7 @@ function _generateFlagOptions
     test ! -e "$vdir"/flags || \
     while read flag; do
 	case x"$flag" in
-	    (x|x\#*)		;;
+	    (x|x\#)		;;
 	    (xnamespace)	;;
 	    (xfakeinit)
 		_IS_FAKEINIT=1
@@ -406,17 +377,12 @@ function _generateChcontextOptions
     OPTS_VCONTEXT_CREATE=( $SILENT_OPT \
 			   ${ctx:+--xid "$ctx"} )
     ## put '--secure' at front so that it can be overridden
-    OPTS_VATTRIBUTE=( --secure --flag default "${OPTS_VATTRIBUTE[@]}" )
+    OPTS_VATTRIBUTE=( --secure "${OPTS_VATTRIBUTE[@]}" )
 }
 
 function _generateScheduleOptions
 {
     local vdir=$1
-    if test -d "$vdir"/sched; then
-      OPTS_VSCHED=( --dir "$vdir"/sched --missingok )
-      return 0
-    fi
-
     local f="$vdir"/schedule
     test -e "$f" || return 0
 
@@ -489,29 +455,6 @@ function _generateMac
     eval $1=$(printf "f0:ff:%02x:%02x:%02x:%02x" $[ (~($2>>8)) & 0xff ] $[ ($2 & 0xff) ] $[ ($3>>8) & 0xff ] $[ $3 & 0xff ])
 }
 
-function _getVLANInfo
-{
-    case "$1" in
-	(vlan????)
-	    panic "\
-creation of VLAN_PLUS_VID devices is not supported; please create them
-before starting the vserver and use the 'nodev' flag then"
-	    echo "$1 vlan ${1##vlan} VLAN_PLUS_VID"
-	    ;;
-	(vlan*)
-	    panic "\
-creation of VLAN_PLUS_VID_NO_PAD devices is not supported; please
-create them before starting the vserver and use the 'nodev' flag then"
-	    echo "$1 vlan ${1##vlan} VLAN_PLUS_VID_N0_PAD"
-	    ;;
-	(*.????)	echo "$1 ${1%%.*} ${1##*.} DEV_PLUS_VID";;
-	(*.*)		echo "$1 ${1%%.*} ${1##*.} DEV_PLUS_VID_NO_PAD";;
-	(*)		return 1
-    esac
-
-    return 0
-}
-
 ## Usage: _processSingleInterface <interface-directory>
 function _processSingleInterface
 {
@@ -554,20 +497,19 @@ function _processSingleInterface
 	## LEGACY ALERT
 	test ! -e "$iface"/only_ip || break
 
-	local vlan_info
-	if vlan_info=$(_getVLANInfo "$dev"); then
-	    test -d /proc/net/vlan || {
-		echo -e $"VLAN device-name used, but vlan subsystem not enabled.\nTry to execute 'modprobe 8021q' before starting the vservers"  >&2
-		return 1
-	    }
-	    test -e "$iface/vlandev" \
-		 -o \( -e "$iface/../vlandev" -a ! -e "$iface/novlandev" \) \
-		 -o \( -e "$__CONFDIR/.defaults/interfaces/vlandev" \
-		       -a ! -e "$iface/novlandev" \
-		       -a ! -e "$iface/../novlandev" \) && {
-		_addInterfaceCmd VCONFIG $vlan_info
-	    }
-	fi
+	case "$dev" in
+	    (*.*)
+		test -d /proc/net/vlan || {
+		    echo -e $"VLAN device-name used, but vlan subsystem not enabled.\nTry to execute 'modprobe 8021q' before starting the vservers"  >&2
+		    return 1
+		}
+		test -f /proc/net/vlan || {
+		    _addInterfaceCmd VCONFIG ${dev/./ }
+		    _addInterfaceCmd IP_ADDR 127.0.0.1/8 broadcast 127.255.255.255 dev "$dev"
+		    _addInterfaceCmd IP_LINK "$dev" $up
+		}
+		;;
+	esac
 
 	if ! test -e "$iface"/indirect; then
 	    _addInterfaceCmd IP_ADDR  "$ip${prefix:+/$prefix}" broadcast ${bcast:-+} ${name:+label "$dev:$name"} dev "$dev"
@@ -627,9 +569,8 @@ function enableInterfaces
 		shift 2
 		$_MODPROBE ${name:+-o "$name"} "$mod" "$@"
 		;;
-	    NAMEIF)		$_NAMEIF   "$@";;
-	    VCONFIG)		$_VCONFIG  set_name_type "$4"      >/dev/null
-				$_VCONFIG  add           "$2" "$3" >/dev/null;;
+	    NAMEIF)		$_NAMEIF "$@";;
+	    VCONFIG)		$_VCONFIG  add   "$@";;
 	    IP_ADDR)		$_IP addr  add   "$@";;
 	    IP_ADDR_FLUSH)	$_IP addr  flush "$@";;
 	    IP_LINK)		$_IP link  set   "$@";;
@@ -664,7 +605,7 @@ function disableInterfaces
 	    IPTABLES)		;; ## TODO
 	    MODPROBE)		$_RMMOD "${2:-$1}";;
 	    NAMEIF)		;;
-	    VCONFIG)		$_VCONFIG  rem "$2.$3" >/dev/null;;
+	    VCONFIG)		$_VCONFIG  rem "$@";;
 	    IP_ADDR)		$_IP addr  del "$@";;
 	    IP_ADDR_FLUSH)	;;
 	    IP_LINK)		;; ## Ignore the link-down command for now
@@ -726,54 +667,6 @@ function generateOptions
     fi
 }
 
-function addtoCPUSET
-{
-    local vdir=$1
-    local cpuset
-    local f="$vdir"/cpuset
-    local i
-    local configured=0
-
-    test -d "$f" || return 0
-    test -e "$f"/name || return 0
-
-    read cpuset < "$f"/name
-    test -e "$f"/nocreate || {
-       test -d /dev/cpuset/"$cpuset" || mkdir /dev/cpuset/"$cpuset" || configured=1
-       for i in cpus mems cpu_exclusive mem_exclusive virtualized; do
-           if test -e "$f"/"$i"; then
-               cat "$f"/"$i" >/dev/cpuset/"$cpuset"/"$i" || {
-                   configured=1
-                   break
-               }
-           fi
-       done
-    }
-
-    echo $$ >/dev/cpuset/"$cpuset"/tasks || configured=1
-    if [ "$configured" -ne 0 ]; then
-       warning $"\
-WARNING: Failed to create or CPUSET \"$cpuset\" does not exist! Not using it!" >&2
-       rmdir /dev/cpuset/"$cpuset" 2>/dev/null || :
-       return 0
-    fi
-}
-
-function removeCPUSET
-{
-    local vdir=$1
-    local cpuset
-    local f="$vdir"/cpuset
-
-    test -d "$f" || return 0
-    test -e "$f"/name || return 0
-
-    read cpuset < "$f"/name
-    test -e "$f"/nocreate || {
-       rmdir /dev/cpuset/"$cpuset" 2>/dev/null || :
-    }
-}
-
 function _mountVserverInternal
 {
     local fstab="$1"
@@ -827,12 +720,12 @@ function mountVserver
 
     test -n "$_HAVE_CHBIND_OPTIONS" || _generateChbindOptions "$cfgdir"
 
+    test -z "$NAMESPACE_CLEANUP" || isAvoidNamespace "$cfgdir" || \
+	$_VNAMESPACE --cleanup
+
     _mountVserverInternal "$cfgdir"/fstab
     _mountVserverInternal "$cfgdir"/fstab.local
     _mountVserverInternal "$cfgdir"/fstab.remote $_CHBIND "${CHBIND_OPTS[@]}"
-
-    isNamespaceCleanup "$cfgdir" && \
-        _namespaceCleanup "$cfgdir"
 
     isAvoidNamespace "$cfgdir" || \
 	$_SECURE_MOUNT --rbind -n "$vdir" "/"
@@ -867,14 +760,12 @@ function umountVserver
 
     isAvoidNamespace "$cfgdir"    || return 0
     test -e "$cfgdir"/fstab -o \
-         -e "$cfgdir"/fstab.local -o \
-         -e "$cfgdir"/fstab.remote || return 0
+         -e "$cfgdir"/fstab.local || return 0
     test -n "$_HAVE_CHBIND_OPTIONS"  || _generateChbindOptions "$cfgdir"
     
     pushd "$vdir/" >/dev/null || return 1
-	_umountVserverInternal  "$cfgdir"/fstab.remote $_CHBIND "${CHBIND_OPTS[@]}" || is_ok=
-	_umountVserverInternal  "$cfgdir"/fstab.local                               || is_ok=
-	_umountVserverInternal  "$cfgdir"/fstab                                     || is_ok=
+	_umountVserverInternal  "$cfgdir"/fstab.local                              || is_ok=
+	_umountVserverInternal  "$cfgdir"/fstab       $_CHBIND "${CHBIND_OPTS[@]}" || is_ok=
     popd >/dev/null           || return 1
 
     test -n "$is_ok"
@@ -895,37 +786,24 @@ function initWait
 {
     if $_VSERVER_INFO - FEATURE vwait; then
 	local _is_tmpdir
-	_is_tmpdir=$($_MKTEMPDIR vwaitstat.XXXXXX)
-
-	(
-	    $_VWAIT --timeout "$VSHELPER_SYNC_TIMEOUT" \
-		--status-fd 3 "$2" \
-		>>$_is_tmpdir/out 2>$_is_tmpdir/err 3>$_is_tmpdir/fifo
-	    rc=$?
-
-	    if test "$rc" -ne 0 -a "$rc" -ne 1; then
-		$_VPS axf | $_EGREP -e "^[^ \t]+[ \t]+$S_CONTEXT[ \t]+" >&4
-		killContext "$S_CONTEXT" 9
-	    fi
-
-	    exit $rc
-	) 4>$_is_tmpdir/procs &
+	_is_tmpdir=$($_MKTEMPDIR /tmp/vwaitstat.XXXXXX)
 	    
+	$_NOHUP $_VWAIT --timeout "$VSHELPER_SYNC_TIMEOUT" \
+	    --terminate --status-fd 3 "$2"  \
+	    >>$_is_tmpdir/out 2>$_is_tmpdir/err 3>$_is_tmpdir/fifo &
+
 	echo "$!" >$_is_tmpdir/pid
 	eval "$3"=$_is_tmpdir
-    fi </dev/null
+    fi
 }
 
 
-## Usage: _waitForVWait <vserver> <fifo> <pid> <procs>
+## Usage: _waitForVWait <fifo> <pid>
 function _waitForVWait
 {
-    wait "$3" || :
-
     declare -a status
-    declare -r procs=$(cat $4)
-
-    getFileArray status "$2"
+    wait "$2" || :
+    getFileArray status "$1"
     set -- ${status[0]}
 
     case "$1" in
@@ -939,21 +817,10 @@ A timeout occured while waiting for the vserver to finish and it was
 killed by sending a SIGKILL signal. Please investigate the reasons
 and/or increase the timeout in apps/vshelper/sync-timeout."
 			;;
-
-	(TIMEOUT)	warning $"\
-A timeout occured while waiting for the vserver to finish and it will
-be killed by sending a SIGKILL signal. The following process list
-might be useful for finding out the reason of this behavior:
-
-----------------------------------------------------------------------
-${procs:+$procs
-}----------------------------------------------------------------------"
-			;;
-
-	(\?\?\?|*)	warning $"\
+	(TIMEOUT|\?\?\?|*)	warning $"\
 internal error: 'vwait' exited with an unexpected status '$1'; I will
 try to continue but be prepared for unexpected events."
-		    ;;
+			;;
     esac
 
     return 0
@@ -968,7 +835,7 @@ function waitForSync
     local vwait_pid=$4
 
     if test -d "$vwait_statdir"; then
-	_waitForVWait "$cfgdir" "$vwait_statdir/fifo" "$( <$vwait_statdir/pid )" "$vwait_statdir/procs"
+	_waitForVWait "$vwait_statdir/fifo" "$( <$vwait_statdir/pid )"
     elif test -n "$_NEED_VSHELPER_SYNC"; then
 	$_VSHELPER_SYNC "$fifo" "$VSHELPER_SYNC_TIMEOUT" || \
 	    warning $"\
@@ -1053,14 +920,6 @@ WARNING: The 'only_ip' flag for interface '$iface' is deprecated; use
 	fi
     done
 
-    test ! -d "$cfgdir"/dlimits -o -L "$cfgdir/cache" || \
-	warning $"\
-WARNING: There is no cachedirectory configured for this vserver;
-  please create '$cfgdir/cache' e.g. by executing
-
-  ln -s ../.defaults/cachebase/$VSERVER_NAME $cfgdir/cache
-"
-
     find "$cfgdir" -type f -exec "$_CHECK_UNIXFILE" '{}' ';'
 
     vshelper.doSanityCheck
@@ -1072,155 +931,5 @@ WARNING: There is no cachedirectory configured for this vserver;
 	panic $"\
 /proc/uptime can not be accessed. Usually, this is caused by
 procfs-security. Please read the FAQ for more details
-http://linux-vserver.org/Proc-Security"
+http://www.linux-vserver.org/index.php?page=Linux-Vserver+FAQ"
 }
-
-
-function _setSingleDiskLimit
-{
-    local vdir=$1
-    local dlimit=$2
-    local space_used=
-    local space_total=
-    local inodes_used=
-    local inodes_total=
-    local reserved=
-    local directory=
-    local ctx=
-
-    getFileValue ctx          "$vdir/context"
-    getFileValue directory    "$dlimit/directory"    || return 0
-    getFileValue space_total  "$dlimit/space_total"  || return 0
-    getFileValue inodes_total "$dlimit/inodes_total" || return 0
-    getFileValue reserved     "$dlimit/reserved"     || return 0
-
-    local cachename=$ctx$directory
-    cachename=dlimits/${cachename//\//_}
-
-    test -e "$vdir/cache/$cachename" && . "$vdir/cache/$cachename"
-    # Remove the cache so if the machine goes down unexpectedly, we won't have a stale cache
-    $_RM -f "$vdir/cache/$cachename"
-
-    if test -z "$inodes_used" -o -z "$space_used"; then
-	local tmpvdu
-	tmpvdu=`$_VDU --xid $ctx --space --inodes --script "$directory"`
-	inodes_used=${tmpvdu##* }
-	space_used=${tmpvdu%% *}
-    fi
-
-    $_VDLIMIT --xid $ctx \
-	--set space_used=$space_used \
-	--set space_total=$space_total \
-	--set inodes_used=$inodes_used \
-	--set inodes_total=$inodes_total \
-	--set reserved=$reserved \
-	"$directory"
-}
-
-
-function setDiskLimits
-{
-    local vdir=$1
-    local dlimit
-
-    # Disk Limits without a static context are useless
-    test -e "$vdir"/context || return 0
-
-    for dlimit in "$vdir/dlimits/"*; do
-	test   -d "$dlimit"          || continue
-	test ! -e "$dlimit/disabled" || continue
-
-	_setSingleDiskLimit "$vdir" "$dlimit"
-    done
-}
-
-
-function _saveSingleDiskLimit
-{
-    local vdir=$1
-    local dlimit=$2
-    local ctx=
-    local directory=
-
-    getFileValue ctx       "$vdir/context"
-    getFileValue directory "$dlimit/directory" || return 0
-
-    local cachename=$ctx$directory
-    cachename=${cachename//\//_}
-
-    # Things are getting ugly here... LFS says that /var/cache (where
-    # cachename is usually pointing to) can vanish and applications
-    # have to deal with it. So, we have to interprete the $vdir/cache
-    # symlink and have to create the needed directories manually.
-    if   test -d "$vdir/cache"; then
-	:	# ok, exists already
-    elif test -L "$vdir/cache"; then
-	# it's a dangling symlink
-	local link
-	link=$($_READLINK "$vdir/cache")
-	( cd $vdir && $_MKDIR -p "$link" )
-    else
-	return 0
-    fi
-
-    test -d "$vdir/cache"
-    $_MKDIR -p "$vdir"/cache/dlimits
-
-    $_VDLIMIT --xid $ctx "$directory" | \
-	$_GREP '_used=' > "$vdir/cache/dlimits/$cachename"
-}
-
-
-function saveDiskLimits
-{
-    local vdir=$1
-    local dlimit
-
-    test -e "$vdir"/context || return 0
-
-    for dlimit in "$vdir/dlimits/"*; do
-	test   -d "$dlimit"          || continue
-	test ! -e "$dlimit/disabled" || continue
-
-	_saveSingleDiskLimit "$vdir" "$dlimit"
-    done
-}
-
-function _namespaceCleanup
-{
-    local vdir="$1"
-    local root=$($_VSERVER_INFO "$1" VDIR 1)
-    local -a list
-    local -a skip
-    local tmp
-
-    getFileArray skip "$vdir"/namespace-cleanup-skip \
-	"$__CONFDIR"/.defaults/namespace-cleanup-skip || :
-
-    # these are things that have to be accessible post-cleanup
-    for tmp in "$root" "$__SBINDIR" "$__PKGLIBDIR" "$vdir" \
-	"$__PKGSTATEDIR" "${skip[@]}"; do
-	while test -n "$tmp"; do
-	    list=( "${list[@]}" "$tmp" )
-	    tmp="${tmp%/*}"
-	done
-    done
-
-    local -a list_umount
-    while read dev path opts; do
-	test -n "$path" || continue
-	for i in "$root" /dev /proc; do
-	    test "${path#$i}" != "$path" && continue 2
-	done
-	for i in "${list[@]}" /; do
-	    test "$path" = "$i" && continue 2
-	done
-	# unmount them in reverse order so mounts further down the tree get unmounted first
-	list_umount=( "$path" "${list_umount[@]}" )
-    done < /proc/mounts
-    # separate loop to avoid races while reading /proc/mounts
-    for i in "${list_umount[@]}"; do
-	$_UMOUNT -l -n "$i"
-    done
-}
-

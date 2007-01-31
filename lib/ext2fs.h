@@ -1,4 +1,4 @@
-// $Id: ext2fs.h 720 2004-01-29 11:00:41Z ensc $    --*- c -*--
+// $Id: ext2fs.h,v 1.2 2004/01/29 11:00:41 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

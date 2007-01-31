@@ -1,4 +1,4 @@
-// $Id: context-sync.hc 2015 2005-04-10 01:01:33Z ensc $    --*- c -*--
+// $Id: context-sync.hc,v 1.5 2005/04/10 01:01:33 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

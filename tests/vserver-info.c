@@ -1,4 +1,4 @@
-// $Id: vserver-info.c 636 2004-01-17 05:25:04Z ensc $    --*- c -*--
+// $Id: vserver-info.c,v 1.3 2004/01/17 05:25:04 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

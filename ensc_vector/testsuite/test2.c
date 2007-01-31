@@ -1,4 +1,4 @@
-// $Id: test2.c 1975 2005-03-24 12:41:27Z ensc $    --*- c -*--
+// $Id: test2.c,v 1.2 2005/03/24 12:41:27 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
 //  

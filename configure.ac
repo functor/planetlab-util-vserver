@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 2422 2006-12-09 16:13:54Z dhozac $
+dnl $Id: configure.ac,v 1.97 2005/07/15 20:25:06 ensc Exp $
 
 dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -24,7 +24,7 @@ dnl distribution terms that you use for the rest of that program.
 dnl  
 
 AC_PREREQ(2.57)
-AC_INIT(util-vserver, 0.30.212, vserver@list.linux-vserver.org)
+AC_INIT(util-vserver, 0.30.208, enrico.scholz@informatik.tu-chemnitz.de)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -57,12 +57,6 @@ ENSC_PATHPROG(NOHUP,     nohup)
 ENSC_PATHPROG(RMMOD,     rmmod)
 ENSC_PATHPROG(VCONFIG,   vconfig,, [See http://www.candelatech.com/~greear/vlan.html; usually this tool is shipped in the 'vconfig' or 'vlan' package of your distribution])
 ENSC_PATHPROG(WGET,      wget)
-ENSC_PATHPROG(FILE,      file,    [file])
-ENSC_PATHPROG(GZIP,      gzip,    [gzip])
-ENSC_PATHPROG(BZIP2,     bzip2,   [bzip2])
-ENSC_PATHPROG(CPIO,      cpio,    [cpio])
-ENSC_PATHPROG(RESTORE,   restore, [restore])
-ENSC_PATHPROG(RSYNC,     rsync,   [rsync])
 
 ENSC_PATHPROG(DOXYGEN,   doxygen,  [:])
 ENSC_PATHPROG(XSLTP,     xsltp,    [:])
@@ -71,10 +65,7 @@ ENSC_PATHPROG(XSLTPROC,  xsltproc, [:])
 
 AM_CONDITIONAL(HAVE_XSLTP,    test "$XSLTP"    != ':')
 AM_CONDITIONAL(HAVE_XSLTPROC, test "$XSLTPROC" != ':')
-
-if test x"$prefix" = x/; then
-	prefix=
-fi	
+	
 
 ENSC_CHECK_CC_FLAG([-std=c99 -Wall -pedantic -W])
 ENSC_CHECK_CXX_FLAG([-ansi   -Wall -pedantic -W -fmessage-length=0])
@@ -119,13 +110,13 @@ fi
 
 AC_MSG_CHECKING([whether to enable expensive tests])
 AC_ARG_ENABLE([expensive-tests],
-	      [AC_HELP_STRING([--enable-expensive-tests],
+	      [AC_HELP_STRING([--disable-expensive-tests],
 			      [disable tests which might be expensive on some systems (default: no)])],
 	      [case "$enableval" in
 		 (yes|no)  use_expensive_tests=$enableval;;
-		 (*)       AC_MSG_ERROR(['$enableval' is not a valid value for '--enable-expensive-tests']);;
+		 (*)       AC_MSG_ERROR(['$enableval' is not a valid value for '--disable-expensive-tests']);;
 	       esac],
-              [ use_expensive_tests=no ])
+              [ use_expensive_tests=yes ])
 AC_MSG_RESULT($use_expensive_tests)
 
 AC_SUBST(ENSC_USE_EXPENSIVE_TESTS, "$use_expensive_tests")
@@ -146,7 +137,6 @@ dnl
 case $host_cpu in
 	(i*86|athlon)	min_diet_ver=0.25;;
 	(ia64|hppa*)	min_diet_ver=0.29;;
-	(sparc*)	min_diet_ver=0.30;;
 	(*)		min_diet_ver=0.28;;
 esac
 
@@ -184,8 +174,9 @@ dnl
 dnl ##########################
 
 
+ENSC_KERNEL_HEADERS(kernelincludedir)
 ENSC_UV_VROOTDIR(vserverdir)
-ENSC_CHANGELOG
+ENSC_CHANGELOG([trunk])
 
 
 dnl ##########################
@@ -213,64 +204,46 @@ dnl ##########################
 dnl
 dnl {Check for the APIs to be used
 dnl
-AH_TEMPLATE(VC_ENABLE_API_COMPAT,   [Enable support for compatibility syscall API])
-AH_TEMPLATE(VC_ENABLE_API_LEGACY,   [Enable support for old, /proc parsing API])
-AH_TEMPLATE(VC_ENABLE_API_V11,      [Enable support for API of vserver 1.1.x])
-AH_TEMPLATE(VC_ENABLE_API_FSCOMPAT, [Enable support for filesystem compatibility API])
-AH_TEMPLATE(VC_ENABLE_API_V13OBS,   [Enable support for some obsoleted API of vserver 1.3.x])
-AH_TEMPLATE(VC_ENABLE_API_V13,      [Enable support for API of vserver 1.3.x])
-AH_TEMPLATE(VC_ENABLE_API_NET,      [Enable support for network context API])
-AH_TEMPLATE(VC_ENABLE_API_V21,      [Enable support for API of vserver 2.1.x])
-AH_TEMPLATE(VC_ENABLE_API_OLDPROC,  [Enable API for a backward compatible /proc parsing])
-AH_TEMPLATE(VC_ENABLE_API_OLDUTS,   [Enable API for a backward compatible uts handling])
-
 AC_MSG_CHECKING([for supported APIs])
 AC_ARG_ENABLE([apis],
 	      [AC_HELP_STRING([--enable-apis=APIS],
-			      [enable support for the given apis; possible values are: legacy,compat,v11,fscompat,v13obs,v13,net, ALL,NOLEGACY (default: v13,net,v21)])],
+			      [enable support for the given apis; possible values are: legacy,compat,v11,v13,fscompat,net,ALL (default: all except 'legacy')])],
               [],
-	      [enable_apis=v13,net,v21])
+	      [enable_apis=compat,v11,v13,fscompat,net])
 
-test x"$enable_apis" != xALL      || enable_apis='legacy,compat,v11,fscompat,v13obs,v13,net,v21'
-test x"$enable_apis" != xNOLEGACY || enable_apis='compat,v11,fscompat,v13,net,v21'
+test x"$enable_apis" != xALL || enable_apis='legacy,compat,v11,v13,fscompat,net'
 enable_api_oldproc=
 enable_api_olduts=
 old_IFS=$IFS
 IFS=,;
-
 for i in $enable_apis; do
 	case "$i" in
-		(compat)	AC_DEFINE(VC_ENABLE_API_COMPAT,   1)
-				enable_api_oldproc=${enable_api_oldproc:-1}
-				enable_api_olduts=${enable_api_olduts:-1}
+		(compat)	AC_DEFINE(VC_ENABLE_API_COMPAT,   1, [Enable support for compatibility syscall API])
+				enable_api_oldproc=1
+				enable_api_olduts=1
 				;;
-		(legacy) 	AC_DEFINE(VC_ENABLE_API_LEGACY,   1)
-				enable_api_oldproc=${enable_api_oldproc:-1}
-				enable_api_olduts=${enable_api_olduts:-1}
+		(legacy) 	AC_DEFINE(VC_ENABLE_API_LEGACY,   1, [Enable support for old, /proc parsing API])
+				enable_api_old_proc=1
+				enable_api_olduts=1
 				;;
-		(v11)    	AC_DEFINE(VC_ENABLE_API_V11,      1)
-				enable_api_oldproc=${enable_api_oldproc:-1}
-				enable_api_olduts=${enable_api_olduts:-1}
+		(v11)    	AC_DEFINE(VC_ENABLE_API_V11,      1, [Enable support for API of vserver 1.1.x])
+				enable_api_oldproc=1
+				enable_api_olduts=1
 				;;
-		(fscompat)	AC_DEFINE(VC_ENABLE_API_FSCOMPAT, 1);;
-		(v13obs)    	AC_DEFINE(VC_ENABLE_API_V13OBS,   1)
-				AC_DEFINE(VC_ENABLE_API_V13,      1);;
-		(v13)    	AC_DEFINE(VC_ENABLE_API_V13,      1);;
-		(net)		AC_DEFINE(VC_ENABLE_API_NET,      1);;
-		(v21)		AC_DEFINE(VC_ENABLE_API_V21,      1);;
-		(oldproc)	enable_api_oldproc=2;;
-		(olduts)	enable_api_olduts=2;;
+		(v13)    	AC_DEFINE(VC_ENABLE_API_V13,      1, [Enable support for API of vserver 1.3.x]);;
+		(net)		AC_DEFINE(VC_ENABLE_API_NET,      1, [Enable support for network context API]);;
+		(fscompat)	AC_DEFINE(VC_ENABLE_API_FSCOMPAT, 1, [Enable support for filesystem compatibility API]);;
 		(*)		AC_MSG_ERROR(['$i' is not a supported API]);;
 	esac
 done
 IFS=$old_IFS
 if test x"$enable_api_oldproc" != x; then
-	AC_DEFINE(VC_ENABLE_API_OLDPROC, 1)
-	test x"$enable_api_oldproc" != x2 && enable_apis="$enable_apis,oldproc"
+	AC_DEFINE(VC_ENABLE_API_OLDPROC, 1, [Enable API for a backward compatible /proc parsing])
+	enable_apis="$enable_apis,oldproc"
 fi
 if test x"$enable_api_olduts" != x; then
-	AC_DEFINE(VC_ENABLE_API_OLDUTS, 1)
-	test x"$enable_api_olduts" != x2 && enable_apis="$enable_apis,olduts"
+	AC_DEFINE(VC_ENABLE_API_OLDUTS, 1, [Enable API for a backward compatible uts handling])
+	enable_apis="$enable_apis,olduts"
 fi
 AC_MSG_RESULT([$enable_apis])
 dnl
@@ -279,7 +252,7 @@ dnl
 dnl ##########################
 
 
-ENSC_SYSCALLNR(vserver,273,[lib/syscall-fallback.h])
+ENSC_SYSCALLNR(vserver,273)
 ENSC_SYSCALL
 ENSC_CHECK_EXT2FS_HEADER
 AC_CHECK_FUNCS([vserver])
@@ -288,14 +261,6 @@ AC_CHECK_TYPES(xid_t,,,[#include <sys/types.h>])
 AC_CHECK_TYPES(nid_t,,,[#include <sys/types.h>])
 
 AC_CHECK_HEADERS([sys/capability.h])
-
-dnl vlogin might need -lutil
-if test x"$ensc_have_dietlibc" = xno; then
-	AC_CHECK_FUNC([openpty],, [AC_CHECK_LIB([util], [openpty],, [AC_MSG_ERROR([
-****
-**** openpty could not be found
-****])])])
-fi
 
 
 dnl ########################
@@ -383,6 +348,7 @@ Paths:
             cfg-Directory: $sysconfdir/vservers
          initrd-Directory: $initrddir
        pkgstate-Directory: $localstatedir/run/vservers
+            Kernelheaders: $kernelincludedir
           vserver-Rootdir: $vserverdir
 "
 			echo "$FEATURES_TXT" >FEATURES.txt

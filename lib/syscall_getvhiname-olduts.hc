@@ -1,4 +1,4 @@
-// $Id: syscall_getvhiname-olduts.hc 733 2004-02-02 18:32:53Z ensc $    --*- c -*--
+// $Id: syscall_getvhiname-olduts.hc,v 1.1 2004/02/02 18:32:53 ensc Exp $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
