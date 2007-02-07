@@ -212,11 +212,11 @@ class VServer:
                     exempt_min = None, exempt_max = None,
                     share = None, dev = "eth0"):
 
-        if minrate:
+        if minrate is None:
+            bwlimit.off(self.ctx, dev)
+        else:
             bwlimit.on(self.ctx, dev, share,
                        minrate, maxrate, exempt_min, exempt_max)
-        else:
-            bwlimit.off(self.ctx, dev)
 
     def get_bwlimit(self, dev = "eth0"):
 
