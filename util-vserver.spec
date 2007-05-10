@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 15%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 16%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -215,6 +215,7 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
 install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
 install -D -m 755 python/bwlimit $RPM_BUILD_ROOT/%{_sbindir}/bwlimit
+install -D -m 755 python/disklimit $RPM_BUILD_ROOT/%{_sbindir}/disklimit
 
 
 %check || :
@@ -442,6 +443,7 @@ fi
 %files python
 %{_datadir}/%{name}
 %{_sbindir}/bwlimit
+%{_sbindir}/disklimit
 
 
 %changelog
