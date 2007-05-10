@@ -377,8 +377,8 @@ class VServer:
         self.__do_chcontext(state_file)
 
     def start(self, wait, runlevel = 3):
-
         self.vm_running = True
+        self.limits_changed = False
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -469,9 +469,9 @@ class VServer:
         return size
 
     def stop(self, signal = signal.SIGKILL):
-
         vserverimpl.killall(self.ctx, signal)
         self.vm_running = False
+        self.limits_changed = False
 
 
 
