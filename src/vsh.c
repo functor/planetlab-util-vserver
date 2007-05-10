@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <pwd.h>
 #include <unistd.h>
@@ -48,29 +47,8 @@
 
 #undef CONFIG_VSERVER_LEGACY
 
-/* Null byte made explicit */
-#define NULLBYTE_SIZE                    1
-
 /* Base for all vserver roots for chroot */
 #define VSERVER_ROOT_BASE       "/vservers"
-
-static int
-_PERROR(const char *format, char *file, int line, int _errno, ...)
-{
-	va_list ap;
-
-	va_start(ap, _errno);
-	fprintf(stderr, "%s:%d: ", file, line);
-	vfprintf(stderr, format, ap);
-	if (_errno)
-		fprintf(stderr, ": %s (%d)", strerror(_errno), _errno);
-	fputs("\n", stderr);
-	fflush(stderr);
-
-	return _errno;
-}
-
-#define PERROR(format, args...) _PERROR(format, __FILE__, __LINE__, errno, ## args)
 
 /* Change to root:root (before entering new context) */
 static int setuidgid_root()
@@ -200,69 +178,6 @@ static int sandbox_chroot(uid_t uid)
 	return 0;
 }
 
-#define WHITESPACE(buffer,index,len)     \
-  while(isspace((int)buffer[index])) \
-	if (index < len) index++; else goto out;
-
-struct resources {
-	char *name;
-	unsigned long long *limit;
-};
-
-#define VSERVERCONF "/etc/vservers/"
-static void get_limits(char *context, struct resources *list){
-	FILE *fb;
-	size_t len = strlen(VSERVERCONF) + strlen(context) + strlen(".conf") + NULLBYTE_SIZE;
-	char *conf = (char *)malloc(len);	
-	struct resources *r;
-
-	sprintf(conf, "%s%s.conf", VSERVERCONF, context);
-
-	/* open the conf file for reading */
-	fb = fopen(conf,"r");
-	if (fb != NULL) {
-		size_t index;
-		char *buffer = malloc(1000);
-		char *p;
-
-		/* the conf file exist */ 
-		while((p=fgets(buffer,1000-1,fb))!=NULL) {
-			index = 0;
-			len = strnlen(buffer,1000);
-			WHITESPACE(buffer,index,len);
-			if (buffer[index] == '#') 
-				continue;
-
-			for (r=list; r->name; r++)
-				if ((p=strstr(&buffer[index],r->name))!=NULL) {
-					/* adjust index into buffer */
-					index+= (p-&buffer[index])+strlen(r->name);
-
-					/* skip over whitespace */
-					WHITESPACE(buffer,index,len);
-
-					/* expecting to see = sign */
-					if (buffer[index++]!='=') goto out;
-
-					/* skip over whitespace */
-					WHITESPACE(buffer,index,len);
-
-					/* expecting to see a digit for number */
-					if (!isdigit((int)buffer[index])) goto out;
-
-					*r->limit = atoi(&buffer[index]);
-					break;
-				}
-		}
-	out:
-		free(buffer);
-	} else {
-		fprintf(stderr,"cannot open %s\n",conf);
-	}
-	free(conf);
-}
-
-
 static int sandbox_processes(xid_t ctx, char *context)
 {
 #ifdef CONFIG_VSERVER_LEGACY
@@ -282,58 +197,33 @@ static int sandbox_processes(xid_t ctx, char *context)
 	}
 #else
 	int  ctx_is_new;
-	unsigned long long cpu = VC_LIM_KEEP;
-	unsigned long long mem = VC_LIM_KEEP;
-	unsigned long long task = VC_LIM_KEEP;
-	unsigned long long cpuguaranteed = 0;
-	struct resources list[] = 
-		{{"MEMLIMIT", &mem},
-		 {"CPULIMIT", &cpu},
-		 {"CPUGUARANTEED", &cpuguaranteed},
-		 {"TASKLIMIT", &task},
-		 {0,0}};
+	struct sliver_resources slr;
+	pl_get_limits(context,&slr);
 
-	get_limits(context,list);
-
-	/* check whether the slice has been disabled */
-	if (!cpu)
+	/* check whether the slice has been taken off of the whitelist */
+	if (slr.vs_whitelisted==0)
 	  {
-	    fprintf(stderr, "*** this slice has been suspended ***\n");
+	    fprintf(stderr, "*** %s has not been allocated resources on this node ***\n", context);
+	    exit(0);
+	  }
+
+	/* check whether the slice has been suspended */
+	if (slr.vs_cpu==0)
+	  {
+	    fprintf(stderr, "*** %s has zero cpu resources and presumably it has been disabled/suspended ***\n");
 	    exit(0);
 	  }
 
 	(void) (sandbox_chroot(ctx));
 
-        if ((ctx_is_new = pl_chcontext(ctx, 0, ~vc_get_insecurebcaps())) < 0)
+        if ((ctx_is_new = pl_chcontext(ctx, 0, ~vc_get_insecurebcaps(),&slr)) < 0)
           {
             PERROR("pl_chcontext(%u)", ctx);
             exit(1);
           }
 	if (ctx_is_new)
 	  {
-	    /* set resources */
-	    struct vc_rlimit limits;
-
-	    limits.min = VC_LIM_KEEP;
-	    limits.soft = VC_LIM_KEEP;
-	    limits.hard = mem;
-	    if (vc_set_rlimit(ctx, RLIMIT_RSS, &limits))
-	      {
-		PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
-		exit(1);
-	      }
-	    limits.hard = task;
-	    if (vc_set_rlimit(ctx, RLIMIT_NPROC, &limits))
-	      {
-		PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
-		exit(1);
-	      }
-	    cpuguaranteed &= VS_SCHED_CPU_GUARANTEED;
-	    if (pl_setsched(ctx, cpu, cpuguaranteed) < 0)
-	      {
-		PERROR("pl_setsched(&u)", ctx);
-		exit(1);
-	      }
+	    pl_set_limits(ctx,&slr);
 	    pl_setup_done(ctx);
 	  }
 #endif
