@@ -36,8 +36,18 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #define VC_VXF_SCHED_FLAGS  (VC_VXF_SCHED_HARD | VC_VXF_SCHED_SHARE)
 
+struct sliver_resources {
+  unsigned long long vs_cpu;
+  unsigned long long vs_cpuguaranteed;
+  struct vc_rlimit vs_rss;
+  struct vc_rlimit vs_as;
+  struct vc_rlimit vs_nproc;
+  struct vc_rlimit vs_openfd;
+  unsigned int vs_whitelisted;
+};
+
 int
-pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps);
+pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources *slr);
 
 int
 pl_setup_done(xid_t ctx);
@@ -48,4 +58,27 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags);
 /* scheduler flags */
 #define VS_SCHED_CPU_GUARANTEED  1
 
+/* Null byte made explicit */
+#define NULLBYTE_SIZE                    1
+
+void pl_get_limits(char *, struct sliver_resources *);
+void pl_set_limits(xid_t, struct sliver_resources *);
+
+static int
+_PERROR(const char *format, char *file, int line, int _errno, ...)
+{
+	va_list ap;
+
+	va_start(ap, _errno);
+	fprintf(stderr, "%s:%d: ", file, line);
+	vfprintf(stderr, format, ap);
+	if (_errno)
+		fprintf(stderr, ": %s (%d)", strerror(_errno), _errno);
+	fputs("\n", stderr);
+	fflush(stderr);
+
+	return _errno;
+}
+
+#define PERROR(format, args...) _PERROR(format, __FILE__, __LINE__, errno, ## args)
 #endif
