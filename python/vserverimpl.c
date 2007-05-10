@@ -4,17 +4,17 @@ Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
 are met: 
 
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
       
-    * Redistributions in binary form must reproduce the above
-      copyright notice, this list of conditions and the following
-      disclaimer in the documentation and/or other materials provided
-      with the distribution.
+* Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided
+with the distribution.
       
-    * Neither the name of the copyright holder nor the names of its
-      contributors may be used to endorse or promote products derived
-      from this software without specific prior written permission.
+* Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived
+from this software without specific prior written permission.
       
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -36,13 +36,19 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <errno.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <sys/resource.h>
 
 #include "config.h"
 #include "pathconfig.h"
-#include "planetlab.h"
 #include "virtual.h"
 #include "vserver.h"
+#include "planetlab.h"
 #include "vserver-internal.h"
+
+/* I don't like needing to define __KERNEL__ -- mef */
+#define __KERNEL__
+#include "kernel/limit.h"
+#undef __KERNEL__
 
 #define NONE  ({ Py_INCREF(Py_None); Py_None; })
 
@@ -60,7 +66,7 @@ vserver_chcontext(PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
     return NULL;
 
-  if ((result = pl_chcontext(ctx, flags, bcaps)) < 0)
+  if ((result = pl_chcontext(ctx, flags, bcaps, 0)) < 0)
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return PyBool_FromLong(result);
@@ -81,49 +87,104 @@ vserver_setup_done(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-vserver_set_rlimit(PyObject *self, PyObject *args) {
-	struct vc_rlimit limits;
-	xid_t xid;
-	int resource;
-	PyObject *ret;
+vserver_isrunning(PyObject *self, PyObject *args)
+{
+  struct vc_vx_info vx_info;
+  xid_t  ctx;
+  PyObject *ret;
 
-	limits.min = VC_LIM_KEEP;
-	limits.soft = VC_LIM_KEEP;
-	limits.hard = VC_LIM_KEEP;
+  if (!PyArg_ParseTuple(args, "I", &ctx))
+    return NULL;
 
-	if (!PyArg_ParseTuple(args, "IiL", &xid, &resource, &limits.hard))
-		return NULL;
+  switch (vc_get_vx_info(ctx, &vx_info)) {
+  case EPERM:
+  case ENOSYS:
+  case EFAULT:
+    return PyErr_SetFromErrno(PyExc_OSError);
+  case ESRCH:
+    /* XXX should be boolean */
+    ret = Py_BuildValue("L",0);
+    break;
+  default:
+    /* XXX should be boolean */
+    ret = Py_BuildValue("L",1);
+    break;
+  }
+  return ret;
+}
 
-	if (vc_set_rlimit(xid, resource, &limits)) 
-		ret = PyErr_SetFromErrno(PyExc_OSError);
-	else if (vc_get_rlimit(xid, resource, &limits)==-1)
-		ret = PyErr_SetFromErrno(PyExc_OSError);
-	else
-		ret = Py_BuildValue("L",limits.hard);
+static PyObject *
+__vserver_get_rlimit(xid_t xid, int resource) {
+  struct vc_rlimit limits;
+  PyObject *ret;
 
-	return ret;
+  if (vc_get_rlimit(xid, resource, &limits)==-1)
+    ret = PyErr_SetFromErrno(PyExc_OSError);
+  else
+    ret = Py_BuildValue("LLL",limits.hard, limits.soft, limits.min);
+
+  return ret;
 }
 
 static PyObject *
 vserver_get_rlimit(PyObject *self, PyObject *args) {
-	struct vc_rlimit limits;
-	xid_t xid;
-	int resource;
-	PyObject *ret;
+  xid_t xid;
+  int resource;
+  PyObject *ret;
 
-	limits.min = VC_LIM_KEEP;
-	limits.soft = VC_LIM_KEEP;
-	limits.hard = VC_LIM_KEEP;
+  if (!PyArg_ParseTuple(args, "Ii", &xid, &resource))
+    ret = NULL;
+  else
+    ret = __vserver_get_rlimit(xid, resource);
 
-	if (!PyArg_ParseTuple(args, "Ii", &xid, &resource))
-		return NULL;
+  return ret;
+}
 
-	if (vc_get_rlimit(xid, resource, &limits)==-1)
-		ret = PyErr_SetFromErrno(PyExc_OSError);
-	else
-		ret = Py_BuildValue("L",limits.hard);
+static PyObject *
+vserver_set_rlimit(PyObject *self, PyObject *args) {
+  struct vc_rlimit limits;
+  struct rlimit olim, nlim;
+  xid_t xid;
+  int resource, lresource;
+  PyObject *ret;
 
-	return ret;
+  limits.min = VC_LIM_KEEP;
+  limits.soft = VC_LIM_KEEP;
+  limits.hard = VC_LIM_KEEP;
+
+  if (!PyArg_ParseTuple(args, "IiLLL", &xid, &resource, &limits.hard, &limits.soft, &limits.min))
+    return NULL;
+
+  lresource = resource;
+  switch (resource) {
+  case VLIMIT_NSOCK:
+  case VLIMIT_ANON:
+  case VLIMIT_SHMEM:
+    goto do_vc_set_rlimit;
+  case VLIMIT_OPENFD:
+    lresource = RLIMIT_NOFILE;
+  default:
+    break;
+  }
+
+  getrlimit(lresource,&olim);
+  if ((limits.min != VC_LIM_KEEP) && (limits.min > olim.rlim_cur)) {
+    nlim.rlim_cur = limits.min;
+    if (limits.min > olim.rlim_max) {
+      nlim.rlim_max = limits.min;
+    } else {
+      nlim.rlim_max = olim.rlim_max;
+    }
+    setrlimit(lresource, &nlim);
+  }
+
+ do_vc_set_rlimit:
+  if (vc_set_rlimit(xid, resource, &limits)) 
+    ret = PyErr_SetFromErrno(PyExc_OSError);
+  else
+    ret = __vserver_get_rlimit(xid, resource);
+
+  return ret;
 }
 
 /*
@@ -150,64 +211,64 @@ vserver_setsched(PyObject *self, PyObject *args)
 static PyObject *
 vserver_get_dlimit(PyObject *self, PyObject *args)
 {
-	PyObject *res;
-	char* path;
-	unsigned xid;
-	struct vcmd_ctx_dlimit_v0 data;
-	int r;
+  PyObject *res;
+  char* path;
+  unsigned xid;
+  struct vcmd_ctx_dlimit_v0 data;
+  int r;
 
-	if (!PyArg_ParseTuple(args, "si", &path,&xid))
-		return NULL;
+  if (!PyArg_ParseTuple(args, "si", &path,&xid))
+    return NULL;
 
-	memset(&data, 0, sizeof(data));
-	data.name = path;
-	data.flags = 0;
-	r = vserver(VCMD_get_dlimit, xid, &data);
-	if (r>=0) {
-		res = Py_BuildValue("(i,i,i,i,i)",
-				    data.space_used,
-				    data.space_total,
-				    data.inodes_used,
-				    data.inodes_total,
-				    data.reserved);
-	} else {
-		res = PyErr_SetFromErrno(PyExc_OSError);
-	}
+  memset(&data, 0, sizeof(data));
+  data.name = path;
+  data.flags = 0;
+  r = vserver(VCMD_get_dlimit, xid, &data);
+  if (r>=0) {
+    res = Py_BuildValue("(i,i,i,i,i)",
+			data.space_used,
+			data.space_total,
+			data.inodes_used,
+			data.inodes_total,
+			data.reserved);
+  } else {
+    res = PyErr_SetFromErrno(PyExc_OSError);
+  }
 
-	return res;
+  return res;
 }
 
 
 static PyObject *
 vserver_set_dlimit(PyObject *self, PyObject *args)
 {
-	char* path;
-	unsigned xid;
-	struct vcmd_ctx_dlimit_base_v0 init;
-	struct vcmd_ctx_dlimit_v0 data;
+  char* path;
+  unsigned xid;
+  struct vcmd_ctx_dlimit_base_v0 init;
+  struct vcmd_ctx_dlimit_v0 data;
 
-	memset(&data,0,sizeof(data));
-	if (!PyArg_ParseTuple(args, "siiiiii", &path,
-			      &xid,
-			      &data.space_used,
-			      &data.space_total,
-			      &data.inodes_used,
-			      &data.inodes_total,
-			      &data.reserved))
-		return NULL;
+  memset(&data,0,sizeof(data));
+  if (!PyArg_ParseTuple(args, "siiiiii", &path,
+			&xid,
+			&data.space_used,
+			&data.space_total,
+			&data.inodes_used,
+			&data.inodes_total,
+			&data.reserved))
+    return NULL;
 
-	data.name = path;
-	data.flags = 0;
+  data.name = path;
+  data.flags = 0;
 
-	memset(&init, 0, sizeof(init));
-	init.name = path;
-	init.flags = 0;
+  memset(&init, 0, sizeof(init));
+  init.name = path;
+  init.flags = 0;
 
-	if ((vserver(VCMD_add_dlimit, xid, &init) && errno != EEXIST) ||
-            vserver(VCMD_set_dlimit, xid, &data))
-          return PyErr_SetFromErrno(PyExc_OSError);
+  if ((vserver(VCMD_add_dlimit, xid, &init) && errno != EEXIST) ||
+      vserver(VCMD_set_dlimit, xid, &data))
+    return PyErr_SetFromErrno(PyExc_OSError);
 
-	return NONE;	
+  return NONE;	
 }
 
 static PyObject *
@@ -264,6 +325,8 @@ static PyMethodDef  methods[] = {
     "Get resource limits for given resource of a vserver context" },
   { "killall", vserver_killall, METH_VARARGS,
     "Send signal to all processes in vserver context" },
+  { "isrunning", vserver_isrunning, METH_VARARGS,
+    "Check if vserver is running"},
   { NULL, NULL, 0, NULL }
 };
 
@@ -283,6 +346,23 @@ initvserverimpl(void)
   /* export limit-related constants */
   PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)CDLIM_KEEP);
   PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)CDLIM_INFINITY);
+  PyModule_AddIntConstant(mod, "VC_LIM_KEEP", (int)VC_LIM_KEEP);
+
+  PyModule_AddIntConstant(mod, "RLIMIT_CPU", (int)RLIMIT_CPU);
+  PyModule_AddIntConstant(mod, "RLIMIT_RSS", (int)RLIMIT_RSS);
+  PyModule_AddIntConstant(mod, "RLIMIT_NPROC", (int)RLIMIT_NPROC);
+  PyModule_AddIntConstant(mod, "RLIMIT_NOFILE", (int)RLIMIT_NOFILE);
+  PyModule_AddIntConstant(mod, "RLIMIT_MEMLOCK", (int)RLIMIT_MEMLOCK);
+  PyModule_AddIntConstant(mod, "RLIMIT_AS", (int)RLIMIT_AS);
+  PyModule_AddIntConstant(mod, "RLIMIT_LOCKS", (int)RLIMIT_LOCKS);
+
+  PyModule_AddIntConstant(mod, "RLIMIT_SIGPENDING", (int)RLIMIT_SIGPENDING);
+  PyModule_AddIntConstant(mod, "RLIMIT_MSGQUEUE", (int)RLIMIT_MSGQUEUE);
+
+  PyModule_AddIntConstant(mod, "VLIMIT_NSOCK", (int)VLIMIT_NSOCK);
+  PyModule_AddIntConstant(mod, "VLIMIT_OPENFD", (int)VLIMIT_OPENFD);
+  PyModule_AddIntConstant(mod, "VLIMIT_ANON", (int)VLIMIT_ANON);
+  PyModule_AddIntConstant(mod, "VLIMIT_SHMEM", (int)VLIMIT_SHMEM);
 
   /* scheduler flags */
   PyModule_AddIntConstant(mod,
