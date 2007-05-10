@@ -58,6 +58,7 @@ class VServer:
     def __init__(self, name, vm_id = None, vm_running = False):
 
         self.name = name
+        self.limits_changed = False
         self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
@@ -120,9 +121,18 @@ class VServer:
             func = lambda : self.__get_vserver_config(meth,resource_type)
             self.__dict__["get_%s_config"%meth] = func
     
+    def have_limits_changed(self):
+        return self.limits_changed
+
     def __set_vserver_limit(self,resource_type,hard,soft,minimum):
         """Generic set resource limit function for vserver"""
         if self.is_running():
+            changed = False
+            old_hard, old_soft, old_minimum = self.__get_vserver_limit(resource_type)
+            if old_hard != VC_LIM_KEEP and old_hard <> hard: changed = True
+            if old_soft != VC_LIM_KEEP and old_soft <> soft: changed = True
+            if old_minimu != VC_LIM_KEEP and old_minimum <> minimum: changed = True
+            self.limits_changed = self.limits_changed or changed 
             ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
 
     def __set_vserver_config(self,meth,resource_type,hard,soft,minimum):
@@ -225,7 +235,6 @@ class VServer:
         return result
 
     def set_disklimit(self, block_limit):
-
         # block_limit is in kB
         if block_limit == 0:
             vserverimpl.unsetdlimit(self.dir, self.ctx)
@@ -247,8 +256,11 @@ class VServer:
                               vserverimpl.DLIMIT_INF,  # inode limit
                               2)   # %age reserved for root
 
+        resources = {'VS_DISK_MAX': block_limit}
+        self.update_resources(resources)
+
     def is_running(self):
-        return self.vm_running and vserverimpl.isrunning(self.ctx)
+        return vserverimpl.isrunning(self.ctx)
     
     def get_disklimit(self):
 
