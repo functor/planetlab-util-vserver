@@ -131,7 +131,7 @@ class VServer:
             old_hard, old_soft, old_minimum = self.__get_vserver_limit(resource_type)
             if old_hard != VC_LIM_KEEP and old_hard <> hard: changed = True
             if old_soft != VC_LIM_KEEP and old_soft <> soft: changed = True
-            if old_minimu != VC_LIM_KEEP and old_minimum <> minimum: changed = True
+            if old_minimum != VC_LIM_KEEP and old_minimum <> minimum: changed = True
             self.limits_changed = self.limits_changed or changed 
             ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
 
