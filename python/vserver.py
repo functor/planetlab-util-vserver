@@ -18,8 +18,21 @@ import cpulimit, bwlimit
 
 from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
 from vserverimpl import DLIMIT_INF
+from vserverimpl import VC_LIM_KEEP
 
-
+from vserverimpl import RLIMIT_CPU
+from vserverimpl import RLIMIT_RSS
+from vserverimpl import RLIMIT_NPROC
+from vserverimpl import RLIMIT_NOFILE
+from vserverimpl import RLIMIT_MEMLOCK
+from vserverimpl import RLIMIT_AS
+from vserverimpl import RLIMIT_LOCKS
+from vserverimpl import RLIMIT_SIGPENDING
+from vserverimpl import RLIMIT_MSGQUEUE
+from vserverimpl import VLIMIT_NSOCK
+from vserverimpl import VLIMIT_OPENFD
+from vserverimpl import VLIMIT_ANON
+from vserverimpl import VLIMIT_SHMEM
 
 #
 # these are the flags taken from the kernel linux/vserver/legacy.h
@@ -34,9 +47,7 @@ FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
 
-
 class NoSuchVServer(Exception): pass
-
 
 
 class VServer:
@@ -64,6 +75,87 @@ class VServer:
             vm_id = int(self.config['S_CONTEXT'])
         self.ctx = vm_id
         self.vm_running = vm_running
+
+        # For every resource key listed in the limit table, add in a
+        # new method with which one can get/set the resource's hard,
+        # soft, minimum limits.
+        limits = {"CPU": RLIMIT_CPU,
+                  "RSS": RLIMIT_RSS,
+                  "NPROC": RLIMIT_NPROC,
+                  "NOFILE": RLIMIT_NOFILE,
+                  "MEMLOCK": RLIMIT_MEMLOCK,
+                  "AS": RLIMIT_AS,
+                  "LOCKS": RLIMIT_LOCKS,
+                  "SIGPENDING": RLIMIT_SIGPENDING,
+                  "MSGQUEUE": RLIMIT_MSGQUEUE,
+                  "NSOCK": VLIMIT_NSOCK,
+                  "OPENFD": VLIMIT_OPENFD,
+                  "ANON": VLIMIT_ANON,
+                  "SHMEM": VLIMIT_SHMEM}
+        for meth in limits.keys():
+            resource_type = limits[meth]
+            func = lambda \
+                       hard=VC_LIM_KEEP,\
+                       soft=VC_LIM_KEEP,\
+                       minimum=VC_LIM_KEEP:\
+                       self.__set_vserver_limit(resource_type,\
+                                                hard, \
+                                                soft,\
+                                                minimum)
+            self.__dict__["set_%s_limit"%meth] = func
+
+            func = lambda \
+                       hard=VC_LIM_KEEP,\
+                       soft=VC_LIM_KEEP,\
+                       minimum=VC_LIM_KEEP:\
+                       self.__set_vserver_config(meth, resource_type, \
+                                                hard, \
+                                                soft,\
+                                                minimum)
+            self.__dict__["set_%s_config"%meth] = func
+
+            func = lambda : self.__get_vserver_limit(resource_type)
+            self.__dict__["get_%s_limit"%meth] = func
+
+            func = lambda : self.__get_vserver_config(meth,resource_type)
+            self.__dict__["get_%s_config"%meth] = func
+    
+    def __set_vserver_limit(self,resource_type,hard,soft,minimum):
+        """Generic set resource limit function for vserver"""
+        if self.is_running():
+            ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
+
+    def __set_vserver_config(self,meth,resource_type,hard,soft,minimum):
+        """Generic set resource limit function for vserver"""
+        resources = {}
+        if hard <> VC_LIM_KEEP:
+            resources["VS_%s_HARD"%meth] = hard
+        if soft <> VC_LIM_KEEP:
+            resources["VS_%s_SOFT"%meth] = soft
+        if minimum <> VC_LIM_KEEP:
+            resources["VS_%s_MINIMUM"%meth] = minimum
+        if len(resources)>0:
+            self.update_resources(resources)
+        self.__set_vserver_limit(resource_type,hard,soft,minimum)
+
+    def __get_vserver_limit(self,resource_type):
+        """Generic get resource configuration function for vserver"""
+        if self.is_running():
+            ret = vserverimpl.getrlimit(self.ctx,resource_type)
+        else:
+            ret = __get_vserver_config(meth,resource_type)
+        return ret
+
+    def __get_vserver_config(self,meth,resource_type):
+        """Generic get resource configuration function for vserver"""
+        hard = int(self.config.get("VS_%s_HARD"%meth,VC_LIM_KEEP))
+        soft = int(self.config.get("VS_%s_SOFT"%meth,VC_LIM_KEEP))
+        minimum = int(self.config.get("VS_%s_MINIMUM"%meth,VC_LIM_KEEP))
+        return (hard,soft,minimum)
+
+    def set_WHITELISTED_config(self,whitelisted):
+        resources = {'VS_WHITELISTED': whitelisted}
+        self.update_resources(resources)
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -155,6 +247,9 @@ class VServer:
                               vserverimpl.DLIMIT_INF,  # inode limit
                               2)   # %age reserved for root
 
+    def is_running(self):
+        return self.vm_running and vserverimpl.isrunning(self.ctx)
+    
     def get_disklimit(self):
 
         try:
@@ -183,30 +278,12 @@ class VServer:
             self.set_sched(cpu_share, sched_flags)
 
     def set_sched(self, cpu_share, sched_flags = 0):
-
         """ Update kernel CPU scheduling parameters for this context. """
-
         vserverimpl.setsched(self.ctx, cpu_share, sched_flags)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
         return (-1, False)
-
-    def set_memlimit(self, limit):
-        ret = vserverimpl.setrlimit(self.ctx,5,limit)
-        return ret
-
-    def get_memlimit(self):
-        ret = vserverimpl.getrlimit(self.ctx,5)
-        return ret
-    
-    def set_tasklimit(self, limit):
-        ret = vserverimpl.setrlimit(self.ctx,6,limit)
-        return ret
-
-    def get_tasklimit(self):
-        ret = vserverimpl.getrlimit(self.ctx,6)
-        return ret
 
     def set_bwlimit(self, minrate = bwlimit.bwmin, maxrate = None,
                     exempt_min = None, exempt_max = None,
