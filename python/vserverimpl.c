@@ -35,8 +35,10 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include <errno.h>
 #include <stdint.h>
-#include <unistd.h>
 #include <sys/resource.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "config.h"
 #include "pathconfig.h"
@@ -89,27 +91,21 @@ vserver_setup_done(PyObject *self, PyObject *args)
 static PyObject *
 vserver_isrunning(PyObject *self, PyObject *args)
 {
-  struct vc_vx_info vx_info;
   xid_t  ctx;
   PyObject *ret;
+  struct stat statbuf;
+  char fname[64];
 
   if (!PyArg_ParseTuple(args, "I", &ctx))
     return NULL;
 
-  switch (vc_get_vx_info(ctx, &vx_info)) {
-  case EPERM:
-  case ENOSYS:
-  case EFAULT:
-    return PyErr_SetFromErrno(PyExc_OSError);
-  case ESRCH:
-    /* XXX should be boolean */
-    ret = Py_BuildValue("L",0);
-    break;
-  default:
-    /* XXX should be boolean */
-    ret = Py_BuildValue("L",1);
-    break;
-  }
+  sprintf(fname,"/proc/virtual/%d", ctx);
+
+  if(stat(&fname[0],&statbuf)==0)
+    ret = Py_BuildValue("i",1);
+  else
+    ret = Py_BuildValue("i",0);
+
   return ret;
 }
 
