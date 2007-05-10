@@ -303,102 +303,114 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   free(conf);
 }
 
+static inline int
+adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
+{
+  int adjusted = 0;
+  if (vcr->min != VC_LIM_KEEP) {
+    if (vcr->min > lim->rlim_cur) {
+      lim->rlim_cur = vcr->min;
+      adjusted = 1;
+    }
+    if (vcr->min > lim->rlim_max) {
+      lim->rlim_max = vcr->min;
+      adjusted = 1;
+    }
+  }
+
+  if (vcr->soft != VC_LIM_KEEP) {
+    switch (vcr->min != VC_LIM_KEEP) {
+    case 1:
+      if (vcr->soft < vcr->min)
+	break;
+    case 0:
+	lim->rlim_cur = vcr->soft;
+	adjusted = 1;
+    }
+  }
+
+  if (vcr->hard != VC_LIM_KEEP) {
+    switch (vcr->min != VC_LIM_KEEP) {
+    case 1:
+      if (vcr->hard < vcr->min)
+	break;
+    case 0:
+	lim->rlim_cur = vcr->hard;
+	adjusted = 1;
+    }
+  }
+  return adjusted;
+}
+
+
 void
 pl_set_limits(xid_t ctx, struct sliver_resources *slr)
 {
-  struct rlimit olim; /* current limit values */
-  struct rlimit nlim; /* new limit values */
+  struct rlimit lim; /* getrlimit values */
+  unsigned long long vs_cpu;
+  uint32_t cpu_sched_flags;
 
   if (slr != 0) {
     /* set memory limits */
-    getrlimit(RLIMIT_RSS,&olim);
-    if (0) /* for debugging only */
-      fprintf(stderr,"rss cur = %ld, max = %ld, vs_rss min = %ld\n",olim.rlim_cur,olim.rlim_max,slr->vs_rss.min);
-    if ((slr->vs_rss.min != VC_LIM_KEEP) && (slr->vs_rss.min > olim.rlim_cur)) {
-      nlim.rlim_cur = slr->vs_rss.min;
-      if (slr->vs_rss.min > olim.rlim_max) {
-	nlim.rlim_max = slr->vs_rss.min;
-      } else {
-	nlim.rlim_max = olim.rlim_max;
-      }
-      setrlimit(RLIMIT_RSS, &nlim);
+    getrlimit(RLIMIT_RSS,&lim);
+    if (adjust_lim(&slr->vs_rss, &lim)) {
+      setrlimit(RLIMIT_RSS, &lim);
+      if (vc_set_rlimit(ctx, RLIMIT_RSS, &slr->vs_rss))
+	{
+	  PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
+	  exit(1);
+	}
     }
-    if (vc_set_rlimit(ctx, RLIMIT_RSS, &slr->vs_rss))
-      {
-	PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
-	exit(1);
-      }
-    
-    /* set address space limits */
-    getrlimit(RLIMIT_AS,&olim);
-    if (0) /* for debugging only */
-      fprintf(stderr,"as cur = %ld, max = %ld, vs_as min = %ld\n",olim.rlim_cur,olim.rlim_max,slr->vs_as.min);
-    if ((slr->vs_as.min != VC_LIM_KEEP) && (slr->vs_as.min > olim.rlim_cur)) {
-      nlim.rlim_cur = slr->vs_as.min;
-      if (slr->vs_as.min > olim.rlim_max) {
-	nlim.rlim_max = slr->vs_as.min;
-      } else {
-	nlim.rlim_max = olim.rlim_max;
-      }
-      setrlimit(RLIMIT_AS, &nlim);
-    }
-    if (vc_set_rlimit(ctx, RLIMIT_AS, &slr->vs_as))
-      {
-	PERROR("pl_setrlimit(%u, RLIMIT_AS)", ctx);
-	exit(1);
-      }
 
-    /* set nrpoc limit */
-    getrlimit(RLIMIT_NPROC,&olim);
-    if (0) /* for debugging only */
-      fprintf(stderr,"nproc cur = %ld, max = %ld, vs_nproc min = %ld\n",olim.rlim_cur,olim.rlim_max,slr->vs_nproc.min);
-    if ((slr->vs_nproc.min != VC_LIM_KEEP) && (slr->vs_nproc.min > olim.rlim_cur)) {
-      nlim.rlim_cur = slr->vs_nproc.min;
-      if (slr->vs_nproc.min > olim.rlim_max) {
-	nlim.rlim_max = slr->vs_nproc.min;
-      } else {
-	nlim.rlim_max = olim.rlim_max;
-      }
-      setrlimit(RLIMIT_NPROC, &nlim);
+    /* set address space limits */
+    getrlimit(RLIMIT_AS,&lim);
+    if (adjust_lim(&slr->vs_as, &lim)) {
+      setrlimit(RLIMIT_AS, &lim);
+      if (vc_set_rlimit(ctx, RLIMIT_AS, &slr->vs_as))
+	{
+	  PERROR("pl_setrlimit(%u, RLIMIT_AS)", ctx);
+	  exit(1);
+	}
     }
-    if (vc_set_rlimit(ctx, RLIMIT_NPROC, &slr->vs_nproc))
-      {
-	PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
-	exit(1);
-      }
-    
+    /* set nrpoc limit */
+    getrlimit(RLIMIT_NPROC,&lim);
+    if (adjust_lim(&slr->vs_nproc, &lim)) {
+      setrlimit(RLIMIT_NPROC, &lim);
+      if (vc_set_rlimit(ctx, RLIMIT_NPROC, &slr->vs_nproc))
+	{
+	  PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
+	  exit(1);
+	}
+    }
+
     /* set openfd limit */
-    getrlimit(RLIMIT_NOFILE,&olim);
-    if (0) /* for debugging only */
-      fprintf(stderr,"NOFILE cur = %ld, max = %ld, vs_openfd min = %ld\n",olim.rlim_cur,olim.rlim_max,slr->vs_openfd.min);
-    if ((slr->vs_openfd.min != VC_LIM_KEEP) && (slr->vs_openfd.min > olim.rlim_cur)) {
-      nlim.rlim_cur = slr->vs_openfd.min;
-      if (slr->vs_openfd.min > olim.rlim_max) {
-	nlim.rlim_max = slr->vs_openfd.min;
-      } else {
-	nlim.rlim_max = olim.rlim_max;
-      }
-      setrlimit(RLIMIT_NOFILE, &nlim);
+    getrlimit(RLIMIT_NOFILE,&lim);
+    if (adjust_lim(&slr->vs_openfd, &lim)) {
+      setrlimit(RLIMIT_NOFILE, &lim);
       if (vc_set_rlimit(ctx, RLIMIT_NOFILE, &slr->vs_openfd))
 	{
 	  PERROR("pl_setrlimit(%u, RLIMIT_NOFILE)", ctx);
 	  exit(1);
 	}
-    }
 #ifndef VLIMIT_OPENFD
 #warning VLIMIT_OPENFD should be defined from standard header
 #define VLIMIT_OPENFD	17
 #endif
-    if (vc_set_rlimit(ctx, VLIMIT_OPENFD, &slr->vs_openfd))
-      {
-	PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
-      exit(1);
-      }
-  }
-    
-  if (pl_setsched(ctx, slr ? slr->vs_cpu : 1, slr ? (slr->vs_cpuguaranteed & VS_SCHED_CPU_GUARANTEED) : 0 ) < 0)
-    {
-      PERROR("pl_setsched(&u)", ctx);
-      exit(1);
+      if (vc_set_rlimit(ctx, VLIMIT_OPENFD, &slr->vs_openfd))
+	{
+	  PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
+	  exit(1);
+	}
     }
+    vs_cpu = slr->vs_cpu;    
+    cpu_sched_flags = slr->vs_cpuguaranteed & VS_SCHED_CPU_GUARANTEED;
+  } else {
+    vs_cpu = 1;
+    cpu_sched_flags = 0;
+  }
+  
+  if (pl_setsched(ctx, vs_cpu, cpu_sched_flags) < 0) {
+    PERROR("pl_setsched(&u)", ctx);
+    exit(1);
+  }
 }
