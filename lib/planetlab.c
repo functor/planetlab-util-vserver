@@ -303,7 +303,7 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   free(conf);
 }
 
-static inline int
+int
 adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
 {
   int adjusted = 0;

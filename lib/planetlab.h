@@ -46,6 +46,8 @@ struct sliver_resources {
   unsigned long long vs_whitelisted;
 };
 
+int adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim);
+
 int
 pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources *slr);
 
