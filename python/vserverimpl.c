@@ -102,9 +102,9 @@ vserver_isrunning(PyObject *self, PyObject *args)
   sprintf(fname,"/proc/virtual/%d", ctx);
 
   if(stat(&fname[0],&statbuf)==0)
-    ret = Py_BuildValue("i",1);
+    ret = PyBool_FromLong(1);
   else
-    ret = Py_BuildValue("i",0);
+    ret = PyBool_FromLong(0);
 
   return ret;
 }
@@ -114,6 +114,7 @@ __vserver_get_rlimit(xid_t xid, int resource) {
   struct vc_rlimit limits;
   PyObject *ret;
 
+  errno = 0;
   if (vc_get_rlimit(xid, resource, &limits)==-1)
     ret = PyErr_SetFromErrno(PyExc_OSError);
   else
@@ -139,7 +140,7 @@ vserver_get_rlimit(PyObject *self, PyObject *args) {
 static PyObject *
 vserver_set_rlimit(PyObject *self, PyObject *args) {
   struct vc_rlimit limits;
-  struct rlimit olim, nlim;
+  struct rlimit lim;
   xid_t xid;
   int resource, lresource;
   PyObject *ret;
@@ -159,23 +160,19 @@ vserver_set_rlimit(PyObject *self, PyObject *args) {
     goto do_vc_set_rlimit;
   case VLIMIT_OPENFD:
     lresource = RLIMIT_NOFILE;
+    break;
   default:
     break;
   }
 
-  getrlimit(lresource,&olim);
-  if ((limits.min != VC_LIM_KEEP) && (limits.min > olim.rlim_cur)) {
-    nlim.rlim_cur = limits.min;
-    if (limits.min > olim.rlim_max) {
-      nlim.rlim_max = limits.min;
-    } else {
-      nlim.rlim_max = olim.rlim_max;
-    }
-    setrlimit(lresource, &nlim);
+  getrlimit(lresource,&lim);
+  if (adjust_lim(&limits,&lim)) {
+    setrlimit(lresource, &lim);
   }
 
  do_vc_set_rlimit:
-  if (vc_set_rlimit(xid, resource, &limits)) 
+  errno = 0;
+  if (vc_set_rlimit(xid, resource, &limits)==-1) 
     ret = PyErr_SetFromErrno(PyExc_OSError);
   else
     ret = __vserver_get_rlimit(xid, resource);
