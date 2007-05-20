@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 #include <pwd.h>
 #include <unistd.h>
 #include <syscall.h>
@@ -198,19 +199,26 @@ static int sandbox_processes(xid_t ctx, char *context)
 #else
 	int  ctx_is_new;
 	struct sliver_resources slr;
+	char hostname[HOST_NAME_MAX+1];
 	pl_get_limits(context,&slr);
+
+	if (gethostname(hostname, sizeof hostname) == -1)
+	  {
+	    PERROR("gethostname(...)");
+	    exit(1);
+	  }
 
 	/* check whether the slice has been taken off of the whitelist */
 	if (slr.vs_whitelisted==0)
 	  {
-	    fprintf(stderr, "*** %s has not been allocated resources on this node ***\n", context);
+	    fprintf(stderr, "*** %s: %s has not been allocated resources on this node ***\n", hostname, context);
 	    exit(0);
 	  }
 
 	/* check whether the slice has been suspended */
 	if (slr.vs_cpu==0)
 	  {
-	    fprintf(stderr, "*** %s has zero cpu resources and presumably it has been disabled/suspended ***\n");
+	    fprintf(stderr, "*** %s: %s has zero cpu resources and presumably it has been disabled/suspended ***\n", hostname, context);
 	    exit(0);
 	  }
 
