@@ -49,7 +49,7 @@ struct sliver_resources {
 int adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim);
 
 int
-pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources *slr);
+pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr);
 
 int
 pl_setup_done(xid_t ctx);

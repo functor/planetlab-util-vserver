@@ -224,7 +224,7 @@ static int sandbox_processes(xid_t ctx, char *context)
 
 	(void) (sandbox_chroot(ctx));
 
-        if ((ctx_is_new = pl_chcontext(ctx, 0, ~vc_get_insecurebcaps(),&slr)) < 0)
+        if ((ctx_is_new = pl_chcontext(ctx, ~vc_get_insecurebcaps(),&slr)) < 0)
           {
             PERROR("pl_chcontext(%u)", ctx);
             exit(1);

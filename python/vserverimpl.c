@@ -60,18 +60,17 @@ POSSIBILITY OF SUCH DAMAGE.
 static PyObject *
 vserver_chcontext(PyObject *self, PyObject *args)
 {
-  int  result;
+  int  ctx_is_new;
   xid_t  ctx;
-  uint32_t  flags = 0;
-  uint32_t  bcaps = ~vc_get_insecurebcaps();
+  uint_least64_t bcaps = ~vc_get_insecurebcaps();
 
-  if (!PyArg_ParseTuple(args, "I|K", &ctx, &flags))
+  if (!PyArg_ParseTuple(args, "I", &ctx))
     return NULL;
 
-  if ((result = pl_chcontext(ctx, flags, bcaps, 0)) < 0)
+  if ((ctx_is_new = pl_chcontext(ctx, bcaps, 0)) < 0)
     return PyErr_SetFromErrno(PyExc_OSError);
 
-  return PyBool_FromLong(result);
+  return PyBool_FromLong(ctx_is_new);
 }
 
 static PyObject *

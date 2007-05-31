@@ -48,20 +48,17 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "planetlab.h"
 
 static int
-create_context(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources *slr)
+create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 {
   struct vc_ctx_caps  vc_caps;
 
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
-   * Don't ever clear the STATE_INIT flag, that makes us the init task.
-   *
-   * XXX - the kernel code allows initial flags to be passed as an arg.
    */
   if (vc_ctx_create(ctx) == VC_NOCTX)
     return -1;
 
-  /* set capabilities - these don't take effect until SETUP flag is unset */
+  /* Set capabilities - these don't take effect until SETUP flag is unset */
   vc_caps.bcaps = bcaps;
   vc_caps.bmask = ~0ULL;  /* currently unused */
   vc_caps.ccaps = 0;      /* don't want any of these */
@@ -80,6 +77,8 @@ pl_setup_done(xid_t ctx)
   struct vc_ctx_flags  vc_flags;
 
   /* unset SETUP flag - this allows other processes to migrate */
+
+  /* Don't clear the STATE_INIT flag, as that would make us the init task. */
   vc_flags.mask = VC_VXF_STATE_SETUP;
   vc_flags.flagword = 0;
   if (vc_set_cflags(ctx, &vc_flags))
@@ -91,7 +90,7 @@ pl_setup_done(xid_t ctx)
 #define RETRY_LIMIT  10
 
 int
-pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources *slr)
+pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 {
   int  retry_count = 0;
 
@@ -105,7 +104,7 @@ pl_chcontext(xid_t ctx, uint32_t flags, uint64_t bcaps, struct sliver_resources 
 	    return -1;
 
 	  /* context doesn't exist - create it */
-	  if (create_context(ctx, flags, bcaps,slr))
+	  if (create_context(ctx, bcaps,slr))
 	    {
 	      if (errno == EEXIST)
 		/* another process beat us in a race */
