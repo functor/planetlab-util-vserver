@@ -46,6 +46,19 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
+RLIMITS = {"CPU": RLIMIT_CPU,
+           "RSS": RLIMIT_RSS,
+           "NPROC": RLIMIT_NPROC,
+           "NOFILE": RLIMIT_NOFILE,
+           "MEMLOCK": RLIMIT_MEMLOCK,
+           "AS": RLIMIT_AS,
+           "LOCKS": RLIMIT_LOCKS,
+           "SIGPENDING": RLIMIT_SIGPENDING,
+           "MSGQUEUE": RLIMIT_MSGQUEUE,
+           "NSOCK": VLIMIT_NSOCK,
+           "OPENFD": VLIMIT_OPENFD,
+           "ANON": VLIMIT_ANON,
+           "SHMEM": VLIMIT_SHMEM}
 
 class NoSuchVServer(Exception): pass
 
@@ -58,7 +71,7 @@ class VServer:
     def __init__(self, name, vm_id = None, vm_running = False):
 
         self.name = name
-        self.limits_changed = False
+        self.rlimits_changed = False
         self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
@@ -77,90 +90,57 @@ class VServer:
         self.ctx = vm_id
         self.vm_running = vm_running
 
-        # For every resource key listed in the limit table, add in a
-        # new method with which one can get/set the resource's hard,
-        # soft, minimum limits.
-        limits = {"CPU": RLIMIT_CPU,
-                  "RSS": RLIMIT_RSS,
-                  "NPROC": RLIMIT_NPROC,
-                  "NOFILE": RLIMIT_NOFILE,
-                  "MEMLOCK": RLIMIT_MEMLOCK,
-                  "AS": RLIMIT_AS,
-                  "LOCKS": RLIMIT_LOCKS,
-                  "SIGPENDING": RLIMIT_SIGPENDING,
-                  "MSGQUEUE": RLIMIT_MSGQUEUE,
-                  "NSOCK": VLIMIT_NSOCK,
-                  "OPENFD": VLIMIT_OPENFD,
-                  "ANON": VLIMIT_ANON,
-                  "SHMEM": VLIMIT_SHMEM}
-        for meth in limits.keys():
-            resource_type = limits[meth]
-            func = lambda \
-                       hard=VC_LIM_KEEP,\
-                       soft=VC_LIM_KEEP,\
-                       minimum=VC_LIM_KEEP:\
-                       self.__set_vserver_limit(resource_type,\
-                                                hard, \
-                                                soft,\
-                                                minimum)
-            self.__dict__["set_%s_limit"%meth] = func
-
-            func = lambda \
-                       hard=VC_LIM_KEEP,\
-                       soft=VC_LIM_KEEP,\
-                       minimum=VC_LIM_KEEP:\
-                       self.__set_vserver_config(meth, resource_type, \
-                                                hard, \
-                                                soft,\
-                                                minimum)
-            self.__dict__["set_%s_config"%meth] = func
-
-            func = lambda : self.__get_vserver_limit(resource_type)
-            self.__dict__["get_%s_limit"%meth] = func
-
-            func = lambda : self.__get_vserver_config(meth,resource_type)
-            self.__dict__["get_%s_config"%meth] = func
-    
     def have_limits_changed(self):
-        return self.limits_changed
+        return self.rlimits_changed
 
-    def __set_vserver_limit(self,resource_type,hard,soft,minimum):
+    def set_rlimit_limit(self,type,hard,soft,minimum):
         """Generic set resource limit function for vserver"""
-        if self.is_running():
-            changed = False
-            old_hard, old_soft, old_minimum = self.__get_vserver_limit(resource_type)
+        global RLIMITS
+        changed = False
+        try:
+            old_hard, old_soft, old_minimum = self.get_rlimit_limit(type)
             if old_hard != VC_LIM_KEEP and old_hard <> hard: changed = True
             if old_soft != VC_LIM_KEEP and old_soft <> soft: changed = True
             if old_minimum != VC_LIM_KEEP and old_minimum <> minimum: changed = True
-            self.limits_changed = self.limits_changed or changed 
-            ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
+            self.rlimits_changed = self.rlimits_changed or changed 
+        except OSError, e:
+            if self.is_running(): print "Unexpected error with getrlimit for running context %d" % self.ctx
 
-    def __set_vserver_config(self,meth,resource_type,hard,soft,minimum):
+        resource_type = RLIMITS[type]
+        try:
+            ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
+        except OSError, e:
+            if self.is_running(): print "Unexpected error with setrlimit for running context %d" % self.ctx
+
+    def set_rlimit_config(self,type,hard,soft,minimum):
         """Generic set resource limit function for vserver"""
         resources = {}
         if hard <> VC_LIM_KEEP:
-            resources["VS_%s_HARD"%meth] = hard
+            resources["VS_%s_HARD"%type] = hard
         if soft <> VC_LIM_KEEP:
-            resources["VS_%s_SOFT"%meth] = soft
+            resources["VS_%s_SOFT"%type] = soft
         if minimum <> VC_LIM_KEEP:
-            resources["VS_%s_MINIMUM"%meth] = minimum
+            resources["VS_%s_MINIMUM"%type] = minimum
         if len(resources)>0:
             self.update_resources(resources)
-        self.__set_vserver_limit(resource_type,hard,soft,minimum)
+        self.set_rlimit_limit(type,hard,soft,minimum)
 
-    def __get_vserver_limit(self,resource_type):
+    def get_rlimit_limit(self,type):
         """Generic get resource configuration function for vserver"""
-        if self.is_running():
+        global RLIMITS
+        resource_type = RLIMITS[type]
+        try:
             ret = vserverimpl.getrlimit(self.ctx,resource_type)
-        else:
-            ret = __get_vserver_config(meth,resource_type)
+        except OSError, e:
+            print "Unexpected error with getrlimit for context %d" % self.ctx
+            ret = self.get_rlimit_config(type)
         return ret
 
-    def __get_vserver_config(self,meth,resource_type):
+    def get_rlimit_config(self,type):
         """Generic get resource configuration function for vserver"""
-        hard = int(self.config.get("VS_%s_HARD"%meth,VC_LIM_KEEP))
-        soft = int(self.config.get("VS_%s_SOFT"%meth,VC_LIM_KEEP))
-        minimum = int(self.config.get("VS_%s_MINIMUM"%meth,VC_LIM_KEEP))
+        hard = int(self.config.get("VS_%s_HARD"%type,VC_LIM_KEEP))
+        soft = int(self.config.get("VS_%s_SOFT"%type,VC_LIM_KEEP))
+        minimum = int(self.config.get("VS_%s_MINIMUM"%type,VC_LIM_KEEP))
         return (hard,soft,minimum)
 
     def set_WHITELISTED_config(self,whitelisted):
@@ -237,7 +217,10 @@ class VServer:
     def set_disklimit(self, block_limit):
         # block_limit is in kB
         if block_limit == 0:
-            vserverimpl.unsetdlimit(self.dir, self.ctx)
+            try:
+                vserverimpl.unsetdlimit(self.dir, self.ctx)
+            except OSError, e:
+                print "Unexpected error with unsetdlimit for context %d" % self.ctx
             return
 
         if self.vm_running:
@@ -248,13 +231,18 @@ class VServer:
             block_usage = self.disk_blocks
             inode_usage = self.disk_inodes
 
-        vserverimpl.setdlimit(self.dir,
-                              self.ctx,
-                              block_usage,
-                              block_limit,
-                              inode_usage,
-                              vserverimpl.DLIMIT_INF,  # inode limit
-                              2)   # %age reserved for root
+
+        try:
+            vserverimpl.setdlimit(self.dir,
+                                  self.ctx,
+                                  block_usage,
+                                  block_limit,
+                                  inode_usage,
+                                  vserverimpl.DLIMIT_INF,  # inode limit
+                                  2)   # %age reserved for root
+        except OSError, e:
+            print "Unexpected error with setdlimit for context %d" % self.ctx
+
 
         resources = {'VS_DISK_MAX': block_limit}
         self.update_resources(resources)
@@ -378,7 +366,7 @@ class VServer:
 
     def start(self, wait, runlevel = 3):
         self.vm_running = True
-        self.limits_changed = False
+        self.rlimits_changed = False
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -471,7 +459,7 @@ class VServer:
     def stop(self, signal = signal.SIGKILL):
         vserverimpl.killall(self.ctx, signal)
         self.vm_running = False
-        self.limits_changed = False
+        self.rlimits_changed = False
 
 
 
