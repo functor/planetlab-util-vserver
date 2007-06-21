@@ -335,8 +335,9 @@ class VServer:
                          ([], filter_fn))[0]
         garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
                                               os.listdir(LOCKDIR)))
-        for f in garbage:
-            os.unlink(f)
+        if False:
+            for f in garbage:
+                os.unlink(f)
 
         # set the initial runlevel
         f = open(RUNDIR + "/utmp", "w")
