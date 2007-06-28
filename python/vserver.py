@@ -9,6 +9,7 @@ import signal
 import sys
 import time
 import traceback
+import resource
 
 import mountimpl
 import runcmd
@@ -18,8 +19,11 @@ import cpulimit, bwlimit
 
 from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
 from vserverimpl import DLIMIT_INF
-
-
+from vserverimpl import VC_LIM_KEEP
+from vserverimpl import VLIMIT_NSOCK
+from vserverimpl import VLIMIT_OPENFD
+from vserverimpl import VLIMIT_ANON
+from vserverimpl import VLIMIT_SHMEM
 
 #
 # these are the flags taken from the kernel linux/vserver/legacy.h
@@ -33,10 +37,21 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
+RLIMITS = { "NSOCK": VLIMIT_NSOCK,
+            "OPENFD": VLIMIT_OPENFD,
+            "ANON": VLIMIT_ANON,
+            "SHMEM": VLIMIT_SHMEM}
 
+# add in the platform supported rlimits
+for entry in resource.__dict__.keys():
+    if entry.find("RLIMIT_")==0:
+        k = entry[len("RLIMIT_"):]
+        if not RLIMITS.has_key(k):
+            RLIMITS[k]=resource.__dict__[entry]
+        else:
+            print "WARNING: duplicate RLIMITS key %s" % k
 
 class NoSuchVServer(Exception): pass
-
 
 
 class VServer:
@@ -47,6 +62,7 @@ class VServer:
     def __init__(self, name, vm_id = None, vm_running = False):
 
         self.name = name
+        self.rlimits_changed = False
         self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
@@ -64,6 +80,63 @@ class VServer:
             vm_id = int(self.config['S_CONTEXT'])
         self.ctx = vm_id
         self.vm_running = vm_running
+
+    def have_limits_changed(self):
+        return self.rlimits_changed
+
+    def set_rlimit_limit(self,type,hard,soft,minimum):
+        """Generic set resource limit function for vserver"""
+        global RLIMITS
+        changed = False
+        try:
+            old_hard, old_soft, old_minimum = self.get_rlimit_limit(type)
+            if old_hard != VC_LIM_KEEP and old_hard <> hard: changed = True
+            if old_soft != VC_LIM_KEEP and old_soft <> soft: changed = True
+            if old_minimum != VC_LIM_KEEP and old_minimum <> minimum: changed = True
+            self.rlimits_changed = self.rlimits_changed or changed 
+        except OSError, e:
+            if self.is_running(): print "Unexpected error with getrlimit for running context %d" % self.ctx
+
+        resource_type = RLIMITS[type]
+        try:
+            ret = vserverimpl.setrlimit(self.ctx,resource_type,hard,soft,minimum)
+        except OSError, e:
+            if self.is_running(): print "Unexpected error with setrlimit for running context %d" % self.ctx
+
+    def set_rlimit_config(self,type,hard,soft,minimum):
+        """Generic set resource limit function for vserver"""
+        resources = {}
+        if hard <> VC_LIM_KEEP:
+            resources["VS_%s_HARD"%type] = hard
+        if soft <> VC_LIM_KEEP:
+            resources["VS_%s_SOFT"%type] = soft
+        if minimum <> VC_LIM_KEEP:
+            resources["VS_%s_MINIMUM"%type] = minimum
+        if len(resources)>0:
+            self.update_resources(resources)
+        self.set_rlimit_limit(type,hard,soft,minimum)
+
+    def get_rlimit_limit(self,type):
+        """Generic get resource configuration function for vserver"""
+        global RLIMITS
+        resource_type = RLIMITS[type]
+        try:
+            ret = vserverimpl.getrlimit(self.ctx,resource_type)
+        except OSError, e:
+            print "Unexpected error with getrlimit for context %d" % self.ctx
+            ret = self.get_rlimit_config(type)
+        return ret
+
+    def get_rlimit_config(self,type):
+        """Generic get resource configuration function for vserver"""
+        hard = int(self.config.get("VS_%s_HARD"%type,VC_LIM_KEEP))
+        soft = int(self.config.get("VS_%s_SOFT"%type,VC_LIM_KEEP))
+        minimum = int(self.config.get("VS_%s_MINIMUM"%type,VC_LIM_KEEP))
+        return (hard,soft,minimum)
+
+    def set_WHITELISTED_config(self,whitelisted):
+        resources = {'VS_WHITELISTED': whitelisted}
+        self.update_resources(resources)
 
     config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
 
@@ -133,10 +206,12 @@ class VServer:
         return result
 
     def set_disklimit(self, block_limit):
-
         # block_limit is in kB
         if block_limit == 0:
-            vserverimpl.unsetdlimit(self.dir, self.ctx)
+            try:
+                vserverimpl.unsetdlimit(self.dir, self.ctx)
+            except OSError, e:
+                print "Unexpected error with unsetdlimit for context %d" % self.ctx
             return
 
         if self.vm_running:
@@ -147,14 +222,25 @@ class VServer:
             block_usage = self.disk_blocks
             inode_usage = self.disk_inodes
 
-        vserverimpl.setdlimit(self.dir,
-                              self.ctx,
-                              block_usage,
-                              block_limit,
-                              inode_usage,
-                              vserverimpl.DLIMIT_INF,  # inode limit
-                              2)   # %age reserved for root
 
+        try:
+            vserverimpl.setdlimit(self.dir,
+                                  self.ctx,
+                                  block_usage,
+                                  block_limit,
+                                  inode_usage,
+                                  vserverimpl.DLIMIT_INF,  # inode limit
+                                  2)   # %age reserved for root
+        except OSError, e:
+            print "Unexpected error with setdlimit for context %d" % self.ctx
+
+
+        resources = {'VS_DISK_MAX': block_limit}
+        self.update_resources(resources)
+
+    def is_running(self):
+        return vserverimpl.isrunning(self.ctx)
+    
     def get_disklimit(self):
 
         try:
@@ -183,30 +269,12 @@ class VServer:
             self.set_sched(cpu_share, sched_flags)
 
     def set_sched(self, cpu_share, sched_flags = 0):
-
         """ Update kernel CPU scheduling parameters for this context. """
-
         vserverimpl.setsched(self.ctx, cpu_share, sched_flags)
 
     def get_sched(self):
         # have no way of querying scheduler right now on a per vserver basis
         return (-1, False)
-
-    def set_memlimit(self, limit):
-        ret = vserverimpl.setrlimit(self.ctx,5,limit)
-        return ret
-
-    def get_memlimit(self):
-        ret = vserverimpl.getrlimit(self.ctx,5)
-        return ret
-    
-    def set_tasklimit(self, limit):
-        ret = vserverimpl.setrlimit(self.ctx,6,limit)
-        return ret
-
-    def get_tasklimit(self):
-        ret = vserverimpl.getrlimit(self.ctx,6)
-        return ret
 
     def set_bwlimit(self, minrate = bwlimit.bwmin, maxrate = None,
                     exempt_min = None, exempt_max = None,
@@ -258,8 +326,9 @@ class VServer:
                          ([], filter_fn))[0]
         garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
                                               os.listdir(LOCKDIR)))
-        for f in garbage:
-            os.unlink(f)
+        if False:
+            for f in garbage:
+                os.unlink(f)
 
         # set the initial runlevel
         f = open(RUNDIR + "/utmp", "w")
@@ -288,8 +357,8 @@ class VServer:
         self.__do_chcontext(state_file)
 
     def start(self, wait, runlevel = 3):
-
         self.vm_running = True
+        self.rlimits_changed = False
 
         child_pid = os.fork()
         if child_pid == 0:
@@ -317,39 +386,18 @@ class VServer:
 
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
-                cmd_pid = 0
-                first_child = True
-                for cmd in self.INITSCRIPTS + [None]:
-                    # wait for previous command to terminate, unless it
-                    # is the last one and the caller has specified to wait
-                    if cmd_pid and (cmd != None or wait):
-                        try:
-                            os.waitpid(cmd_pid, 0)
-                        except:
-                            print >>log, "error waiting for %s:" % cmd_pid
-                            traceback.print_exc()
-
-                    # end of list
-                    if cmd == None:
-                        os._exit(0)
-
-                    # fork and exec next command
-                    cmd_pid = os.fork()
-                    if cmd_pid == 0:
-                        try:
-                            # enter vserver context
-                            self.__do_chcontext(state_file)
-                            arg_subst = { 'runlevel': runlevel }
-                            cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
-                                                      cmd[1:])
-                            print >>log, "executing '%s'" % " ".join(cmd_args)
-                            os.execl(cmd[0], *cmd_args)
-                        except:
-                            traceback.print_exc()
-                            os._exit(1)
-                    else:
-                        # don't want to write state_file multiple times
-                        state_file = None
+                self.__do_chcontext(state_file)
+		for cmd in self.INITSCRIPTS + [None]:
+			try:
+			    # enter vserver context
+			    arg_subst = { 'runlevel': runlevel }
+			    cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
+					    cmd[1:])
+			    print >>log, "executing '%s'" % " ".join(cmd_args)
+			    os.spawnvp(os.P_WAIT,cmd[0],*cmd_args)
+			except:
+				traceback.print_exc()
+				os._exit(1)
 
             # we get here due to an exception in the top-level child process
             except Exception, ex:
@@ -380,9 +428,9 @@ class VServer:
         return size
 
     def stop(self, signal = signal.SIGKILL):
-
         vserverimpl.killall(self.ctx, signal)
         self.vm_running = False
+        self.rlimits_changed = False
 
 
 
