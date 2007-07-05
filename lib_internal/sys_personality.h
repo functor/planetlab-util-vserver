@@ -1,4 +1,4 @@
-// $Id: sys_personality.h 2062 2005-04-28 18:01:16Z ensc $    --*- c -*--
+// $Id: sys_personality.h 2446 2007-01-09 13:22:11Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -28,10 +28,6 @@
 inline static UNUSED ALWAYSINLINE
 int sys_personality(int pers)
 {
-#if defined __dietlibc__
-  extern long int syscall (long int __sysno, ...);
-#endif
- 
   return syscall(__NR_sys_personality, pers);
 }
 #else

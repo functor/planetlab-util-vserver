@@ -1,4 +1,4 @@
-dnl $Id: ensc_dietlibc.m4 2091 2005-05-05 19:13:52Z ensc $
+dnl $Id: ensc_dietlibc.m4 2453 2007-01-17 09:54:53Z dhozac $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -48,6 +48,32 @@ AC_DEFUN([_ENSC_DIETLIBC_C99],
 
 	if test x"$ensc_cv_c_dietlibc_c99" = xyes; then
 		AC_DEFINE(ENSC_DIETLIBC_C99,1)
+	fi
+])
+
+AC_DEFUN([_ENSC_DIETLIBC_SYSCALL],
+[
+	AH_TEMPLATE([ENSC_DIETLIBC_HAS_SYSCALL], [Define to 1 if dietlibc declares syscall])
+
+	AC_CACHE_CHECK([whether dietlibc declares syscall], [ensc_cv_c_dietlibc_syscall],
+	[
+		_ensc_dietlibc_syscall_old_CC="$CC"
+		CC="${DIET:-diet} $CC"
+
+		AC_LANG_PUSH(C)
+		AC_COMPILE_IFELSE([
+			#include <sys/syscall.h>
+			long int syscall(long int __sysno, ...);
+		],
+		[ensc_cv_c_dietlibc_syscall=no],
+		[ensc_cv_c_dietlibc_syscall=yes])
+		AC_LANG_POP
+
+		CC="$_ensc_dietlibc_syscall_old_CC"
+	])
+
+	if test x"$ensc_cv_c_dietlibc_syscall" = xyes; then
+		AC_DEFINE(ENSC_DIETLIBC_HAS_SYSCALL,1)
 	fi
 ])
 
@@ -134,21 +160,7 @@ AC_DEFUN([ENSC_ENABLE_DIETLIBC],
 
 	if test x"$ensc_have_dietlibc" != xno; then
 		_ENSC_DIETLIBC_C99
+		_ENSC_DIETLIBC_SYSCALL
 	fi
 ])
 
-
-dnl Usage: ENSC_DIETLIBC_SANITYCHECK
-AC_DEFUN([ENSC_DIETLIBC_SANITYCHECK],
-[
-	AC_REQUIRE([AC_CANONICAL_HOST])
-	AC_REQUIRE([ENSC_ENABLE_DIETLIBC])
-
-	if test "$host_cpu" = x86_64 -a $ENSC_VERSION_DIETLIBC_NUM -le 0027; then
-		AC_MSG_WARN([***                                                             ***])
-		AC_MSG_WARN([*** dietlibc<=0.27 is known to be broken for x86_64 systems     ***])
-		AC_MSG_WARN([*** please make sure that at least the environ.S fix is applied ***])
-		AC_MSG_WARN([*** and lib/__nice.c added                                      ***])
-		AC_MSG_WARN([***                                                             ***])
-	fi
-])

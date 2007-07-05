@@ -1,4 +1,4 @@
-// $Id: vcontext.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
+// $Id: vcontext.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -259,10 +259,10 @@ doit(struct Arguments const *args, int argc, char *argv[])
 	switch (errno) {
 	  case EEXIST	:
 	    if (!args->is_silentexist)
-	      perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+	      perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
 	    return 254;
 	  default	:
-	    perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+	    perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
 	    return wrapper_exit_code;
 	}
       }
@@ -282,7 +282,7 @@ doit(struct Arguments const *args, int argc, char *argv[])
     setFlags(args, xid);
 
     if (args->do_migrate && !args->do_migrateself)
-      Evc_ctx_migrate(xid);
+      Evc_ctx_migrate(xid, 0);
 
     if (args->uid != NULL) {
       uid_t uid = 0;

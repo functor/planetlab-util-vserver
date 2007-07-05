@@ -1,4 +1,4 @@
-// $Id: wrappers-unistd.hc 2307 2006-09-12 17:09:08Z dhozac $    --*- c -*--
+// $Id: wrappers-unistd.hc 2467 2007-01-21 18:26:45Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -136,6 +136,12 @@ inline static WRAPPER_DECL void
 Eunlink(char const *pathname)
 {
   FatalErrnoError(unlink(pathname)==-1, "unlink()");
+}
+
+inline static WRAPPER_DECL void
+Elink(char const *oldpath, char const *newpath)
+{
+  FatalErrnoError(link(oldpath, newpath)==-1, "link()");
 }
 
 inline static void

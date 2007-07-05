@@ -1,4 +1,4 @@
-## $Id: Makefile.am 2367 2006-11-03 19:59:15Z dhozac $
+## $Id: Makefile.am 2482 2007-01-29 23:37:07Z dhozac $
 
 # Copyright (C) 2003,2004,2005,2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -226,6 +226,7 @@ include $(top_srcdir)/ensc_wrappers/Makefile-files
 include $(top_srcdir)/ensc_fmt/Makefile-files
 include $(top_srcdir)/lib_internal/Makefile-files
 include $(top_srcdir)/vserver-start/Makefile-files
+include $(top_srcdir)/gentoo/Makefile-files
 
 include $(top_srcdir)/m4/gpgsig.am
 include $(top_srcdir)/m4/validate.am

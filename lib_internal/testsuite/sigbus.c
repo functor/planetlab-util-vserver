@@ -1,4 +1,4 @@
-// $Id: sigbus.c 1979 2005-03-24 12:42:56Z ensc $    --*- c -*--
+// $Id: sigbus.c 2484 2007-02-04 17:17:02Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -33,7 +33,8 @@
 
 int wrapper_exit_code = 1;
 
-#define TEST_BLOCKSIZE	0x10000
+#define TEST_BLOCKSIZE		(sysconf(_SC_PAGESIZE)*2 + 0x10000)
+
 static bool			is_gremlin = false;
 static int			sync_p[2];
 
@@ -81,13 +82,12 @@ int main()
   char		f_name1[] = "/tmp/sigbus.XXXXXX";
   int		fd_src    = mkstemp(f_name0);
   int		fd_dst    = mkstemp(f_name1);
-  char		buf[TEST_BLOCKSIZE] = { [0] = '\0' };
+  char		buf[TEST_BLOCKSIZE];
   struct stat	st;
   bool		res;
-  
-  fd_src = 
-  
-  write(fd_src, buf, sizeof(buf));
+
+  memset(buf, 0, TEST_BLOCKSIZE);
+  write(fd_src, buf, TEST_BLOCKSIZE);
   close(fd_src);
   close(fd_dst);
 

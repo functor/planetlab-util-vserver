@@ -1,3 +1,618 @@
+2007-05-03 12:20  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* NEWS: Version 0.30.213.
+
+2007-05-03 12:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: Add missing file.
+
+2007-05-02 20:11  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac: Version 0.30.213.
+
+2007-04-27 09:08  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vserver.functions: fake init environment during shutdown,
+	  otherwise rc just calls shutdown/halt which does not work without
+	  init
+
+2007-04-27 09:02  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpost, distrib/gentoo/initpre: add dummy net
+	  dependency to default runlevel; dmesg/syslog is now handled in
+	  baselayout
+
+2007-04-27 09:01  Benedikt Böhm <hollow@gentoo.org>
+
+	* src/chroot-sh.c: add link command to chroot-sh
+
+2007-04-27 08:42  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/reboot.sh, distrib/gentoo/shutdown.sh: don't call
+	  /halt/reboot -f for gentoo init style, but rather just exit,
+	  since we would be killed by vshelper, does not matter for reboot
+	  from inside: simple reboot wonÄt work with gentoo init style,
+	  must use reboot -f inside
+
+2007-04-27 08:40  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpre: fix distdir handling if prefix is not
+
+2007-04-21 14:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/cflags-v13.c, scripts/vshelper: Use the state change helper
+	  to stop the guest when the last process exits.
+
+2007-04-21 14:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.template: Recognize the --nodevsanity
+	  option.
+
+2007-04-21 14:04  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: Don't do namespace cleanup if we're not in a
+	  new namespace.
+
+2007-04-21 14:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am, distrib/centos5, distrib/centos5/pkgs,
+	  distrib/centos5/yum, distrib/centos5/yum.repos.d,
+	  distrib/centos5/yum.repos.d/CentOS-Base.repo,
+	  distrib/centos5/yum/yum.conf: Add CentOS 5.
+
+2007-04-13 10:46  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/etch/vserver-config.sh: remove interactive setup steps
+
+2007-04-13 09:02  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/Makefile.am, distrib/etch, distrib/etch/initpost,
+	  distrib/etch/vserver-config.sh, distrib/misc/debootstrap.mirror,
+	  scripts/vserver-build.debootstrap: add build scripts for debian
+	  etch
+
+2007-04-11 18:14  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vyum-worker: Fix typo.
+
+2007-04-11 17:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: New debootstrap.
+
+2007-04-08 00:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vlogin.c: terminal_copy doesn't return void anymore.
+
+2007-04-08 00:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am: Add shutdown.sh and reboot.sh to the
+	  Makefile.
+
+2007-03-27 18:00  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpost, distrib/gentoo/initpre,
+	  distrib/gentoo/reboot.sh, distrib/gentoo/shutdown.sh: force
+	  halt/reboot if using gentoo init style, enable syslog stub by
+	  default for gentoo guests
+
+2007-03-24 12:54  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.debootstrap: Get rid of the work directory
+	  on success.
+
+2007-03-21 04:46  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver: Fix help message.
+
+2007-03-20 20:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.debootstrap: Fix problems with debootstrap
+	  on Ubuntu.
+
+2007-03-20 17:47  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.debootstrap: Remove the guest in case of
+	  failure.
+
+2007-03-18 22:15  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/pkgmgmt: Supply the required argument.
+
+2007-03-18 22:02  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-setup.functions: nodev: shouldn't be in the ip
+	  file.
+
+2007-03-18 17:51  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* gentoo/util-vserver: Verbosify initscript.
+
+2007-03-18 15:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions, scripts/pkgmgmt, scripts/vserver,
+	  scripts/vserver-build.functions, scripts/vsomething: Rename
+	  _setVserverDir to _setVserverDirName.
+	  Rename _getVserverDir to _setVserverDir.
+	  Add _setVserverName to set VSERVER_NAME.
+	  pkgmgmt.initVariables cannot run before _setVserverDirName, and
+	  the initialization must happen once per guest.
+
+2007-03-18 15:04  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vlogin.c: Attempt to fix the endless loop of select() read().
+
+2007-03-18 11:51  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/util-vserver: Create the directories here for strange
+	  distros (e.g. Ubuntu).
+
+2007-03-11 21:25  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Fix IPv6 address assignment.
+
+2007-03-09 21:07  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: Update the debootstrap URI.
+
+2007-03-07 20:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vsched.c: Fix idle-time.
+
+2007-02-26 20:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/gentoo/init-vserver.sh, scripts/vserver.functions: Make
+	  the gentoo initstyle work with baselayout-vserver.
+
+2007-02-25 14:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions, scripts/vserver.stop, scripts/vshelper: Don't
+	  tell init to shutdown if we're called from vshelper, that
+	  should've already happened.
+	  Kill init and other remaining processes from vshelper once the
+	  stop sync signal has arrived.
+
+2007-02-25 01:44  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Add $__LOCKDIR and /tmp to the
+	  excluded paths.
+
+2007-02-24 23:43  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac: Fix help message for --with-initscripts.
+
+2007-02-24 20:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am: Move the Gentoo in-guest scripts to *_DATA,
+	  so rpm doesn't process them for deps.
+
+2007-02-24 20:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* m4/ensc_pathprog.m4: Fix the symlink problems.
+
+2007-02-22 05:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall-alternative.h: Update to latest shiny.
+
+2007-02-21 20:07  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-setup.functions: Update help message to
+	  correspond better with reality.
+
+2007-02-20 17:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* ensc_wrappers/wrappers-vserver.hc, lib/syscall_ctxmigrate-v21.hc,
+	  lib/syscall_ctxmigrate.c, lib/vserver.h,
+	  lib_internal/switchtowatchxid.c, src/rpm-fake-resolver.c,
+	  src/rpm-fake.c, src/vcontext.c: Add support for the migration
+	  flags.
+
+2007-02-17 19:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-setup.functions: Make nodev: silence the warning.
+
+2007-02-17 19:01  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall-alternative.h: Update to latest shiny.
+
+2007-02-14 19:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: &>> doesn't exist.
+
+2007-02-14 19:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall-alternative.h: Update to latest shiny.
+
+2007-02-11 20:21  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: Work better if the default tty is a file by
+	  using /dev/null for input and appending the output.
+
+2007-02-11 20:16  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall-alternative.h: Update to shiny15.
+
+2007-02-11 00:45  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.clone, src/vclone.c: Remove the --source
+	  and --dest "options" from vclone, both are required.
+	  Catch error conditions about the arguments in vclone.
+	  Attempt to figure out where the source if it's not a directory,
+	  and make sure it is one before running vclone.
+
+2007-02-10 15:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/getxidtype.c: Xid 65535 is a static one when dynamic ones are
+	  disabled.
+
+2007-02-09 06:17  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Add /usr/bin to exception list, to
+	  make sure we keep the /usr mount around.
+
+2007-02-05 20:59  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/Makefile-files, src/vkill.c: Fix the last, horribly broken
+	  commit.
+
+2007-02-05 20:45  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vdevmap.c: Really silence the warning.
+
+2007-02-05 20:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vkill.c: Try to figure out the xid if not specified.
+
+2007-02-05 20:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vdevmap.c: Silence warning.
+
+2007-02-05 20:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/gentoo/net.vserver: Make distrib/gentoo/net.vserver
+	  non-executable so RPM doesn't pick up a dependency on
+	  /sbin/runscript.
+
+2007-02-05 18:08  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vdispatch-conf, scripts/vesync, scripts/vupdateworld: fix
+	  vsomething arguments in gentoo wrappers
+
+2007-02-04 17:18  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/unify-copy.c: - documented parts of the code were I
+	  needed to think >1min about its
+	  sense
+	  - use ftruncate(2) instead of a lseek(2)+write(2) sequence to
+	  create a
+	  sparse file
+	  - set O_NOCTTY flag for temp file
+
+2007-02-04 17:17  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/testsuite/sigbus.c: - reworked the large pagesize
+	  patch; it seems to be always PAGESIZE*2+1
+	  bytes required to trigger a SIGBUS. Since PAGESIZE is not
+	  available
+	  directly, use sysconf(3) to get this value and memset(3) to
+	  initialize
+	  buffer
+	  - removed byte crap
+
+2007-02-01 12:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/Makefile-files: Add missing hunk from the Gentoo initscripts
+	  commit.
+
+2007-01-29 23:37  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* Makefile.am, configure.ac, gentoo, gentoo/Makefile-files,
+	  gentoo/util-vserver, gentoo/vprocunhide, gentoo/vservers.default,
+	  util-vserver.spec.in: Add Gentoo initscripts.
+	  Force sysv initscripts for the RPMs.
+
+2007-01-29 02:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop, scripts/vserver.suexec: There's no need to
+	  enter the filesystem namespaces twice.
+
+2007-01-28 11:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/secure-mount.c: When we call the external mount, we need to
+	  preserve all of the options so it can parse them on its own.
+	  The option defaults should set nodev in the flags.
+
+2007-01-27 23:16  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: vserver-copy is legacy, put the
+	  man page in the same package.
+
+2007-01-27 11:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst, distrib/Makefile.am,
+	  distrib/misc/context.start, doc/configuration.xml,
+	  scripts/vserver-setup.functions: Move dynamic context generation
+	  to userspace.
+
+2007-01-27 10:20  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-setup.functions: Set nodev rather than just
+	  warning about it.
+
+2007-01-27 10:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/unify.h: Actually check the mtime when it's not
+	  optional.
+
+2007-01-27 09:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/unify.h, src/vhashify.c, src/vhashify.h: Add an
+	  option (--ignore-mtime) to vhashify to hashify files with
+	  differing mtimes.
+
+2007-01-25 13:14  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Add entries that were missing from
+	  .defaults.
+
+2007-01-25 09:51  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/chxid.c, src/fstool.c, src/fstool.h: Add option to chxid to
+	  skip unified files.
+
+2007-01-23 16:43  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vclone.c: Don't overwrite files that already exist.
+
+2007-01-23 16:41  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/Makefile.am, distrib/gentoo/initpost,
+	  distrib/gentoo/initpre, distrib/gentoo/net.vserver: cleanup
+	  gentoo/initpost; add fixes for syslog-ng.conf and net dependency
+	  in baselayout >= 1.13
+
+2007-01-21 20:17  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/Makefile-files: ... and the Makefile.
+
+2007-01-21 20:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: Add the build method to the
+	  manifest too.
+
+2007-01-21 20:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst,
+	  scripts/util-vserver-vars.pathsubst, scripts/vserver-build,
+	  scripts/vserver-build.clone: Add the clone build method.
+
+2007-01-21 18:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* ensc_wrappers/wrappers-unistd.hc, lib_internal/pathinfo.h,
+	  src/Makefile-files, src/vclone.c: Add vclone, to help with
+	  cloning guests.
+
+2007-01-21 08:02  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.start, src/vsysctl.c: If it doesn't exist, only
+	  error if requested.
+
+2007-01-20 17:31  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpost: fix runlevel scripts for older
+	  baselayouts too; set hostname inside the guest
+
+2007-01-20 13:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/checkconfig.c: Return 0 on any error, older kernels will
+	  return -EPERM for unknown syscalls.
+
+2007-01-20 09:36  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Document the configuration for vdevmap.
+
+2007-01-20 09:25  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Place-holder documentation for now, until
+	  some better descriptions comes along.
+
+2007-01-20 07:43  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/testsuite/sigbus.c: Add patch from David Woodhouse
+	  to work with 64 KiB pages.
+
+2007-01-18 16:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/util-vserver-vars.pathsubst, scripts/vserver.functions,
+	  sysv/util-vserver: Add support for vdevmap in the configuration.
+
+2007-01-18 16:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vsysctl.c: Fix logic error.
+
+2007-01-18 13:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst,
+	  scripts/util-vserver-vars.pathsubst, scripts/vserver.start,
+	  src/Makefile-files, src/vsysctl.c: Add support for setting sysctl
+	  values in the configuration.
+
+2007-01-18 07:56  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/Makefile-files, contrib/yum-3.0.3-chroot.patch: added
+	  patch for yum-3.0.3
+
+2007-01-18 04:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Remove the disk limits after saving
+	  them.
+
+2007-01-17 09:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h: Add VC_VXSM_MSEC.
+
+2007-01-17 09:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_setsched-v21.hc: Use VCMD_set_sched_v4 as intended.
+
+2007-01-17 09:54  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac, m4/ensc_dietlibc.m4: Remove the dietlibc sanity
+	  check function, as what it's doing is already done elsewhere.
+
+2007-01-14 12:30  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vupdateworld: fix missing world target in vupdateworld
+
+2007-01-10 22:23  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* util-vserver.spec.in: Teach the spec how to build prereleases and
+	  release candidates.
+
+2007-01-10 19:27  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vserver-stat.c: The new method doesn't need to be a
+	  spectator, and /proc/virtual isn't available there by default.
+
+2007-01-10 18:53  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* kernel/sched_cmd.h, lib/Makefile-files, lib/issupported.c,
+	  lib/issupportedstring.c, lib/syscall_schedinfo-v21.hc,
+	  lib/syscall_schedinfo.c, lib/vserver.h, src/vserver-stat.c: Add
+	  vc_sched_info API.
+	  Make vserver-stat use the various APIs instead of parsing
+	  per-process /proc entries.
+	  
+	  vc_virt_stat.uptime is a uint64_t.
+	  vc_get_dlimit can handle a NULL limits argument.
+
+2007-01-10 18:49  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall.c, src/rpm-fake.c, src/vcontext.c: There is no
+	  vc_create_context. Stop referencing it.
+
+2007-01-10 11:52  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop: Remove persistent on stop.
+
+2007-01-09 13:22  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall-wrap.h, lib/vserver-internal.h,
+	  lib_internal/sys_clone.h, lib_internal/sys_personality.h,
+	  m4/ensc_dietlibc.m4: Check if dietlibc declares syscall
+	  incompatibly, to avoid errors.
+	  Move the syscall declaration to lib/syscall-wrap.h.
+
+2007-01-07 22:27  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/util-vserver: Fix output.
+
+2007-01-03 11:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/getvserverbyctx.c: Support legacy guests on 2.6 kernels as
+	  well.
+
+2007-01-02 20:54  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.start: The CHBIND_OPTS need to be cleaned before
+	  handing them to $_CHBIND_COMPAT, let $_CHBIND do that.
+
+2007-01-01 19:37  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac: Let glibc use the alternative syscalls as well.
+
+2006-12-30 00:52  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h: Organize things. Structures and functions dealing
+	  with similar things are now grouped together.
+
+2006-12-30 00:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: Use status for the process count instead since
+	  persistent adds a task there.
+
+2006-12-30 00:37  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src: Add vdevmap to ignore.
+
+2006-12-29 20:34  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/util-vserver: Return a sane value from kill_contexts.
+
+2006-12-29 20:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver-internal.h: Use the correct type for the
+	  configuration bitfield.
+
+2006-12-29 20:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* util-vserver.spec.in: Add util-vserver initscript handling.
+	  Add %changelog comment.
+
+2006-12-29 20:30  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: Add vdevmap.
+
+2006-12-28 00:07  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst, scripts/Makefile-files,
+	  scripts/util-vserver-vars.pathsubst,
+	  scripts/vserver-init.functions, scripts/vserver-wrapper,
+	  sysv/Makefile-files, sysv/util-vserver, sysv/vprocunhide: Move
+	  initscript functions to vserver-init.functions.
+	  Make vprocunhide use said functions.
+	  Add an initscript to set the helper and kill guest processes.
+
+2006-12-28 00:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* util-vserver.spec.in: Add --without doc and --with legacy
+	  options.
+
+2006-12-20 13:39  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vserver-wrapper: cosmetic fixes for vserver-wrapper
+
+2006-12-19 19:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/fstool.c, src/fstool.h, src/setattr.c: Add --immutable,
+	  --~immutable and --!immutable.
+
+2006-12-18 11:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Don't check the VLAN stuff if
+	  novlandev was specified.
+
+2006-12-12 13:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vdevmap.c: Error on too many arguments.
+
+2006-12-12 13:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: Update debootstrap URL.
+
+2006-12-12 01:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* kernel/device_cmd.h, kernel/switch.h, lib/Makefile-files,
+	  lib/syscall_setmapping-v21.hc, lib/syscall_setmapping.c,
+	  lib/virtual.h, lib/vserver.h, src/Makefile-files, src/vdevmap.c:
+	  Add vdevmap and required functionality.
+
+2006-12-10 17:45  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: Improve the vshelper warning (common sign of
+	  multiple installs).
+
+2006-12-10 12:56  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/yum-2.6.0-chroot.patch, contrib/yum-2.9.6-chroot.patch:
+	  fixed location of the lockfile; formerly, the chroot path was
+	  prepended
+	  twice
+
+2006-12-10 00:57  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/vservers-legacy: Don't enable the legacy initscript by
+	  default.
+
 2006-12-09 16:13  Daniel Hokka Zakrisson <daniel@hozac.com>
 
 	* NEWS, THANKS, configure.ac: Version 0.30.212.

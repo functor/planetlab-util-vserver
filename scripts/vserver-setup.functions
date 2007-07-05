@@ -1,4 +1,4 @@
-# $Id: vserver-setup.functions 2300 2006-09-12 12:16:53Z dhozac $	--*- sh -*--
+# $Id: vserver-setup.functions 2517 2007-03-18 22:02:22Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003,2004,2005,2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -34,8 +34,8 @@ declare -a SETUP_FLAGS=()
 
 declare -r SETUP_OPTIONS="confdir:,lockfile:,hostname:,netdev:,netmask:,netprefix:,netbcast:,interface:,flags:,context:,initstyle:,cpuset:,cpusetcpus:,cpusetmems:,cpusetvirt"
 declare -r SETUP_HELPMSG=$"
-    --context   ...  the static context of the vserver [default: none; a dynamic
-                     context will be assumed]
+    --context   ...  the static context of the vserver [default: none; one will
+                     be generated for you]
     --confdir   ...  [default: $__CONFDIR/<name>]
     --lockfile <filename>
 		...  [default: $__RUNDIR/<name>]
@@ -133,9 +133,14 @@ function _setup_writeInterface
 
     tmp=${tmp##${name}=}
     local dev=${tmp%%:*}
-    test "$dev" != "$tmp" || dev=
+    local nodev=
+    test "$dev" != "$tmp"  || dev=
 
     tmp=${tmp##${dev}:}
+    test "$dev" != "nodev" || {
+	dev=
+	nodev=1
+    }
     local mask=${tmp##*/}
     test "$mask" != "$tmp"  || mask=
 
@@ -156,8 +161,11 @@ function _setup_writeInterface
     _setup_writeSingleOption "$mask"   $d/mask
     _setup_writeSingleOption "$prefix" $d/prefix
 
-    test -n "$dev" -o -n "$SETUP_NETDEV" || \
-	echo $"No device specified for interface '$idx'; do not forget to set the 'nodev' option" >&2
+    test -n "$dev" -o -n "$SETUP_NETDEV" || {
+	test -n "$nodev" || \
+	    echo $"No device specified for interface '$idx'; setting 'nodev'" >&2
+	$_TOUCH $d/nodev
+    }
 }
 
 function setup_setDefaults
@@ -167,6 +175,18 @@ function setup_setDefaults
     findFile SETUP_FSTAB "$__CONFDIR"/.defaults/fstab "$__PKGLIBDEFAULTDIR"/fstab
 }
 
+function _setup_generateContext
+{
+    if test -z "$SETUP_CONTEXT" && test ! -e "$__CONFDIR/.defaults/context.dynamic"; then
+	if test -e "$__CONFDIR/.defaults/context.next"; then
+	    SETUP_CONTEXT=`$_CAT "$__CONFDIR/.defaults/context.next"`
+	else
+	    SETUP_CONTEXT=`$_CAT "$__PKGLIBDEFAULTDIR/context.start"`
+	fi
+	expr "$SETUP_CONTEXT" + 1 > "$__CONFDIR/.defaults/context.next"
+    fi
+}
+
 function setup_writeOption
 {
     local name=$1
@@ -174,6 +194,8 @@ function setup_writeOption
     local i
 
     mkdir -p "$cfgdir"/interfaces "$cfgdir"/apps/init "$cfgdir"/uts "$cfgdir"/cpuset
+
+    _setup_generateContext
 
     _setup_writeSingleOption "$name"            "$cfgdir"/name
     _setup_writeSingleOption "$SETUP_CONTEXT"   "$cfgdir"/context

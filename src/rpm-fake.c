@@ -1,4 +1,4 @@
-// $Id: rpm-fake.c 2421 2006-12-09 16:12:18Z dhozac $    --*- c++ -*--
+// $Id: rpm-fake.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -247,7 +247,7 @@ setupContext(xid_t xid, char const **xid_str)
     if ((xid==VC_DYNAMIC_XID || !vc_is_dynamic_xid(xid)) &&
 	(rc=vc_ctx_create(xid))==VC_NOCTX &&
 	errno!=EEXIST) {
-      perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+      perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
       exit(255);
     }
 
@@ -595,7 +595,7 @@ execvWorker(char const *path, char * const argv[], char * const envp[])
   int		res = -1;
 
   if (vc_isSupported(vcFEATURE_MIGRATE))
-    res = vc_ctx_migrate(ctx);
+    res = vc_ctx_migrate(ctx, 0);
   else {
 #ifdef VC_ENABLE_API_COMPAT  
     res = vc_new_s_context(ctx,caps,flags);

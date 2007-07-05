@@ -67,8 +67,8 @@ pkglib_PROGRAMS = src/capchroot$(EXEEXT) src/chain-echo$(EXEEXT) \
 	src/mask2prefix$(EXEEXT) src/exec-ulimit$(EXEEXT) \
 	src/rpm-fake-resolver$(EXEEXT) src/vshelper-sync$(EXEEXT) \
 	src/sigexec$(EXEEXT) src/chbind-compat$(EXEEXT) \
-	$(am__EXEEXT_8) $(am__EXEEXT_9) $(am__EXEEXT_10) \
-	$(am__EXEEXT_11)
+	src/vsysctl$(EXEEXT) $(am__EXEEXT_8) $(am__EXEEXT_9) \
+	$(am__EXEEXT_10) $(am__EXEEXT_11)
 legacy_PROGRAMS = src/ifspec$(EXEEXT) src/listdevip$(EXEEXT) \
 	src/parserpmdump$(EXEEXT) src/rebootmgr$(EXEEXT) \
 	src/showperm$(EXEEXT) src/vreboot$(EXEEXT)
@@ -80,8 +80,8 @@ sbin_PROGRAMS = src/exec-cd$(EXEEXT) src/lsxid$(EXEEXT) \
 	src/vrsetup$(EXEEXT) src/vsched$(EXEEXT) \
 	src/vserver-stat$(EXEEXT) src/vserver-info$(EXEEXT) \
 	src/vuname$(EXEEXT) src/vwait$(EXEEXT) src/ncontext$(EXEEXT) \
-	src/nattribute$(EXEEXT) src/naddress$(EXEEXT) $(am__EXEEXT_9) \
-	$(am__EXEEXT_12)
+	src/nattribute$(EXEEXT) src/naddress$(EXEEXT) \
+	src/vdevmap$(EXEEXT) $(am__EXEEXT_9) $(am__EXEEXT_12)
 noinst_PROGRAMS = tests/escaperoot$(EXEEXT) tests/forkbomb$(EXEEXT) \
 	tests/testipc$(EXEEXT) tests/testlimit$(EXEEXT) \
 	tests/testopenf$(EXEEXT) $(am__EXEEXT_6)
@@ -104,6 +104,7 @@ DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 	$(top_srcdir)/ensc_fmt/Makefile-files \
 	$(top_srcdir)/ensc_vector/Makefile-files \
 	$(top_srcdir)/ensc_wrappers/Makefile-files \
+	$(top_srcdir)/gentoo/Makefile-files \
 	$(top_srcdir)/lib/Makefile-files \
 	$(top_srcdir)/lib/apidoc/Doxyfile.in \
 	$(top_srcdir)/lib_internal/Makefile-files \
@@ -141,25 +142,30 @@ DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 
 @HAVE_XSLTP_TRUE@am__append_8 = $(doc_gen_DOCS)
 @HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@am__append_9 = $(doc_gen_DOCS)
-@ENSC_USE_GLIBC_TRUE@am__append_10 = $(LIBENSCVECTOR_GLIBC)
-@ENSC_USE_DIETLIBC_TRUE@am__append_11 = $(LIBENSCVECTOR_DIET)
-@USE_DIETLIBC_TRUE@am__append_12 = $(LIBINTERNAL_DIET)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_13 = lib_internal/testsuite/filecfg-ml \
+@HAVE_SYSV_INIT_TRUE@am__append_10 = $(sysv_conf_DTA)
+@HAVE_SYSV_INIT_TRUE@am__append_11 = $(sysv_src_SCRPTS) \
+@HAVE_SYSV_INIT_TRUE@			$(sysv_gen_SCRPTS)
+
+@ENSC_USE_GLIBC_TRUE@am__append_12 = $(LIBENSCVECTOR_GLIBC)
+@ENSC_USE_DIETLIBC_TRUE@am__append_13 = $(LIBENSCVECTOR_DIET)
+@USE_DIETLIBC_TRUE@am__append_14 = $(LIBINTERNAL_DIET)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_15 = lib_internal/testsuite/filecfg-ml \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/copy \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber-gnu \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus-gnu
 
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_14 = lib_internal/testsuite/filecfg-ml \
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_16 = lib_internal/testsuite/filecfg-ml \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/copy-check \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber-gnu \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus-gnu
 
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_15 = vserver-start/vserver.start.bin
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_16 = vserver-start/vserver.start.bin
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_17 = vserver-start/vserver.start.bin
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_18 = vserver-start/vserver.start.bin
+@HAVE_GENTOO_INIT_TRUE@am__append_19 = $(gentoo_src_SCRPTS)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ensc_cflags.m4 \
@@ -282,6 +288,8 @@ am__lib_libvserver_a_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_getspacemask.c lib/syscall_getspacemask-v21.hc \
 	lib/syscall_enternamespace-v21.hc \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
+	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
+	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
 	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
 	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
 	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
@@ -349,7 +357,9 @@ am__objects_7 = lib/lib_libvserver_a-syscall_rlimitstat.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_getvci.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_virtstat.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_ctxstat.$(OBJEXT) \
-	lib/lib_libvserver_a-syscall_getspacemask.$(OBJEXT)
+	lib/lib_libvserver_a-syscall_getspacemask.$(OBJEXT) \
+	lib/lib_libvserver_a-syscall_setmapping.$(OBJEXT) \
+	lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT)
 am__objects_8 = ensc_fmt/lib_libvserver_a-fmt-32.$(OBJEXT) \
 	ensc_fmt/lib_libvserver_a-fmt-64.$(OBJEXT) \
 	ensc_fmt/lib_libvserver_a-fmtx-32.$(OBJEXT) \
@@ -649,6 +659,8 @@ am__lib_libvserver_la_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_getspacemask.c lib/syscall_getspacemask-v21.hc \
 	lib/syscall_enternamespace-v21.hc \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
+	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
+	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
 	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
 	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
 	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
@@ -714,7 +726,9 @@ am__objects_24 = lib/lib_libvserver_la-syscall_rlimitstat.lo \
 	lib/lib_libvserver_la-syscall_getvci.lo \
 	lib/lib_libvserver_la-syscall_virtstat.lo \
 	lib/lib_libvserver_la-syscall_ctxstat.lo \
-	lib/lib_libvserver_la-syscall_getspacemask.lo
+	lib/lib_libvserver_la-syscall_getspacemask.lo \
+	lib/lib_libvserver_la-syscall_setmapping.lo \
+	lib/lib_libvserver_la-syscall_schedinfo.lo
 am__objects_25 = ensc_fmt/lib_libvserver_la-fmt-32.lo \
 	ensc_fmt/lib_libvserver_la-fmt-64.lo \
 	ensc_fmt/lib_libvserver_la-fmtx-32.lo \
@@ -770,7 +784,8 @@ am__EXEEXT_4 = src/testsuite/vunify-functest$(EXEEXT) \
 legacyPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 am__EXEEXT_6 = tests/getctx$(EXEEXT) tests/getinitpid$(EXEEXT) \
 	tests/vserver-info$(EXEEXT)
-am__EXEEXT_7 = src/vunify$(EXEEXT) src/vcopy$(EXEEXT)
+am__EXEEXT_7 = src/vunify$(EXEEXT) src/vcopy$(EXEEXT) \
+	src/vclone$(EXEEXT)
 @ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_8 = $(am__EXEEXT_7)
 @ENSC_HAVE_CXX_COMPILER_TRUE@am__EXEEXT_9 = $(am__EXEEXT_1)
 @ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_10 = src/vhashify$(EXEEXT)
@@ -1013,6 +1028,9 @@ src_testsuite_vunify_functest_DEPENDENCIES = $(am__DEPENDENCIES_9)
 am_src_vattribute_OBJECTS = src/vattribute.$(OBJEXT)
 src_vattribute_OBJECTS = $(am_src_vattribute_OBJECTS)
 src_vattribute_DEPENDENCIES = $(am__DEPENDENCIES_11)
+am_src_vclone_OBJECTS = src/vclone.$(OBJEXT)
+src_vclone_OBJECTS = $(am_src_vclone_OBJECTS)
+src_vclone_DEPENDENCIES = $(am__DEPENDENCIES_9) $(am__DEPENDENCIES_11)
 am_src_vcontext_OBJECTS = src/vcontext.$(OBJEXT) src/vlogin.$(OBJEXT)
 src_vcontext_OBJECTS = $(am_src_vcontext_OBJECTS)
 src_vcontext_DEPENDENCIES = $(am__DEPENDENCIES_11) \
@@ -1020,6 +1038,10 @@ src_vcontext_DEPENDENCIES = $(am__DEPENDENCIES_11) \
 am_src_vcopy_OBJECTS = src/vcopy.$(OBJEXT)
 src_vcopy_OBJECTS = $(am_src_vcopy_OBJECTS)
 src_vcopy_DEPENDENCIES = $(am__DEPENDENCIES_9) $(am__DEPENDENCIES_11)
+am_src_vdevmap_OBJECTS = src/vdevmap.$(OBJEXT)
+src_vdevmap_OBJECTS = $(am_src_vdevmap_OBJECTS)
+src_vdevmap_DEPENDENCIES = $(am__DEPENDENCIES_11) \
+	$(am__DEPENDENCIES_9)
 am_src_vdlimit_OBJECTS = src/vdlimit.$(OBJEXT)
 src_vdlimit_OBJECTS = $(am_src_vdlimit_OBJECTS)
 src_vdlimit_DEPENDENCIES = $(am__DEPENDENCIES_11)
@@ -1069,6 +1091,9 @@ src_vserver_stat_DEPENDENCIES = $(am__DEPENDENCIES_9) \
 am_src_vshelper_sync_OBJECTS = src/vshelper-sync.$(OBJEXT)
 src_vshelper_sync_OBJECTS = $(am_src_vshelper_sync_OBJECTS)
 src_vshelper_sync_LDADD = $(LDADD)
+am_src_vsysctl_OBJECTS = src/vsysctl.$(OBJEXT)
+src_vsysctl_OBJECTS = $(am_src_vsysctl_OBJECTS)
+src_vsysctl_DEPENDENCIES = $(am__DEPENDENCIES_11)
 am_src_vuname_OBJECTS = src/vuname.$(OBJEXT)
 src_vuname_OBJECTS = $(am_src_vuname_OBJECTS)
 src_vuname_DEPENDENCIES = $(am__DEPENDENCIES_11)
@@ -1176,13 +1201,15 @@ SOURCES = $(nodist_lib_dietlibc_not_enabled_error_a_SOURCES) \
 	$(src_testsuite_hashcalc_plain_SOURCES) \
 	$(src_testsuite_rpm_fake_test_SOURCES) \
 	$(src_testsuite_vunify_functest_SOURCES) \
-	$(src_vattribute_SOURCES) $(src_vcontext_SOURCES) \
-	$(src_vcopy_SOURCES) $(src_vdlimit_SOURCES) $(src_vdu_SOURCES) \
-	$(src_vhashify_SOURCES) $(src_vkill_SOURCES) \
-	$(src_vlimit_SOURCES) $(src_vnamespace_SOURCES) \
-	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
-	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
-	$(src_vserver_stat_SOURCES) $(src_vshelper_sync_SOURCES) \
+	$(src_vattribute_SOURCES) $(src_vclone_SOURCES) \
+	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
+	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
+	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
+	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
+	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
+	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
+	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
+	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
 	$(src_vuname_SOURCES) $(src_vunify_SOURCES) \
 	$(src_vwait_SOURCES) $(tests_escaperoot_SOURCES) \
 	$(tests_forkbomb_SOURCES) $(tests_getctx_SOURCES) \
@@ -1230,13 +1257,15 @@ DIST_SOURCES = $(am__lib_libvserver_a_SOURCES_DIST) \
 	$(src_testsuite_hashcalc_plain_SOURCES) \
 	$(src_testsuite_rpm_fake_test_SOURCES) \
 	$(src_testsuite_vunify_functest_SOURCES) \
-	$(src_vattribute_SOURCES) $(src_vcontext_SOURCES) \
-	$(src_vcopy_SOURCES) $(src_vdlimit_SOURCES) $(src_vdu_SOURCES) \
-	$(src_vhashify_SOURCES) $(src_vkill_SOURCES) \
-	$(src_vlimit_SOURCES) $(src_vnamespace_SOURCES) \
-	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
-	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
-	$(src_vserver_stat_SOURCES) $(src_vshelper_sync_SOURCES) \
+	$(src_vattribute_SOURCES) $(src_vclone_SOURCES) \
+	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
+	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
+	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
+	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
+	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
+	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
+	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
+	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
 	$(src_vuname_SOURCES) $(src_vunify_SOURCES) \
 	$(src_vwait_SOURCES) $(tests_escaperoot_SOURCES) \
 	$(tests_forkbomb_SOURCES) $(tests_getctx_SOURCES) \
@@ -1333,8 +1362,12 @@ FILE = @FILE@
 GPG_KEY = @GPG_KEY@
 GREP = @GREP@
 GZIP = @GZIP@
+HAVE_GENTOO_INIT_FALSE = @HAVE_GENTOO_INIT_FALSE@
+HAVE_GENTOO_INIT_TRUE = @HAVE_GENTOO_INIT_TRUE@
 HAVE_SVN2CL_FALSE = @HAVE_SVN2CL_FALSE@
 HAVE_SVN2CL_TRUE = @HAVE_SVN2CL_TRUE@
+HAVE_SYSV_INIT_FALSE = @HAVE_SYSV_INIT_FALSE@
+HAVE_SYSV_INIT_TRUE = @HAVE_SYSV_INIT_TRUE@
 HAVE_XSLTPROC_FALSE = @HAVE_XSLTPROC_FALSE@
 HAVE_XSLTPROC_TRUE = @HAVE_XSLTPROC_TRUE@
 HAVE_XSLTP_FALSE = @HAVE_XSLTP_FALSE@
@@ -1502,7 +1535,7 @@ noinst_HEADERS = $(ENSC_VECTOR_HDRS) compat.h compat-c99.h \
 	lib_internal/util-perror.h lib_internal/util-safechdir.h \
 	lib_internal/util-unixsock.h lib_internal/string.hc
 noinst_LIBRARIES = $(ENSC_VECTOR_LIBS) $(LIBINTERNAL_GLIBC) \
-	$(am__append_12)
+	$(am__append_14)
 lib_LIBRARIES = $(am__append_2)
 lib_LTLIBRARIES = $(LIBVSERVER_GLIBC)
 pkglib_LTLIBRARIES = src/rpm-fake.la
@@ -1514,8 +1547,8 @@ legacy_SCRIPTS = $(scripts_legacy_src_SCRPTS) \
 sbin_SCRIPTS = $(scripts_sbin_src_PRGS) $(scripts_sbin_gen_PRGS) \
 	$(scripts_legacy_src_PRGS)
 noinst_DATA = $(contrib_gen_DTA)
-initrd_SCRIPTS = $(sysv_src_SCRPTS) $(sysv_gen_SCRPTS)
-sysconf_DATA = $(sysv_conf_DTA)
+initrd_SCRIPTS = $(am__append_11) $(am__append_19)
+sysconf_DATA = $(am__append_10)
 DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	ensc_fmt/lib_libvserver_a-% lib/testsuite/cflags \
 	lib/testsuite/personality lib/testsuite/fmt \
@@ -1529,10 +1562,11 @@ DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	src/rpm-fake-resolver src/vcontext src/vcopy src/vkill \
 	src/vsched src/vshelper-sync src/vrsetup src/vserver-stat \
 	src/vserver-info src/vdlimit src/vdu src/vwait src/ncontext \
-	src/nattribute src/naddress $(am__append_3) $(tests_dietprogs) \
+	src/nattribute src/naddress src/vdevmap src/vsysctl src/vclone \
+	$(am__append_3) $(tests_dietprogs) \
 	lib_internal/libinternal-diet.a \
 	lib_internal/testsuite/isnumber lib_internal/testsuite/sigbus \
-	$(am__append_15)
+	$(am__append_17)
 BUILT_SOURCES = pathconfig.h \
 			.fixups
 
@@ -1554,9 +1588,9 @@ EXTRA_DIST = pathconfig.h.pathsubst util-vserver.spec THANKS \
 	contrib/make-manifest contrib/yum-2.2.1-chroot.patch \
 	contrib/yum-2.3.2-chroot.patch contrib/yum-2.3.3-chroot.patch \
 	contrib/yum-2.3.4-chroot.patch contrib/yum-2.6.0-chroot.patch \
-	contrib/yum-2.9.6-chroot.patch \
-	lib_internal/testsuite/copy-check $(addsuffix .pc.subst, \
-	$(PKGCONFIG_FILES))
+	contrib/yum-2.9.6-chroot.patch contrib/yum-3.0.3-chroot.patch \
+	lib_internal/testsuite/copy-check $(gentoo_src_SCRPTS) \
+	$(addsuffix .pc.subst, $(PKGCONFIG_FILES))
 check_SCRIPTS = $(src_testsuite_check_src_SCRPTS) \
 	$(src_testsuite_check_gen_SCRPTS)
 TESTS_DEBUG = no
@@ -1565,7 +1599,7 @@ TESTS = lib/testsuite/cflags lib/testsuite/personality \
 	$(src_testsuite_check_active_PRGS) \
 	$(src_testsuite_check_src_SCRPTS) \
 	$(src_testsuite_check_gen_SCRPTS) ensc_vector/testsuite/test1 \
-	ensc_vector/testsuite/test2 $(am__append_14)
+	ensc_vector/testsuite/test2 $(am__append_16)
 TESTS_ENVIRONMENT =  \
 	ensc_use_expensive_tests="$(ENSC_USE_EXPENSIVE_TESTS)" \
 	ensc_test_debug="$(TESTS_DEBUG)" \
@@ -1596,7 +1630,8 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT = src/parserpmdump src/showperm \
 	scripts/legacy/save_s_context scripts/legacy/vserver \
 	scripts/legacy/rootshell scripts/legacy/vserver-copy \
 	scripts/legacy/vserverkillall $(sysv_src_SCRPTS) \
-	$(sysv_gen_SCRPTS) vserver-start/vserver.start.bin
+	$(sysv_gen_SCRPTS) vserver-start/vserver.start.bin \
+	$(gentoo_src_SCRPTS)
 @USE_DIETLIBC_TRUE@DIET_CC := $(DIET) $(DIETFLAGS) $(CC)
 @USE_DIETLIBC_FALSE@VSERVER_LDFLGS := 
 @USE_DIETLIBC_TRUE@VSERVER_LDFLGS := -static
@@ -1723,7 +1758,11 @@ lib_v21_SRCS = lib/syscall_setccaps-v21.hc \
 				lib/syscall_getspacemask-v21.hc \
 				lib/syscall_enternamespace-v21.hc \
 				lib/syscall_setnamespace-v21.hc \
-				lib/syscall_ctxmigrate-v21.hc
+				lib/syscall_ctxmigrate-v21.hc \
+				lib/syscall_setmapping.c \
+				lib/syscall_setmapping-v21.hc \
+				lib/syscall_schedinfo.c \
+				lib/syscall_schedinfo-v21.hc
 
 PKGCONFIG_FILES = lib/util-vserver
 lib_SRCS = lib/syscall.c \
@@ -1788,7 +1827,7 @@ lib_testsuite_parselimit_LDFLAGS = $(VSERVER_LDFLGS)
 lib_testsuite_parselimit_CPPFLAGS = $(AM_CPPFLAGS) -DENSC_TESTSUITE
 src_sbin_CXX_PROGS = 
 src_pkglib_CXX_PROGS = 
-src_pkglib_C99_PROGS = src/vunify src/vcopy
+src_pkglib_C99_PROGS = src/vunify src/vcopy src/vclone
 src_capchroot_SOURCES = src/capchroot.c
 src_capchroot_LDADD = $(VSERVER_LDADDS)
 src_capchroot_LDFLAGS = $(VSERVER_LDFLGS)
@@ -1825,7 +1864,7 @@ src_reducecap_LDADD = $(VSERVER_LDADDS)
 src_reducecap_LDFLAGS = $(VSERVER_LDFLGS)
 src_vkill_SOURCES = src/vkill.c
 src_vkill_LDADD = $(VSERVER_LDADDS)
-src_vkill_LDFLAGS = $(VSERVER_LDFLGS)
+src_vkill_LDFLAGS = $(VSERVER_LDFLGS) $(LIBINTERNAL)
 src_vkill_CPPFLAGS = $(AM_CPPFLAGS) -DLEGACYDIR=\"$(legacydir)\"
 src_vlimit_SOURCES = src/vlimit.c
 src_vlimit_LDADD = $(VSERVER_LDADDS)
@@ -1907,6 +1946,15 @@ src_nattribute_LDFLAGS = $(VSERVER_LDFLGS)
 src_naddress_SOURCES = src/naddress.c
 src_naddress_LDADD = $(VSERVER_LDADDS) $(LIBINTERNAL)
 src_naddress_LDFLAGS = $(VSERVER_LDFLGS)
+src_vdevmap_SOURCES = src/vdevmap.c
+src_vdevmap_LDADD = $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vdevmap_LDFLAGS = $(VSERVER_LDFLGS)
+src_vsysctl_SOURCES = src/vsysctl.c
+src_vsysctl_LDADD = $(VSERVER_LDADDS)
+src_vsysctl_LDFLAGS = $(VSERVER_LDFLGS)
+src_vclone_SOURCES = src/vclone.c
+src_vclone_LDADD = $(LIBINTERNAL) $(VSERVER_LDADDS)
+src_vclone_LDFLAGS = $(VSERVER_LDLFGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_sbin_C99_X_PROGS = 
 @ENSC_HAVE_C99_COMPILER_TRUE@src_sbin_C99_X_PROGS = $(src_sbin_C99_PROGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_pkglib_C99_X_PROGS = 
@@ -1985,6 +2033,7 @@ scripts_pkglib_src_DTA = scripts/functions \
 				scripts/vserver-build.yum \
 				scripts/vserver-build.template \
 				scripts/vserver-build.rsync \
+				scripts/vserver-build.clone \
 				scripts/vserver-build.functions \
 				scripts/vserver-build.functions.apt \
 				scripts/vserver-build.functions.rpm \
@@ -1995,7 +2044,8 @@ scripts_pkglib_src_DTA = scripts/functions \
 				scripts/vserver.start \
 				scripts/vserver.stop \
 				scripts/vserver.suexec \
-				scripts/vserver.delete
+				scripts/vserver.delete \
+				scripts/vserver-init.functions
 
 scripts_pkglib_gen_DTA = scripts/util-vserver-vars
 scripts_pkglib_src_SCRPTS = scripts/pkgmgmt \
@@ -2061,7 +2111,8 @@ tests_vserver_info_LDFLAGS = $(VSERVER_LDFLGS)
 sysv_src_SCRPTS = sysv/rebootmgr \
 			sysv/vprocunhide \
 			sysv/vservers-default \
-			sysv/vservers-legacy
+			sysv/vservers-legacy \
+			sysv/util-vserver
 
 sysv_gen_SCRPTS = sysv/v_gated \
 			sysv/v_httpd \
@@ -2112,7 +2163,7 @@ libensc_vector_glibc_a_SOURCES = $(ENSC_VECTOR_SRCS)
 libensc_vector_glibc_a_CPPFLAGS = $(AM_CPPFLAGS)
 libensc_vector_diet_a_SOURCES = $(ENSC_VECTOR_SRCS)
 libensc_vector_diet_a_CPPFLAGS = $(AM_CPPFLAGS)
-ENSC_VECTOR_LIBS = $(am__append_10) $(am__append_11)
+ENSC_VECTOR_LIBS = $(am__append_12) $(am__append_13)
 @ENSC_USE_GLIBC_FALSE@LIBENSCVECTOR_GLIBC = lib-glibc-not-enabled-error.a
 @ENSC_USE_GLIBC_TRUE@LIBENSCVECTOR_GLIBC = libensc_vector-glibc.a
 @ENSC_USE_DIETLIBC_FALSE@LIBENSCVECTOR_DIET = lib-dietlibc-not-enabled-error.a
@@ -2235,6 +2286,10 @@ vserver_start_vserver_start_bin_LDADD = $(VSERVER_LDADDS) \
 						$(LIBENSCVECTOR)
 
 vserver_start_vserver_start_bin_LDFLAGS = $(VSERVER_LDFLGS)
+gentoo_src_SCRPTS = gentoo/vprocunhide \
+			gentoo/vservers.default \
+			gentoo/util-vserver
+
 BAD_INC_PATHS = /usr/include|/usr/local/include
 BAD_LIB_PATHS = /usr/lib
 pkgconfdir = $(libdir)/pkgconfig
@@ -2260,7 +2315,7 @@ all: $(BUILT_SOURCES) config.h
 .SUFFIXES: .c .lo .o .obj
 am--refresh:
 	@:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/lib/Makefile-files $(srcdir)/lib/apidoc/Makefile-files $(srcdir)/lib/testsuite/Makefile-files $(top_srcdir)/src/Makefile-files $(top_srcdir)/src/testsuite/Makefile-files $(top_srcdir)/doc/Makefile-files $(top_srcdir)/man/Makefile-files $(top_srcdir)/scripts/Makefile-files $(top_srcdir)/tests/Makefile-files $(top_srcdir)/sysv/Makefile-files $(top_srcdir)/contrib/Makefile-files $(top_srcdir)/ensc_vector/Makefile-files $(srcdir)/ensc_vector/testsuite/Makefile-files $(top_srcdir)/ensc_wrappers/Makefile-files $(top_srcdir)/ensc_fmt/Makefile-files $(top_srcdir)/lib_internal/Makefile-files $(top_srcdir)/lib_internal/testsuite/Makefile-files $(top_srcdir)/vserver-start/Makefile-files $(top_srcdir)/m4/gpgsig.am $(top_srcdir)/m4/validate.am $(top_srcdir)/m4/changelog.am $(top_srcdir)/m4/pkgconfig.am $(top_srcdir)/m4/libsel.am $(top_srcdir)/m4/install-notify.am $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/lib/Makefile-files $(srcdir)/lib/apidoc/Makefile-files $(srcdir)/lib/testsuite/Makefile-files $(top_srcdir)/src/Makefile-files $(top_srcdir)/src/testsuite/Makefile-files $(top_srcdir)/doc/Makefile-files $(top_srcdir)/man/Makefile-files $(top_srcdir)/scripts/Makefile-files $(top_srcdir)/tests/Makefile-files $(top_srcdir)/sysv/Makefile-files $(top_srcdir)/contrib/Makefile-files $(top_srcdir)/ensc_vector/Makefile-files $(srcdir)/ensc_vector/testsuite/Makefile-files $(top_srcdir)/ensc_wrappers/Makefile-files $(top_srcdir)/ensc_fmt/Makefile-files $(top_srcdir)/lib_internal/Makefile-files $(top_srcdir)/lib_internal/testsuite/Makefile-files $(top_srcdir)/vserver-start/Makefile-files $(top_srcdir)/gentoo/Makefile-files $(top_srcdir)/m4/gpgsig.am $(top_srcdir)/m4/validate.am $(top_srcdir)/m4/changelog.am $(top_srcdir)/m4/pkgconfig.am $(top_srcdir)/m4/libsel.am $(top_srcdir)/m4/install-notify.am $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -2536,6 +2591,10 @@ lib/lib_libvserver_a-syscall_ctxstat.$(OBJEXT): lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-syscall_getspacemask.$(OBJEXT):  \
 	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-syscall_setmapping.$(OBJEXT):  \
+	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT): lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
 ensc_fmt/$(am__dirstamp):
 	@$(mkdir_p) ensc_fmt
 	@: > ensc_fmt/$(am__dirstamp)
@@ -3152,6 +3211,10 @@ lib/lib_libvserver_la-syscall_ctxstat.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-syscall_getspacemask.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-syscall_setmapping.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-syscall_schedinfo.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
 ensc_fmt/lib_libvserver_la-fmt-32.lo: ensc_fmt/$(am__dirstamp) \
 	ensc_fmt/$(DEPDIR)/$(am__dirstamp)
 ensc_fmt/lib_libvserver_la-fmt-64.lo: ensc_fmt/$(am__dirstamp) \
@@ -3607,6 +3670,11 @@ src/vattribute.$(OBJEXT): src/$(am__dirstamp) \
 src/vattribute$(EXEEXT): $(src_vattribute_OBJECTS) $(src_vattribute_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vattribute$(EXEEXT)
 	$(LINK) $(src_vattribute_LDFLAGS) $(src_vattribute_OBJECTS) $(src_vattribute_LDADD) $(LIBS)
+src/vclone.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vclone$(EXEEXT): $(src_vclone_OBJECTS) $(src_vclone_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vclone$(EXEEXT)
+	$(LINK) $(src_vclone_LDFLAGS) $(src_vclone_OBJECTS) $(src_vclone_LDADD) $(LIBS)
 src/vcontext.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vlogin.$(OBJEXT): src/$(am__dirstamp) \
@@ -3618,6 +3686,11 @@ src/vcopy.$(OBJEXT): src/$(am__dirstamp) src/$(DEPDIR)/$(am__dirstamp)
 src/vcopy$(EXEEXT): $(src_vcopy_OBJECTS) $(src_vcopy_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vcopy$(EXEEXT)
 	$(LINK) $(src_vcopy_LDFLAGS) $(src_vcopy_OBJECTS) $(src_vcopy_LDADD) $(LIBS)
+src/vdevmap.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vdevmap$(EXEEXT): $(src_vdevmap_OBJECTS) $(src_vdevmap_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vdevmap$(EXEEXT)
+	$(LINK) $(src_vdevmap_LDFLAGS) $(src_vdevmap_OBJECTS) $(src_vdevmap_LDADD) $(LIBS)
 src/vdlimit.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vdlimit$(EXEEXT): $(src_vdlimit_OBJECTS) $(src_vdlimit_DEPENDENCIES) src/$(am__dirstamp)
@@ -3681,6 +3754,11 @@ src/vshelper-sync.$(OBJEXT): src/$(am__dirstamp) \
 src/vshelper-sync$(EXEEXT): $(src_vshelper_sync_OBJECTS) $(src_vshelper_sync_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vshelper-sync$(EXEEXT)
 	$(LINK) $(src_vshelper_sync_LDFLAGS) $(src_vshelper_sync_OBJECTS) $(src_vshelper_sync_LDADD) $(LIBS)
+src/vsysctl.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vsysctl$(EXEEXT): $(src_vsysctl_OBJECTS) $(src_vsysctl_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vsysctl$(EXEEXT)
+	$(LINK) $(src_vsysctl_LDFLAGS) $(src_vsysctl_OBJECTS) $(src_vsysctl_LDADD) $(LIBS)
 src/vuname.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vuname$(EXEEXT): $(src_vuname_OBJECTS) $(src_vuname_DEPENDENCIES) src/$(am__dirstamp)
@@ -4048,10 +4126,12 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_a-syscall_resetminmax.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_rlimit.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_rlimitstat.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setcflags.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setdlimit.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setiattr.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-syscall_setmapping.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setnamespace.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setncaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setnflags.$(OBJEXT)
@@ -4210,6 +4290,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-syscall_rlimit.lo
 	-rm -f lib/lib_libvserver_la-syscall_rlimitstat.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_rlimitstat.lo
+	-rm -f lib/lib_libvserver_la-syscall_schedinfo.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-syscall_schedinfo.lo
 	-rm -f lib/lib_libvserver_la-syscall_setccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_setccaps.lo
 	-rm -f lib/lib_libvserver_la-syscall_setcflags.$(OBJEXT)
@@ -4218,6 +4300,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-syscall_setdlimit.lo
 	-rm -f lib/lib_libvserver_la-syscall_setiattr.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_setiattr.lo
+	-rm -f lib/lib_libvserver_la-syscall_setmapping.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-syscall_setmapping.lo
 	-rm -f lib/lib_libvserver_la-syscall_setnamespace.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_setnamespace.lo
 	-rm -f lib/lib_libvserver_la-syscall_setncaps.$(OBJEXT)
@@ -4365,8 +4449,10 @@ mostlyclean-compile:
 	-rm -f src/testsuite/rpm-fake-test.$(OBJEXT)
 	-rm -f src/testsuite/src_testsuite_vunify_functest-vunify-functest.$(OBJEXT)
 	-rm -f src/vattribute.$(OBJEXT)
+	-rm -f src/vclone.$(OBJEXT)
 	-rm -f src/vcontext.$(OBJEXT)
 	-rm -f src/vcopy.$(OBJEXT)
+	-rm -f src/vdevmap.$(OBJEXT)
 	-rm -f src/vdlimit.$(OBJEXT)
 	-rm -f src/vdu.$(OBJEXT)
 	-rm -f src/vhashify.$(OBJEXT)
@@ -4380,6 +4466,7 @@ mostlyclean-compile:
 	-rm -f src/vserver-info.$(OBJEXT)
 	-rm -f src/vserver-stat.$(OBJEXT)
 	-rm -f src/vshelper-sync.$(OBJEXT)
+	-rm -f src/vsysctl.$(OBJEXT)
 	-rm -f src/vuname.$(OBJEXT)
 	-rm -f src/vunify.$(OBJEXT)
 	-rm -f src/vwait.$(OBJEXT)
@@ -4535,10 +4622,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_resetminmax.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_rlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_rlimitstat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setccaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setcflags.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setdlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setiattr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setnamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setncaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setnflags.Po@am__quote@
@@ -4624,10 +4713,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_resetminmax.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_rlimit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_rlimitstat.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setccaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setcflags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setdlimit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setiattr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setmapping.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setnamespace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setncaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setnflags.Plo@am__quote@
@@ -4756,8 +4847,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/src_rpm_fake_la-rpm-fake.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/src_vkill-vkill.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vattribute.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vcontext.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vcopy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdevmap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vhashify.Po@am__quote@
@@ -4771,6 +4864,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vserver-info.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vserver-stat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vshelper-sync.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vsysctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vuname.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vunify.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vwait.Po@am__quote@
@@ -6071,6 +6165,34 @@ lib/lib_libvserver_a-syscall_getspacemask.obj: lib/syscall_getspacemask.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_getspacemask.c' object='lib/lib_libvserver_a-syscall_getspacemask.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_getspacemask.obj `if test -f 'lib/syscall_getspacemask.c'; then $(CYGPATH_W) 'lib/syscall_getspacemask.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_getspacemask.c'; fi`
+
+lib/lib_libvserver_a-syscall_setmapping.o: lib/syscall_setmapping.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_setmapping.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo" -c -o lib/lib_libvserver_a-syscall_setmapping.o `test -f 'lib/syscall_setmapping.c' || echo '$(srcdir)/'`lib/syscall_setmapping.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setmapping.c' object='lib/lib_libvserver_a-syscall_setmapping.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_setmapping.o `test -f 'lib/syscall_setmapping.c' || echo '$(srcdir)/'`lib/syscall_setmapping.c
+
+lib/lib_libvserver_a-syscall_setmapping.obj: lib/syscall_setmapping.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_setmapping.obj -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo" -c -o lib/lib_libvserver_a-syscall_setmapping.obj `if test -f 'lib/syscall_setmapping.c'; then $(CYGPATH_W) 'lib/syscall_setmapping.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_setmapping.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_setmapping.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setmapping.c' object='lib/lib_libvserver_a-syscall_setmapping.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_setmapping.obj `if test -f 'lib/syscall_setmapping.c'; then $(CYGPATH_W) 'lib/syscall_setmapping.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_setmapping.c'; fi`
+
+lib/lib_libvserver_a-syscall_schedinfo.o: lib/syscall_schedinfo.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_schedinfo.o -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo" -c -o lib/lib_libvserver_a-syscall_schedinfo.o `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_schedinfo.c' object='lib/lib_libvserver_a-syscall_schedinfo.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_schedinfo.o `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c
+
+lib/lib_libvserver_a-syscall_schedinfo.obj: lib/syscall_schedinfo.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_schedinfo.obj -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo" -c -o lib/lib_libvserver_a-syscall_schedinfo.obj `if test -f 'lib/syscall_schedinfo.c'; then $(CYGPATH_W) 'lib/syscall_schedinfo.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_schedinfo.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo" "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Po"; else rm -f "lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_schedinfo.c' object='lib/lib_libvserver_a-syscall_schedinfo.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_schedinfo.obj `if test -f 'lib/syscall_schedinfo.c'; then $(CYGPATH_W) 'lib/syscall_schedinfo.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_schedinfo.c'; fi`
 
 ensc_fmt/lib_libvserver_a-fmt-32.o: ensc_fmt/fmt-32.c
 @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ensc_fmt/lib_libvserver_a-fmt-32.o -MD -MP -MF "ensc_fmt/$(DEPDIR)/lib_libvserver_a-fmt-32.Tpo" -c -o ensc_fmt/lib_libvserver_a-fmt-32.o `test -f 'ensc_fmt/fmt-32.c' || echo '$(srcdir)/'`ensc_fmt/fmt-32.c; \
@@ -8333,6 +8455,20 @@ lib/lib_libvserver_la-syscall_getspacemask.lo: lib/syscall_getspacemask.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_getspacemask.lo `test -f 'lib/syscall_getspacemask.c' || echo '$(srcdir)/'`lib/syscall_getspacemask.c
 
+lib/lib_libvserver_la-syscall_setmapping.lo: lib/syscall_setmapping.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_setmapping.lo -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-syscall_setmapping.Tpo" -c -o lib/lib_libvserver_la-syscall_setmapping.lo `test -f 'lib/syscall_setmapping.c' || echo '$(srcdir)/'`lib/syscall_setmapping.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_la-syscall_setmapping.Tpo" "lib/$(DEPDIR)/lib_libvserver_la-syscall_setmapping.Plo"; else rm -f "lib/$(DEPDIR)/lib_libvserver_la-syscall_setmapping.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setmapping.c' object='lib/lib_libvserver_la-syscall_setmapping.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_setmapping.lo `test -f 'lib/syscall_setmapping.c' || echo '$(srcdir)/'`lib/syscall_setmapping.c
+
+lib/lib_libvserver_la-syscall_schedinfo.lo: lib/syscall_schedinfo.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_schedinfo.lo -MD -MP -MF "lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Tpo" -c -o lib/lib_libvserver_la-syscall_schedinfo.lo `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c; \
+@am__fastdepCC_TRUE@	then mv -f "lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Tpo" "lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Plo"; else rm -f "lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_schedinfo.c' object='lib/lib_libvserver_la-syscall_schedinfo.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_schedinfo.lo `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c
+
 ensc_fmt/lib_libvserver_la-fmt-32.lo: ensc_fmt/fmt-32.c
 @am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ensc_fmt/lib_libvserver_la-fmt-32.lo -MD -MP -MF "ensc_fmt/$(DEPDIR)/lib_libvserver_la-fmt-32.Tpo" -c -o ensc_fmt/lib_libvserver_la-fmt-32.lo `test -f 'ensc_fmt/fmt-32.c' || echo '$(srcdir)/'`ensc_fmt/fmt-32.c; \
 @am__fastdepCC_TRUE@	then mv -f "ensc_fmt/$(DEPDIR)/lib_libvserver_la-fmt-32.Tpo" "ensc_fmt/$(DEPDIR)/lib_libvserver_la-fmt-32.Plo"; else rm -f "ensc_fmt/$(DEPDIR)/lib_libvserver_la-fmt-32.Tpo"; exit 1; fi
@@ -8799,7 +8935,7 @@ distdir: $(DISTFILES)
 	esac
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/. $(distdir)/contrib $(distdir)/doc $(distdir)/ensc_fmt $(distdir)/ensc_vector $(distdir)/ensc_vector/testsuite $(distdir)/ensc_wrappers $(distdir)/kernel $(distdir)/lib $(distdir)/lib/apidoc $(distdir)/lib/testsuite $(distdir)/lib_internal $(distdir)/lib_internal/testsuite $(distdir)/m4 $(distdir)/man $(distdir)/scripts $(distdir)/scripts/legacy $(distdir)/src $(distdir)/src/testsuite $(distdir)/sysv $(distdir)/tests $(distdir)/vserver-start
+	$(mkdir_p) $(distdir)/. $(distdir)/contrib $(distdir)/doc $(distdir)/ensc_fmt $(distdir)/ensc_vector $(distdir)/ensc_vector/testsuite $(distdir)/ensc_wrappers $(distdir)/gentoo $(distdir)/kernel $(distdir)/lib $(distdir)/lib/apidoc $(distdir)/lib/testsuite $(distdir)/lib_internal $(distdir)/lib_internal/testsuite $(distdir)/m4 $(distdir)/man $(distdir)/scripts $(distdir)/scripts/legacy $(distdir)/src $(distdir)/src/testsuite $(distdir)/sysv $(distdir)/tests $(distdir)/vserver-start
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

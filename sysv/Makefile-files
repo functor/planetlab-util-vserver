@@ -1,4 +1,4 @@
-## $Id: Makefile-files 1336 2004-03-24 01:44:43Z ensc $  -*- makefile -*-
+## $Id: Makefile-files 2483 2007-02-01 12:56:20Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -24,7 +24,8 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT +=	\
 sysv_src_SCRPTS =	sysv/rebootmgr \
 			sysv/vprocunhide \
 			sysv/vservers-default \
-			sysv/vservers-legacy
+			sysv/vservers-legacy \
+			sysv/util-vserver
 sysv_gen_SCRPTS =	sysv/v_gated \
 			sysv/v_httpd \
 			sysv/v_named \
@@ -35,7 +36,6 @@ sysv_gen_SCRPTS =	sysv/v_gated \
 			sysv/v_xinetd
 sysv_conf_DTA =		sysv/vservers.conf
 
-sysconf_DATA +=		$(sysv_conf_DTA)
 EXTRA_DIST +=		sysv/v_gated.subst \
 			sysv/v_httpd.subst \
 			sysv/v_named.subst \
@@ -47,8 +47,11 @@ EXTRA_DIST +=		sysv/v_gated.subst \
 			$(sysv_src_SCRPTS) \
 			$(sysv_conf_DTA)
 
+if HAVE_SYSV_INIT
+sysconf_DATA +=		$(sysv_conf_DTA)
 initrd_SCRIPTS +=	$(sysv_src_SCRPTS) \
 			$(sysv_gen_SCRPTS)
+endif
 
 CLEANFILES +=		$(sysv_gen_SCRPTS)
 

@@ -1,4 +1,4 @@
-// $Id: checkconfig.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
+// $Id: checkconfig.c 2464 2007-01-20 13:55:42Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // Copyright (C) 2006 Daniel Hokka Zakrisson
@@ -34,7 +34,7 @@ utilvserver_checkCompatConfig()
   if (res==0) {
     res     = vc_get_vci();
     v_errno = errno;
-    if (res==(uint32_t)-1 && (errno==ENOSYS || errno==EINVAL)) res=0;
+    if (res==(uint32_t)-1) res=0;
   }
 
   errno = v_errno;

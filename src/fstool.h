@@ -1,4 +1,4 @@
-// $Id: fstool.h 1672 2004-08-19 14:29:44Z ensc $    --*- c -*--
+// $Id: fstool.h 2473 2007-01-25 09:51:43Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -39,6 +39,7 @@
 #define CMD_UNSET_HIDE		0x8023
 #define CMD_UNSET_BARRIER	0x8024
 #define CMD_UNSET_IMMUX		0x8025
+#define CMD_UNSET_IMMUTABLE	0x8026
 
 
 struct stat;
@@ -54,6 +55,7 @@ struct Arguments {
     bool		do_set;
     bool		do_unset;
     bool		local_fs;
+    bool		no_unified;
 
     uint32_t		set_mask;
     uint32_t		del_mask;

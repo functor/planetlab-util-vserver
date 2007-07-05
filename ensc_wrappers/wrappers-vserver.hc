@@ -1,4 +1,4 @@
-// $Id: wrappers-vserver.hc 2416 2006-12-08 13:25:29Z dhozac $    --*- c++ -*--
+// $Id: wrappers-vserver.hc 2501 2007-02-20 17:33:35Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -65,9 +65,9 @@ Evc_net_create(nid_t nid)
 }
 
 inline static WRAPPER_DECL void
-Evc_ctx_migrate(xid_t xid)
+Evc_ctx_migrate(xid_t xid, uint_least64_t flags)
 {
-  FatalErrnoError(vc_ctx_migrate(xid)==-1, "vc_ctx_migrate()");
+  FatalErrnoError(vc_ctx_migrate(xid, flags)==-1, "vc_ctx_migrate()");
 }
 
 inline static WRAPPER_DECL void

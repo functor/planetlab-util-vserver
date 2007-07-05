@@ -1,4 +1,4 @@
-## $Id: Makefile.am 2360 2006-11-01 19:23:24Z hollow $
+## $Id: Makefile.am 2530 2007-04-21 14:03:09Z dhozac $
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -21,19 +21,21 @@ distribdir =		$(pkglibdir)/distributions
 confdistribdir =	$(confdir)/.distributions
 confdefaultsdir =	$(confdir)/.defaults
 
-defaults_DATA =		misc/debootstrap.uri \
+defaults_DATA =		misc/debootstrap.mirror \
+			misc/debootstrap.uri \
 			misc/fstab \
 			misc/mtab \
 			misc/vprocunhide-files \
 			misc/vunify-exclude \
-			misc/environment
+			misc/environment \
+			misc/context.start
 
 nobase_distrib_SCRIPTS	=  redhat/initpost \
 			   redhat/initpre \
 			   redhat/rc.sysinit \
 			   gentoo/initpost \
 			   gentoo/initpre \
-			   gentoo/init-vserver.sh
+			   etch/initpost
 
 nobase_distrib_DATA	=  defaults/devs \
 			   defaults/apt.conf \
@@ -57,8 +59,13 @@ nobase_distrib_DATA	=  defaults/devs \
 			   $(wildcard fc6/rpmlist.d/*.lst) $(wildcard fc6/rpmlist.d/*.opt) \
 			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
 			   centos4/yum/yum.conf $(wildcard centos4/yum.repos.d/*.repo) \
+			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
+			   centos5/yum/yum.conf $(wildcard centos5/yum.repos.d/*.repo) \
 			   suse91/apt/rpmpriorities suse91/pkgs/01 suse91/pkgs/02 \
-			   suse91/rpm/macros
+			   suse91/rpm/macros \
+			   gentoo/init-vserver.sh gentoo/net.vserver \
+			   gentoo/reboot.sh gentoo/shutdown.sh \
+			   etch/vserver-config.sh
 
 nobase_confdistrib_DATA	=  rh9/apt/sources.list \
 			   fc1/apt/sources.list \
@@ -77,7 +84,7 @@ EXTRA_DIST		=  $(nobase_distrib_DATA) \
 			   $(nobase_confdistrib_DATA) \
 			   $(defaults_DATA)
 
-redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4
+redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4 centos5
 
 install-exec-hook:	install-notify-xtra
 install-data-hook:	install-data-xtras

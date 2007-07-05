@@ -10,6 +10,7 @@ build  @PKGLIBDIR@/vserver-build.yum
 build  @PKGLIBDIR@/vserver-build.rpm
 build  @PKGLIBDIR@/vserver-build.template
 build  @PKGLIBDIR@/vserver-build.rsync
+build  @PKGLIBDIR@/vserver-build.clone
 build  @PKGLIBDIR@/vserver-build.functions
 build  @PKGLIBDIR@/vserver-build.functions.apt
 build  @PKGLIBDIR@/vserver-build.functions.rpm
@@ -23,6 +24,7 @@ base   @PKGLIBDIR@/vserver.start
 base   @PKGLIBDIR@/vserver.stop
 base   @PKGLIBDIR@/vserver.suexec
 base   @PKGLIBDIR@/vserver.delete
+sysv   @PKGLIBDIR@/vserver-init.functions
 core   @PKGLIBDIR@/util-vserver-vars
 build  @PKGLIBDIR@/rpm-fake.so
 legacy @LEGACYDIR@/save_s_context
@@ -43,6 +45,8 @@ base   @PKGLIBDIR@/defaults/vprocunhide-files
 base   @PKGLIBDIR@/defaults/environment
 build  @PKGLIBDIR@/defaults/fstab
 build  @PKGLIBDIR@/defaults/debootstrap.uri
+build  @PKGLIBDIR@/defaults/context.start
+build  @PKGLIBDIR@/defaults/debootstrap.mirror
 @ENSC_HAVE_C99_COMPILER_TRUE@build  @PKGLIBDIR@/defaults/vunify-exclude
 base   @PKGLIBDIR@/capchroot
 base   @PKGLIBDIR@/chain-echo
@@ -73,10 +77,12 @@ build  @PKGLIBDIR@/vserver-build
 sysv   @PKGLIBDIR@/vserver-wrapper
 base   @PKGLIBDIR@/vshelper
 base   @PKGLIBDIR@/vshelper-sync
+base   @PKGLIBDIR@/vsysctl
 sysv   @PKGLIBDIR@/vsysvwrapper
 @ENSC_HAVE_C99_COMPILER_TRUE@build  @PKGLIBDIR@/vcopy
 @ENSC_HAVE_C99_COMPILER_TRUE@build  @PKGLIBDIR@/vunify
 @ENSC_HAVE_C99_COMPILER_TRUE@build  @PKGLIBDIR@/vhashify
+@ENSC_HAVE_C99_COMPILER_TRUE@build  @PKGLIBDIR@/vclone
 base   @PKGLIBDIR@/vservers.grabinfo.sh
 build  @PKGLIBDIR@/distributions
 devel  @LIBDIR@/pkgconfig/util-vserver.pc
@@ -94,6 +100,7 @@ core   @SBINDIR@/showattr
 build  @SBINDIR@/vapt-get
 core   @SBINDIR@/vattribute
 core   @SBINDIR@/vcontext
+core   @SBINDIR@/vdevmap
 build  @SBINDIR@/vdispatch-conf
 core   @SBINDIR@/vdlimit
 base   @SBINDIR@/vdu
@@ -122,7 +129,7 @@ core   @MANDIR@/*/chbind*
 core   @MANDIR@/*/chcontext*
 core   @MANDIR@/*/reducecap*
 legacy @MANDIR@/*/distrib-info*
-build  @MANDIR@/*/vserver-copy*
+legacy @MANDIR@/*/vserver-copy*
 legacy @MANDIR@/*/rebootmgr*
 legacy @MANDIR@/*/vps.*
 base   @MANDIR@/*/vpstree.*
@@ -139,6 +146,7 @@ legacy @CONFIG@ @INITRDDIR@/v_sshd
 legacy @CONFIG@ @INITRDDIR@/v_xinetd
 sysv   @CONFIG@ @INITRDDIR@/vprocunhide
 sysv   @CONFIG@ @INITRDDIR@/vservers-default
+sysv   @CONFIG@ @INITRDDIR@/util-vserver
 legacy @CONFIG@ @INITRDDIR@/rebootmgr
 legacy @CONFIG@ @INITRDDIR@/vservers-legacy
 legacy @CONFIG_NOREPLACE@ @SYSCONFDIR@/vservers.conf

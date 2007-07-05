@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions 2315 2006-09-15 19:16:48Z hollow $	--*- sh -*--
+# $Id: vserver-build.functions 2515 2007-03-18 15:32:22Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -112,7 +112,7 @@ function _setCacheDir
     }
 }
 
-function _setVserverDir
+function _setVserverDirName
 {
     test -z "$VSERVERDIRNAME" || return 0
     VSERVERDIRNAME="$VSERVER_NAME"
@@ -223,7 +223,7 @@ function base._initVariables
 {
     _setRootDir
     _setCacheDir
-    _setVserverDir
+    _setVserverDirName
     _setVdir
 
     findFile _DEV_FILE      "$__CONFDIR/.distributions/$DISTRIBUTION/devs"      "$__DISTRIBDIR/$DISTRIBUTION/devs"     "$__DISTRIBDIR/defaults/devs"

@@ -1,4 +1,4 @@
-// $Id: issupported.c 2247 2006-01-18 23:35:54Z ensc $    --*- c -*--
+// $Id: issupported.c 2449 2007-01-10 18:53:07Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -43,6 +43,7 @@ vc_isSupported(vcFeatureSet feature)
     case vcFEATURE_VWAIT	:  return ver >= 0x00010025;
     case vcFEATURE_SCHED	:  return ver >= 0x00020000;  // todo
     case vcFEATURE_VNET		:  return ver >= 0x00020001;
+    case vcFEATURE_VSTAT	:  return ver >= 0x00020103;
     default			:  assert(false); 
   }
 

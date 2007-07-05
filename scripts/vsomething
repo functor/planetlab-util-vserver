@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vsomething 2303 2006-09-12 12:39:00Z dhozac $
+# $Id: vsomething 2515 2007-03-18 15:32:22Z dhozac $
 
 # Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -106,7 +106,7 @@ for i in "${vservers[@]}"; do
 	if pkgmgmt.isInternal "$i"; then
 	    $_VSERVER "$i" exec "$cmd" "$@"
 	else
-	    _getVserverDir "$i"
+	    _setVserverDir "$i"
 	    ( _generateChbindOptions "$VSERVER_DIR"
 	      $_VSERVER "$i" status &> /dev/null && \
 		CHBIND_CMD=( "$_CHBIND" "${CHBIND_OPTS[@]}" -- )

@@ -1,4 +1,4 @@
-# $Id: functions 2420 2006-12-09 16:02:03Z dhozac $	--*- sh -*--
+# $Id: functions 2531 2007-04-21 14:04:35Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003,2004,2005,2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -282,7 +282,7 @@ function set_init_cwd
     export INIT_CWD
 }
 
-function _getVserverDir
+function _setVserverDir
 {
     local vserver="$1"
     case "$vserver" in
@@ -290,6 +290,15 @@ function _getVserverDir
 	/*)  VSERVER_DIR="$vserver"               ;;
 	*)   VSERVER_DIR="$__CONFDIR/$vserver"    ;;
     esac
+}
+
+function _setVserverName
+{
+    if test -e "$VSERVER_DIR"/name; then
+	read VSERVER_NAME <"$VSERVER_DIR"/name
+    else
+	VSERVER_NAME=$(basename "$VSERVER_DIR")
+    fi
 }
 
 function _pkgMountBindDir()
@@ -510,6 +519,7 @@ function isNamespaceCleanup
 
     $_VSERVER_INFO - FEATURE namespace   || return 1
     cfgdir=$($_VSERVER_INFO "$1" CFGDIR) || return 1
+    isAvoidNamespace "$1"                && return 1
     test -e "$cfgdir"/namespace-cleanup  && return 0
     test -e "$cfgdir"/nonamespace-cleanup -o \
          -e "$__CONFDIR"/.defaults/nonamespace-cleanup && return 1
@@ -571,7 +581,7 @@ function _getProcNumberCount
 
     # Use /proc/virtual from kernel 2.6 when possible
     if test -d "/proc/virtual"; then
-	set -- $($_GREP '^PROC:' "/proc/virtual/$1/limit" 2>/dev/null)
+	set -- $($_GREP '^Tasks:' "/proc/virtual/$1/status" 2>/dev/null)
 	_gp_procnr_cnt=$2
     else
 	_gp_procnr_cnt=$($_VPS ax | $_AWK '{print $2}' | $_GREP -x "$1" | $_WC -l )
@@ -713,8 +723,12 @@ function setDefaultTTY
 	"$__CONFDIR/.defaults/apps/init/tty" \
 	$2 /dev/null
 
-    exec   <$ttyname
-    exec  &>$ttyname
+    if test -f "$ttyname"; then
+	exec </dev/null
+    else
+	exec <$ttyname
+    fi
+    exec    >>$ttyname 2>&1
 }
 
 ## Usage: killContext <XID> [<SIG>]
@@ -844,9 +858,11 @@ function vshelper.doSanityCheck
 	vshelper=$(cat "$proc_file")
 
 	$_CMP -s "$vshelper" "$_VSHELPER" || {
+	    local readable=""
+	    test -r "$vshelper" && readable=1
 	    warnings=( "${warnings[@]}"
 		       $"The configured vshelper '$vshelper' does not match the 'vshelper'
-  script of the util-vserver package"
+  script of the util-vserver package.${readable:+ Maybe you have two versions installed?}"
 		     )
 	    solution_disable=1
 	    solution_sysctl=1
@@ -1060,6 +1076,12 @@ function vshelper.waitForStopSync
 function vshelper.doStopSync
 {
 	test ! -p "$VSHELPER_STOP_SYNC" || echo stopped > "$VSHELPER_STOP_SYNC"
+}
+
+function vshelper.isStopSync
+{
+	test -p "$VSHELPER_STOP_SYNC" || return 1
+	return 0
 }
 
 function _rpmFake.getCapFlags

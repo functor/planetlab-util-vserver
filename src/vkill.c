@@ -1,4 +1,4 @@
-// $Id: vkill.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: vkill.c 2491 2007-02-05 20:59:03Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -152,9 +152,21 @@ kill_wrapper(xid_t xid, char const *pid, int sig)
 }
 #else // VC_ENABLE_API_LEGACY
 inline static int
-kill_wrapper(xid_t xid, char const *pid, int sig)
+kill_wrapper(xid_t xid, char const *pid_s, int sig)
 {
-  if (vc_ctx_kill(xid,atoi(pid),sig)==-1) {
+  pid_t	pid;
+  long	tmp;
+
+  if (!isNumber(pid_s, &tmp, true)) {
+    WRITE_MSG(2, "vkill: '");
+    WRITE_STR(2, pid_s);
+    WRITE_MSG(2, "' is not a number\n");
+  }
+  pid = (pid_t) tmp;
+
+  if (xid==VC_NOCTX)
+    xid = vc_get_task_xid(pid);
+  if (vc_ctx_kill(xid,pid,sig)==-1) {
     perror("vkill: vc_ctx_kill()");
     return 1;
   }

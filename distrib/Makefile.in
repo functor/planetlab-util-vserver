@@ -138,8 +138,12 @@ FILE = @FILE@
 GPG_KEY = @GPG_KEY@
 GREP = @GREP@
 GZIP = @GZIP@
+HAVE_GENTOO_INIT_FALSE = @HAVE_GENTOO_INIT_FALSE@
+HAVE_GENTOO_INIT_TRUE = @HAVE_GENTOO_INIT_TRUE@
 HAVE_SVN2CL_FALSE = @HAVE_SVN2CL_FALSE@
 HAVE_SVN2CL_TRUE = @HAVE_SVN2CL_TRUE@
+HAVE_SYSV_INIT_FALSE = @HAVE_SYSV_INIT_FALSE@
+HAVE_SYSV_INIT_TRUE = @HAVE_SYSV_INIT_TRUE@
 HAVE_XSLTPROC_FALSE = @HAVE_XSLTPROC_FALSE@
 HAVE_XSLTPROC_TRUE = @HAVE_XSLTPROC_TRUE@
 HAVE_XSLTP_FALSE = @HAVE_XSLTP_FALSE@
@@ -258,19 +262,21 @@ defaultsdir = $(pkglibdir)/defaults
 distribdir = $(pkglibdir)/distributions
 confdistribdir = $(confdir)/.distributions
 confdefaultsdir = $(confdir)/.defaults
-defaults_DATA = misc/debootstrap.uri \
+defaults_DATA = misc/debootstrap.mirror \
+			misc/debootstrap.uri \
 			misc/fstab \
 			misc/mtab \
 			misc/vprocunhide-files \
 			misc/vunify-exclude \
-			misc/environment
+			misc/environment \
+			misc/context.start
 
 nobase_distrib_SCRIPTS = redhat/initpost \
 			   redhat/initpre \
 			   redhat/rc.sysinit \
 			   gentoo/initpost \
 			   gentoo/initpre \
-			   gentoo/init-vserver.sh
+			   etch/initpost
 
 nobase_distrib_DATA = defaults/devs \
 			   defaults/apt.conf \
@@ -294,8 +300,13 @@ nobase_distrib_DATA = defaults/devs \
 			   $(wildcard fc6/rpmlist.d/*.lst) $(wildcard fc6/rpmlist.d/*.opt) \
 			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
 			   centos4/yum/yum.conf $(wildcard centos4/yum.repos.d/*.repo) \
+			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
+			   centos5/yum/yum.conf $(wildcard centos5/yum.repos.d/*.repo) \
 			   suse91/apt/rpmpriorities suse91/pkgs/01 suse91/pkgs/02 \
-			   suse91/rpm/macros
+			   suse91/rpm/macros \
+			   gentoo/init-vserver.sh gentoo/net.vserver \
+			   gentoo/reboot.sh gentoo/shutdown.sh \
+			   etch/vserver-config.sh
 
 nobase_confdistrib_DATA = rh9/apt/sources.list \
 			   fc1/apt/sources.list \
@@ -311,7 +322,7 @@ EXTRA_DIST = $(nobase_distrib_DATA) \
 			   $(nobase_confdistrib_DATA) \
 			   $(defaults_DATA)
 
-redhat_style = rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4
+redhat_style = rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4 centos5
 all: all-am
 
 .SUFFIXES:
@@ -458,7 +469,7 @@ CTAGS:
 
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/../m4 $(distdir)/centos4/pkgs $(distdir)/centos4/yum $(distdir)/centos4/yum.repos.d $(distdir)/defaults $(distdir)/defaults/apt $(distdir)/defaults/rpm $(distdir)/fc1/apt $(distdir)/fc1/pkgs $(distdir)/fc2/apt $(distdir)/fc2/pkgs $(distdir)/fc3/apt $(distdir)/fc3/pkgs $(distdir)/fc3/rpmlist.d $(distdir)/fc3/yum $(distdir)/fc3/yum.repos.d $(distdir)/fc4/apt $(distdir)/fc4/pkgs $(distdir)/fc4/rpmlist.d $(distdir)/fc4/yum $(distdir)/fc4/yum.repos.d $(distdir)/fc5/apt $(distdir)/fc5/pkgs $(distdir)/fc5/rpmlist.d $(distdir)/fc5/yum $(distdir)/fc5/yum.repos.d $(distdir)/fc6/apt $(distdir)/fc6/pkgs $(distdir)/fc6/rpmlist.d $(distdir)/fc6/yum $(distdir)/fc6/yum.repos.d $(distdir)/gentoo $(distdir)/misc $(distdir)/redhat $(distdir)/rh9/apt $(distdir)/rh9/pkgs $(distdir)/suse91/apt $(distdir)/suse91/pkgs $(distdir)/suse91/rpm $(distdir)/template
+	$(mkdir_p) $(distdir)/../m4 $(distdir)/centos4/pkgs $(distdir)/centos4/yum $(distdir)/centos4/yum.repos.d $(distdir)/centos5/pkgs $(distdir)/centos5/yum $(distdir)/centos5/yum.repos.d $(distdir)/defaults $(distdir)/defaults/apt $(distdir)/defaults/rpm $(distdir)/etch $(distdir)/fc1/apt $(distdir)/fc1/pkgs $(distdir)/fc2/apt $(distdir)/fc2/pkgs $(distdir)/fc3/apt $(distdir)/fc3/pkgs $(distdir)/fc3/rpmlist.d $(distdir)/fc3/yum $(distdir)/fc3/yum.repos.d $(distdir)/fc4/apt $(distdir)/fc4/pkgs $(distdir)/fc4/rpmlist.d $(distdir)/fc4/yum $(distdir)/fc4/yum.repos.d $(distdir)/fc5/apt $(distdir)/fc5/pkgs $(distdir)/fc5/rpmlist.d $(distdir)/fc5/yum $(distdir)/fc5/yum.repos.d $(distdir)/fc6/apt $(distdir)/fc6/pkgs $(distdir)/fc6/rpmlist.d $(distdir)/fc6/yum $(distdir)/fc6/yum.repos.d $(distdir)/gentoo $(distdir)/misc $(distdir)/redhat $(distdir)/rh9/apt $(distdir)/rh9/pkgs $(distdir)/suse91/apt $(distdir)/suse91/pkgs $(distdir)/suse91/rpm $(distdir)/template
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \

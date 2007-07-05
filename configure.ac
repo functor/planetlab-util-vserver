@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 2422 2006-12-09 16:13:54Z dhozac $
+dnl $Id: configure.ac 2539 2007-05-02 20:11:40Z dhozac $
 
 dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -24,7 +24,7 @@ dnl distribution terms that you use for the rest of that program.
 dnl  
 
 AC_PREREQ(2.57)
-AC_INIT(util-vserver, 0.30.212, vserver@list.linux-vserver.org)
+AC_INIT(util-vserver, 0.30.213, vserver@list.linux-vserver.org)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -137,6 +137,11 @@ AC_ARG_VAR(CC, [The C compiler])
 ENSC_INITRDDIR(initrddir)
 ENSC_RELEASE(RELEASE_CPPFLAGS)
 
+# HACK: This needs to be before ENSC_DIETLIBC_NEED_COMPAT, or the alternative
+# syscalls will never be enabled for glibc.
+ENSC_SYSCALLNR(vserver,273,[lib/syscall-fallback.h])
+ENSC_SYSCALL
+
 dnl ###########################
 dnl
 dnl {some dietlibc related tests
@@ -146,6 +151,7 @@ case $host_cpu in
 	(i*86|athlon)	min_diet_ver=0.25;;
 	(ia64|hppa*)	min_diet_ver=0.29;;
 	(sparc*)	min_diet_ver=0.30;;
+	(x86_64)	min_diet_ver=0.27;;
 	(*)		min_diet_ver=0.28;;
 esac
 
@@ -168,7 +174,6 @@ else
  	# below.  Therefore, this macro must not be called earlier.
 	enable_static=no
 
-	ENSC_DIETLIBC_SANITYCHECK
 	ENSC_DIETLIBC_NEED_COMPAT(USE_DIETLIBC_COMPAT)
 fi
 
@@ -278,8 +283,6 @@ dnl
 dnl ##########################
 
 
-ENSC_SYSCALLNR(vserver,273,[lib/syscall-fallback.h])
-ENSC_SYSCALL
 ENSC_CHECK_EXT2FS_HEADER
 AC_CHECK_FUNCS([vserver])
 AC_CHECK_DECLS(MS_MOVE,,,[#include <linux/fs.h>])
@@ -331,6 +334,26 @@ dnl
 dnl beecrypt stuff ends here}
 dnl
 dnl ########################
+
+
+dnl Check what distro this is, use Gentoo initscripts if appropriate
+AC_MSG_CHECKING([for host initscripts])
+AC_ARG_WITH(initscripts, AC_HELP_STRING([--with-initscripts=TYPE], [force host initscripts; valid values are 'gentoo' and 'sysv' (default: guess)]), [
+	case "$withval" in
+	gentoo)	ensc_with_init=gentoo;;
+	sysv)	ensc_with_init=sysv;;
+	*)	AC_MSG_ERROR([invalid initscripts value, only gentoo and sysv are supported]);;
+	esac
+	], [
+	if test -e /etc/gentoo-release; then
+		ensc_with_init=gentoo
+	else
+		ensc_with_init=sysv
+	fi
+	])
+AC_MSG_RESULT([$ensc_with_init])
+AM_CONDITIONAL(HAVE_GENTOO_INIT, test x"$ensc_with_init" = xgentoo)
+AM_CONDITIONAL(HAVE_SYSV_INIT, test x"$ensc_with_init" = xsysv)
 
 
 dnl BIG HACK! Do some autodetection here!

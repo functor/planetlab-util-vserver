@@ -1,4 +1,4 @@
-# $Id: vserver.suexec 2300 2006-09-12 12:16:53Z dhozac $  --*- sh -*--
+# $Id: vserver.suexec 2481 2007-01-29 02:06:30Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -28,6 +28,8 @@ user=$1
 shift
 
 cd "$VSERVER_DIR"/vdir/
+
+test -z "$OPTION_NONAMESPACE" || USE_VNAMESPACE=
 
 if $_VSERVER_INFO - FEATURE migrate; then
     if test -z "$is_stopped"; then

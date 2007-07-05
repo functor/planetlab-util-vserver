@@ -1,4 +1,4 @@
-// $Id: vhashify.h 1922 2005-03-18 00:25:37Z ensc $    --*- c -*--
+// $Id: vhashify.h 2475 2007-01-27 09:38:56Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -32,6 +32,7 @@ struct Arguments {
     char const *			hash_dir;
     bool				dry_run;
     bool				do_refresh;
+    bool				ignore_mtime;
 };
 
 struct HashDirInfo {

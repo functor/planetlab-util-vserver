@@ -1,4 +1,4 @@
-// $Id: fstool.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: fstool.c 2473 2007-01-25 09:51:43Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -182,8 +182,9 @@ int main(int argc, char *argv[])
     .do_set             =  false,
     .do_unset           =  false,
     .local_fs		=  false,
-    .set_mask           = 0,
-    .del_mask           = 0
+    .set_mask           =  0,
+    .del_mask           =  0,
+    .no_unified		=  false,
   };
 
   global_args = &args;
@@ -196,25 +197,28 @@ int main(int argc, char *argv[])
       case CMD_HELP		:  showHelp(1, argv[0], 0);
       case CMD_VERSION		:  showVersion();
       case CMD_IMMU		:  args.set_mask |= VC_IATTR_IMMUTABLE; /*@fallthrough@*/
-      case CMD_IMMUX		:  args.set_mask |= VC_IATTR_IUNLINK; break;
-      case CMD_ADMIN		:  args.set_mask |= VC_IATTR_ADMIN;   break;
-      case CMD_WATCH		:  args.set_mask |= VC_IATTR_WATCH;   break;
-      case CMD_HIDE		:  args.set_mask |= VC_IATTR_HIDE;    break;
-      case CMD_BARRIER		:  args.set_mask |= VC_IATTR_BARRIER; break;
+      case CMD_IMMUX		:  args.set_mask |= VC_IATTR_IUNLINK;	break;
+      case CMD_IMMUTABLE	:  args.set_mask |= VC_IATTR_IMMUTABLE;	break;
+      case CMD_ADMIN		:  args.set_mask |= VC_IATTR_ADMIN;	break;
+      case CMD_WATCH		:  args.set_mask |= VC_IATTR_WATCH;	break;
+      case CMD_HIDE		:  args.set_mask |= VC_IATTR_HIDE;	break;
+      case CMD_BARRIER		:  args.set_mask |= VC_IATTR_BARRIER;	break;
       case CMD_UNSET_IMMU	:  args.del_mask |= VC_IATTR_IMMUTABLE; /*@fallthrough@*/
-      case CMD_UNSET_IMMUX	:  args.del_mask |= VC_IATTR_IUNLINK; break;
-      case CMD_UNSET_ADMIN	:  args.del_mask |= VC_IATTR_ADMIN;   break;
-      case CMD_UNSET_WATCH	:  args.del_mask |= VC_IATTR_WATCH;   break;
-      case CMD_UNSET_HIDE	:  args.del_mask |= VC_IATTR_HIDE;    break;
-      case CMD_UNSET_BARRIER	:  args.del_mask |= VC_IATTR_BARRIER; break;
-      case 'R'			:  args.do_recurse     = true;  break;
-      case 'a'			:  args.do_display_dot = true;  break;
-      case 'd'			:  args.do_display_dir = true;  break;
-      case 'n'			:  args.do_mapping     = false; break;
-      case 's'			:  args.do_set         = true;  break;
-      case 'u'			:  args.do_unset       = true;  break;
-      case 'c'			:  args.ctx_str        = optarg; break;
-      case 'x'			:  args.local_fs       = true;   break;
+      case CMD_UNSET_IMMUX	:  args.del_mask |= VC_IATTR_IUNLINK;	break;
+      case CMD_UNSET_IMMUTABLE	:  args.del_mask |= VC_IATTR_IMMUTABLE;	break;
+      case CMD_UNSET_ADMIN	:  args.del_mask |= VC_IATTR_ADMIN;	break;
+      case CMD_UNSET_WATCH	:  args.del_mask |= VC_IATTR_WATCH;	break;
+      case CMD_UNSET_HIDE	:  args.del_mask |= VC_IATTR_HIDE;	break;
+      case CMD_UNSET_BARRIER	:  args.del_mask |= VC_IATTR_BARRIER;	break;
+      case 'R'			:  args.do_recurse     = true;		break;
+      case 'a'			:  args.do_display_dot = true;		break;
+      case 'd'			:  args.do_display_dir = true;		break;
+      case 'n'			:  args.do_mapping     = false;		break;
+      case 's'			:  args.do_set         = true;		break;
+      case 'u'			:  args.do_unset       = true;		break;
+      case 'c'			:  args.ctx_str        = optarg;	break;
+      case 'x'			:  args.local_fs       = true;		break;
+      case 'U'			:  args.no_unified     = true;		break;
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);

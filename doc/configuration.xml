@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE database SYSTEM "configuration.dtd" []>
-<!-- $Id: configuration.xml 2397 2006-11-24 14:12:22Z dhozac $ -->
+<!-- $Id: configuration.xml 2478 2007-01-27 11:10:09Z dhozac $ -->
 
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="file:configuration.xsd">
@@ -62,6 +62,34 @@ NOTE: this link exists in 0.30.202+ only; in previous versions it was
 a vserver specific setting.
       </description>
     </link>
+
+    <scalar name="shell">
+      <description>
+Contains the pathname of the shell which will be used by the "vserver
+... enter" command. Can be overridden by the
+<optionref ref="shell">per-guest shell</optionref>.
+      </description>
+    </scalar>
+
+    <data name="fstab">
+      <description>
+The default fstab file to put in newly built guests.
+      </description>
+    </data>
+
+    <boolean name="context.dynamic">
+      <description>
+If this file exists, kernel-side dynamic contexts will be used by the "vserver
+... build" command. Otherwise a context will be generated, based on the
+contents of <optionref>context.next</optionref>.
+      </description>
+    </boolean>
+
+    <scalar id="context.next" name="context.next">
+      <description>
+The context id to use for the next guest created by "vserver ... build".
+      </description>
+    </scalar>
     
     <collection name="apps">
       <collection name="pkgmgmt">
@@ -89,6 +117,33 @@ from this uri and install it at a temporary place.
 	</scalar>
       </collection>
 
+      <collection name="vdevmap">
+        <collection name="x" type="sybmolic">
+          <description>'x' is an arbitrary name, replace it with e.g. device names</description>
+          <boolean name="open">
+            <description>When this file exists, the device can be opened</description>
+          </boolean>
+          <boolean name="create">
+            <description>When this file exists, the device can be created (if the guest has <optionref ref="bcapabilities">CAP_MKNOD</optionref>)</description>
+          </boolean>
+          <boolean id="vdevmap-remap" name="remap">
+            <description>
+When this file exists, <optionref ref="vdevmap-target">target</optionref> will
+have to exist as well and opening the device will in fact open the target device
+            </description>
+          </boolean>
+          <scalar name="flags">
+            <description>This file will let you specify unimplemented flags manually</description>
+          </scalar>
+          <scalar name="device">
+            <description>Contains the name of a device node</description>
+          </scalar>
+          <scalar id="vdevmap-target" name="target">
+            <description>Contains the device node of the target node to open instead of the device when <optionref ref="vdevmap-remap">remap</optionref> is set</description>
+          </scalar>
+        </collection>
+      </collection>
+
       <collection name="vshelper">
 	<link name="logfile">
 	  <description>
@@ -101,7 +156,7 @@ is invoked from the kernel. This should point somewhere e.g. into
 	<collection name="vshelper-methods">
 	  <program name="handler" type="symbolic">
 	    <description>
-See vshelper/action.
+See <optionref ref="vshelper-action">vshelper/action</optionref>.
             </description>
 	  </program>
 	</collection>
@@ -204,6 +259,14 @@ When this file exists, vlogin isn't used on vserver &lt;guest&gt; enter.
 	  </description>
 	</boolean>
       </collection>
+
+      <collection name="build">
+        <list name="options">
+          <description>
+A list of default options to supply to vserver ... build, one option per line.
+          </description>
+        </list>
+      </collection>
     </collection>
 
     <collection name="interfaces" use="optional">
@@ -213,6 +276,34 @@ When this file exists, the steps which setup and destroy a VLAN
 interface will be executed.
 	</description>
       </boolean>
+    </collection>
+
+    <collection name="files">
+      <description>This directory contains some files which will be copied to the guests during build.</description>
+      <data name="hosts">
+        <description>The default /etc/hosts file.</description>
+      </data>
+      <data name="nsswitch.conf">
+        <description>The default /etc/nsswitch.conf file.</description>
+      </data>
+      <data name="krb5.conf">
+        <description>The default /etc/krb5.conf file.</description>
+      </data>
+      <data name="krb.conf">
+        <description>The default /etc/krb.conf file.</description>
+      </data>
+      <data name="krb.realms">
+        <description>The default /etc/krb.realms file.</description>
+      </data>
+      <data name="ldap.conf">
+        <description>The default /etc/ldap.conf file.</description>
+      </data>
+      <data name="localtime">
+        <description>The default /etc/localtime file.</description>
+      </data>
+      <data name="resolv.conf">
+        <description>The default /etc/resolv.conf file.</description>
+      </data>
     </collection>
   </collection>
     
@@ -471,7 +562,7 @@ Contains per line a capability. This file is used for the 2.4 kernel
 only; for 2.6 use <optionref>bcapabilities</optionref>.
       </description>
     </list>
-    <scalar name="shell">
+    <scalar id="shell" name="shell">
       <description>
 Contains the pathname of the shell which will be used by the "vserver
 ... enter" command.
@@ -685,7 +776,7 @@ assumed.
 	  </description>
 	</scalar>
 	
-	<scalar name="action">
+	<scalar id="vshelper-action" name="action">
 	  <default>restart</default>
 	  <description>
 The action which is going to be executed when a vshelper event
@@ -742,7 +833,7 @@ skipped.
       <collection id="vshelper-methods" name="vshelper-methods">
 	<program name="handler" type="symbolic">
 	  <description>
-See vshelper/action.
+See <optionref ref="vshelper-action">vshelper/action</optionref>.
           </description>
 	</program>
       </collection>
@@ -1305,6 +1396,18 @@ tools and can *not* be modified.
         </scalar>
         <scalar name="reserved">
           <description>How much space (percentage-wise) should be reserved for the root user</description>
+        </scalar>
+      </collection>
+    </collection>
+
+    <collection name="sysctl" since="0.30.213">
+      <collection name="x" type="symbolic">
+        <description>'x' is an arbitrary name, replace it with e.g. integers</description>
+        <scalar name="setting">
+          <description>The sysctl setting</description>
+        </scalar>
+        <scalar name="value">
+          <description>The value</description>
         </scalar>
       </collection>
     </collection>

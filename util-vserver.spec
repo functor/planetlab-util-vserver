@@ -1,8 +1,10 @@
-# $Id: util-vserver.spec.in 2283 2006-09-10 17:07:57Z hollow $
+# $Id: util-vserver.spec.in 2482 2007-01-29 23:37:07Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
 ## --with xalan              ...   require/use the xalan xslt processor
+## --without doc             ...   disable doc generation
+## --with legacy             ...   enable the legacy APIs
 
 %global confdir		%_sysconfdir/vservers
 %global confdefaultdir	%confdir/.defaults
@@ -11,18 +13,22 @@
 
 %global _localstatedir	%_var
 
+%global ver		%( echo 0.30.213 | sed 's/-.*//' )
+%global subver		%( s=`echo 0.30.213 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global fullver		0.30.213
+
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.212
-Release:	%release_func 0
+Version:	%ver
+Release:	%release_func 0%subver
 License:	GPL
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2
-#Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%version.tar.bz2.asc
+Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%fullver.tar.bz2
+#Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%fullver.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -33,7 +39,7 @@ Obsoletes:	vserver < %version
 BuildRequires:	mount vconfig gawk iproute iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel beecrypt-devel
-BuildRequires:	doxygen tetex-latex
+%{!?_without_doc:BuildRequires:	doxygen tetex-latex}
 Requires(post):		%name-core
 Requires(pre):		%pkglibdir
 Requires(postun):	%pkglibdir
@@ -160,15 +166,17 @@ develop VServer related applications.
 
 
 %prep
-%setup -q
+%setup -q -n %name-%fullver
 
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
-           %{?_without_dietlibc:--disable-dietlibc}
+           %{?_without_dietlibc:--disable-dietlibc} \
+           %{?_with_legacy:--enable-apis=NOLEGACY} \
+           --with-initscripts=sysv
 
 %__make %{?_smp_mflags} all
-%__make %{?_smp_mflags} doc
+%{!?_without_doc:%__make %{?_smp_mflags} doc}
 
 
 %install
@@ -212,6 +220,7 @@ test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 %post sysv
 %chkconfig --add vservers-default
 %chkconfig --add vprocunhide
+%chkconfig --add util-vserver
 
 
 
@@ -220,6 +229,7 @@ test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
 
 test "$1" != 0 || %chkconfig --del vprocunhide
 test "$1" != 0 || %chkconfig --del vservers-default
+test "$1" != 0 || %chkconfig --del util-vserver
 
 
 %postun sysv
@@ -339,11 +349,15 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 %files devel -f %name-devel.list
 %defattr(-,root,root,-)
-%doc lib/apidoc/latex/refman.pdf
-%doc lib/apidoc/html
+%{!?_without_doc:%doc lib/apidoc/latex/refman.pdf}
+%{!?_without_doc:%doc lib/apidoc/html}
 
 
 %changelog
+* Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
+- add --with legacy and --without doc switches
+- add util-vserver initscript
+
 * Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
 - do not require 'xalan' anymore by default
 - removed 'Requires: apt'; apt-rpm is not maintained upstream anymore

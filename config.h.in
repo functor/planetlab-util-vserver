@@ -3,6 +3,9 @@
 /* Define to 1 if dietlibc supports C99 */
 #undef ENSC_DIETLIBC_C99
 
+/* Define to 1 if dietlibc declares syscall */
+#undef ENSC_DIETLIBC_HAS_SYSCALL
+
 /* define when <ext2fs/ext2_fs.h> is usable */
 #undef ENSC_HAVE_EXT2FS_EXT2_FS_H
 

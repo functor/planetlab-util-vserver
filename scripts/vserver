@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vserver 2418 2006-12-08 13:28:02Z dhozac $
+# $Id: vserver 2521 2007-03-21 04:46:18Z dhozac $
 
 # Copyright (C) 2003,2004,2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -59,8 +59,8 @@ Possible commands are:
                 ... builds a new vserver from scratch
     delete      ... remove a vserver
 
-    unify [-R]
-		... (de)unify vserver
+    unify [-R] <vunify-opts>*
+		... (de)unify the vserver with its reference vserver(s).
 		
     pkg install <pkg>
 		... installs package(s) in the vserver
@@ -77,8 +77,8 @@ Possible commands are:
 		    while 'internalize' means that data and programs from the
 		    vserver will be used.
 
-    unify <vunify-opts>*
-                ... unify the vserver with its reference vserver(s).
+    hashify
+                ... hashify the guest.
 		    
 
 Please report bugs to $PACKAGE_BUGREPORT"
@@ -190,11 +190,7 @@ Possible solutions:
     exit 5
 } >&2
 
-if test -e "$VSERVER_DIR"/name; then
-    read VSERVER_NAME <"$VSERVER_DIR"/name
-else
-    VSERVER_NAME=$(basename "$VSERVER_DIR")
-fi
+_setVserverName
 
 # Create a new namespace when starting the guest
 test "$2" != start -o -n "$OPTION_NONAMESPACE" || isAvoidNamespace "$VSERVER_DIR" || \

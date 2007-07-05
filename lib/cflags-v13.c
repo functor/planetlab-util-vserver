@@ -1,4 +1,4 @@
-// $Id: cflags-v13.c 2393 2006-11-23 18:30:29Z dhozac $    --*- c -*--
+// $Id: cflags-v13.c 2533 2007-04-21 14:06:26Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  
@@ -68,7 +68,7 @@ static struct Mapping_uint64 const VALUES[] = {
 
     // Some pseudo flags
   DECL("secure",        VC_VXF_HIDE_NETIF),
-  DECL("default",       VC_VXF_VIRT_UPTIME),
+  DECL("default",       VC_VXF_VIRT_UPTIME|VC_VXF_SC_HELPER),
 
     // Aliases for the legacy flags
   DECL("info_lock",	VC_VXF_INFO_LOCK),

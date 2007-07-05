@@ -1,4 +1,4 @@
-// $Id: rpm-fake-resolver.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: rpm-fake-resolver.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -261,7 +261,7 @@ activateContext(xid_t xid, bool in_ctx,
     Evc_set_cflags(xid, &flags);
   }
   else if (vc_isSupported(vcFEATURE_MIGRATE))
-      Evc_ctx_migrate(xid);
+      Evc_ctx_migrate(xid, 0);
   else {
 #ifdef VC_ENABLE_API_COMPAT
     Evc_new_s_context(xid, xid_caps, xid_flags);

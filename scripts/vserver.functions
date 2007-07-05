@@ -1,4 +1,4 @@
-# $Id: vserver.functions 2418 2006-12-08 13:28:02Z dhozac $  --*- sh -*--
+# $Id: vserver.functions 2538 2007-04-27 09:08:43Z hollow $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -304,23 +304,8 @@ function _generateInitOptions
 	    test -n "$RUNLEVEL_START" || RUNLEVEL_START="default"
 
 	    INITCMD_START=( /lib/rcscripts/sh/init-vserver.sh "$RUNLEVEL_START" )
-	    INITCMD_STOP=( /sbin/rc shutdown )
+	    INITCMD_STOP=( env -i RUNLEVEL=0 /sbin/rc shutdown )
 	    INITCMD_PREPARE=( $_FAKE_RUNLEVEL 3 /var/run/utmp )
-
-	    pushd "$vdir"/vdir &>/dev/null
-	    basever=$($_CHROOT_SH cat /etc/gentoo-release | $_AWK '{print $5}')
-	    popd &>/dev/null
-
-	    basemaj=${basever/.*}
-	    basemin=${basever#*.}
-	    basemin=${basemin/.*}
-
-	    test "$basemaj" -lt 1 -o "$basemin" -lt 13 && \
-	    panic "\
-Using init-style 'gentoo' requires >=baselayout-1.13 inside the vserver!
-
-Your vserver ($(basename "$vdir")) seems to have baselayout-$basever,
-please use 'plain' init-style instead!"
 	    ;;
 
 	(x) ;;
@@ -554,23 +539,26 @@ function _processSingleInterface
 	## LEGACY ALERT
 	test ! -e "$iface"/only_ip || break
 
-	local vlan_info
-	if vlan_info=$(_getVLANInfo "$dev"); then
-	    test -d /proc/net/vlan || {
-		echo -e $"VLAN device-name used, but vlan subsystem not enabled.\nTry to execute 'modprobe 8021q' before starting the vservers"  >&2
-		return 1
-	    }
-	    test -e "$iface/vlandev" \
-		 -o \( -e "$iface/../vlandev" -a ! -e "$iface/novlandev" \) \
-		 -o \( -e "$__CONFDIR/.defaults/interfaces/vlandev" \
-		       -a ! -e "$iface/novlandev" \
-		       -a ! -e "$iface/../novlandev" \) && {
+	test -e "$iface/vlandev" \
+	     -o \( -e "$iface/../vlandev" -a ! -e "$iface/novlandev" \) \
+	     -o \( -e "$__CONFDIR/.defaults/interfaces/vlandev" \
+		   -a ! -e "$iface/novlandev" \
+		   -a ! -e "$iface/../novlandev" \) && {
+	    local vlan_info
+	    if vlan_info=$(_getVLANInfo "$dev"); then
+		test -d /proc/net/vlan || {
+		    echo -e $"VLAN device-name used, but vlan subsystem not enabled.\nTry to execute 'modprobe 8021q' before starting the vservers"  >&2
+		    return 1
+		}
 		_addInterfaceCmd VCONFIG $vlan_info
-	    }
-	fi
+	    fi
+	}
 
 	if ! test -e "$iface"/indirect; then
-	    _addInterfaceCmd IP_ADDR  "$ip${prefix:+/$prefix}" broadcast ${bcast:-+} ${name:+label "$dev:$name"} dev "$dev"
+	    # XXX: IPv6 hack
+	    use_bcast="broadcast ${bcast:-+}"
+	    echo "$ip" | $_GREP -q : && use_bcast=
+	    _addInterfaceCmd IP_ADDR  "$ip${prefix:+/$prefix}" $use_bcast ${name:+label "$dev:$name"} dev "$dev"
 	    #_addInterfaceCmd IP_ROUTE "$ip${prefix:+/$prefix}" dev "$dev"
 	    _addInterfaceCmd IP_LINK  "$dev" $up
 	elif ! test -n "$ctx"; then
@@ -1168,6 +1156,8 @@ function _saveSingleDiskLimit
 
     $_VDLIMIT --xid $ctx "$directory" | \
 	$_GREP '_used=' > "$vdir/cache/dlimits/$cachename"
+
+    $_VDLIMIT --xid $ctx --remove "$directory"
 }
 
 
@@ -1199,7 +1189,7 @@ function _namespaceCleanup
 
     # these are things that have to be accessible post-cleanup
     for tmp in "$root" "$__SBINDIR" "$__PKGLIBDIR" "$vdir" \
-	"$__PKGSTATEDIR" "${skip[@]}"; do
+	"$__PKGSTATEDIR" "$__LOCKDIR" /usr/local /tmp "${skip[@]}"; do
 	while test -n "$tmp"; do
 	    list=( "${list[@]}" "$tmp" )
 	    tmp="${tmp%/*}"
@@ -1224,3 +1214,28 @@ function _namespaceCleanup
     done
 }
 
+function loadDeviceMap
+{
+    local xid="$1"
+    local dir="$2"
+    local flags device target
+
+    test -d "$dir" || return 0
+
+    for i in "$dir"/*; do
+	test -d "$i" || continue
+
+	local -a vdevmap_opts=()
+	test -e "$i/create" && vdevmap_opts=( "${vdevmap_opts[@]}" --create )
+	test -e "$i/open"   && vdevmap_opts=( "${vdevmap_opts[@]}" --open )
+	test -e "$i/remap"  && vdevmap_opts=( "${vdevmap_opts[@]}" --remap )
+
+	getFileValue flags "$i/flags" || :
+	getFileValue device "$i/device" || :
+	getFileValue target "$i/target" || :
+	vdevmap_opts=(  "${vdevmap_opts[@]}" ${flags:+--flags "$flags"} \
+			${device:+--device "$device"} ${target:+--target "$target"} )
+
+	$_VDEVMAP --xid "$xid" "${vdevmap_opts[@]}" || return $?
+    done
+}

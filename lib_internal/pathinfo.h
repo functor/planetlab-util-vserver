@@ -1,4 +1,4 @@
-// $Id: pathinfo.h 1619 2004-07-02 23:44:53Z ensc $    --*- c -*--
+// $Id: pathinfo.h 2467 2007-01-21 18:26:45Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,6 +23,7 @@
 
 #define ENSC_PI_DECLARE(VAR,VAL)	PathInfo VAR={.d = VAL,.l = sizeof(VAL)-1}
 #define ENSC_PI_APPSZ(P1,P2)		((P1).l + sizeof("/") + (P2).l)
+#define ENSC_PI_SETSTR(VAR,VAL)		do { VAR.d = VAL; VAR.l = strlen(VAL); } while (0)
 
 typedef String		PathInfo;
 

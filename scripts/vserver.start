@@ -1,4 +1,4 @@
-# $Id: vserver.start 2389 2006-11-20 15:10:00Z dhozac $  --*- sh -*--
+# $Id: vserver.start 2466 2007-01-21 08:02:44Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -136,7 +136,8 @@ if $_VSERVER_INFO - FEATURE migrate; then
     ${USE_VNAMESPACE:+$_VNAMESPACE --set -- } \
     $_VLIMIT     --dir "$VSERVER_DIR"/rlimits --missingok -- \
     $_VSCHED     --xid self --force "${OPTS_VSCHED[@]}" -- \
-    $_VUNAME     --xid self --dir "$VSERVER_DIR"/uts     --missingok -- \
+    $_VSYSCTL    --xid self --dir "$VSERVER_DIR"/sysctl --missingok -- \
+    $_VUNAME     --xid self --dir "$VSERVER_DIR"/uts    --missingok -- \
     "${VSERVER_EXTRA_CMDS[@]}" \
     $_VUNAME     --xid self --set -t context="$VSERVER_DIR" -- \
     $_VATTRIBUTE --set "${OPTS_VATTRIBUTE[@]}" -- \
@@ -153,7 +154,7 @@ else
     fi
     
     ${NICE_CMD[@]} \
-    $_CHBIND_COMPAT    "${CHBIND_OPTS[@]}" \
+    $_CHBIND           "${CHBIND_OPTS[@]}" \
     $_EXEC_ULIMIT      "$VSERVER_DIR/ulimits" \
     $_CHCONTEXT_COMPAT "${CHCONTEXT_OPTS[@]}" "${CHCONTEXT_INIT_OPTS[@]}" \
     $_SAVE_CTXINFO     "$VSERVER_DIR" \

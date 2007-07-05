@@ -1,4 +1,4 @@
-# $Id: vserver.stop 2312 2006-09-15 04:32:28Z dhozac $  --*- sh -*--
+# $Id: vserver.stop 2508 2007-02-25 14:06:51Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -66,22 +66,27 @@ fail=
 initWait	   "$VSERVER_DIR" "$S_CONTEXT" vwait_statdir
 if test -n "$_IS_FAKEINIT" && \
    $_VSERVER_INFO - FEATURE vkill; then
-    $_VKILL -s INT --xid "$S_CONTEXT" -- 1 || fail=1
-    ## HACK: remove the 'initpid' stuff above when PID virtualization
-    ## is implemented
+    if ! vshelper.isStopSync; then
+	$_VKILL -s INT --xid "$S_CONTEXT" -- 1 || fail=1
+    fi
 elif $_VSERVER_INFO - FEATURE migrate; then
     "${NICE_CMD[@]}" \
-    ${USE_VNAMESPACE:+$_VNAMESPACE --enter "$S_CONTEXT" -- } \
     $_VCONTEXT $SILENT_OPT --migrate --chroot --xid "$S_CONTEXT" -- \
     "${INITCMD_STOP[@]}" || fail=1
 else
     "${NICE_CMD[@]}" \
     "$_CHBIND"       "${CHBIND_OPTS[@]}" \
     "$_EXEC_ULIMIT"  "$VSERVER_DIR/ulimits" \
-    ${USE_VNAMESPACE:+$_VNAMESPACE --enter "$S_CONTEXT"} \
     $_CHCONTEXT_COMPAT    "${CHCONTEXT_OPTS[@]}" \
     "$_CAPCHROOT"    "${CAPCHROOT_OPTS[@]}" "." \
     "${INITCMD_STOP[@]}" || fail=1
+fi
+
+# Remove persistent so those contexts can be stopped
+$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag ~persistent 2>/dev/null || :
+if $_VSERVER_INFO -q "$S_CONTEXT" XIDTYPE static &&
+   $_VSERVER_INFO - FEATURE vnet; then
+    $_NATTRIBUTE --set --nid "$S_CONTEXT" --flag ~persistent 2>/dev/null || :
 fi
 
 vshelper.doStopSync

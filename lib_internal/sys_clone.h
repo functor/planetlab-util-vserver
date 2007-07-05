@@ -1,4 +1,4 @@
-// $Id: sys_clone.h 2421 2006-12-09 16:12:18Z dhozac $    --*- c -*--
+// $Id: sys_clone.h 2446 2007-01-09 13:22:11Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -41,9 +41,6 @@ int sys_clone(int flags, void *child_stack)
   int ret;
 #ifdef __sparc__
   int parent = getpid();
-#endif
-#if defined(__dietlibc__) && defined(ENSC_SYSCALL_TRADITIONAL)
-  extern long int syscall (long int __sysno, ...);
 #endif
 
 #if   defined(__s390__) && defined(ENSC_SYSCALL_TRADITIONAL)

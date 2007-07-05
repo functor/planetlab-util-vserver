@@ -1,5 +1,5 @@
 #!/bin/bash
-# $Id: vdispatch-conf 2363 2006-11-03 14:36:23Z hollow $
+# $Id: vdispatch-conf 2486 2007-02-05 18:08:17Z hollow $
 
 # Copyright (C) 2006 Benedikt Boehm <hollow@gentoo.org>
 #  
@@ -69,4 +69,4 @@ VSOMETHING_PKGMGMT=1
 
 export VSOMETHING_TITLE VSOMETHING_PKGMGMT
 
-exec $_VSOMETHING "${send_through[@]}" dispatch-conf "${vsomething_opts[@]}"
+exec $_VSOMETHING "${send_through[@]}" dispatch-conf "${vsomething_opts[@]}" "$@"

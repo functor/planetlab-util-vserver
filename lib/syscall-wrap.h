@@ -1,4 +1,4 @@
-// $Id: syscall-wrap.h 2076 2005-05-02 21:42:05Z ensc $    --*- c -*--
+// $Id: syscall-wrap.h 2446 2007-01-09 13:22:11Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -34,6 +34,10 @@
 #  undef _syscall7
 
 #  include "syscall-alternative.h"
+#endif
+
+#if defined(ENSC_SYSCALL_TRADITIONAL) && defined(__dietlibc__) && !defined(ENSC_DIETLIBC_HAS_SYSCALL)
+extern long int syscall(long int __sysno, ...);
 #endif
 
 #endif	//  H_UTIL_VSERVER_LIB_SYSCALL_WRAP_H
