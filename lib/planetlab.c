@@ -198,25 +198,19 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
   if (cpu_share == VC_LIM_KEEP)
     vc_sched.set_mask &= ~(VC_VXSM_FILL_RATE|VC_VXSM_FILL_RATE2);
 
-  VC_SYSCALL(vc_set_sched(ctx, &vc_sched));
-
-  /* get current flag values */
-  VC_SYSCALL(vc_get_cflags(ctx, &vc_flags));
-
   /* guaranteed CPU corresponds to SCHED_SHARE flag being cleared */
   if (cpu_sched_flags & VS_SCHED_CPU_GUARANTEED) {
-    new_flags = VC_VXF_SCHED_SHARE;
+    new_flags = 0;
     vc_sched.fill_rate = vc_sched.fill_rate2;
   }
   else
-    new_flags = 0;
+    new_flags = VC_VXF_SCHED_SHARE;
 
-  if ((vc_flags.flagword & VC_VXF_SCHED_SHARE) != new_flags)
-    {
-      vc_flags.mask = VC_VXF_SCHED_FLAGS;
-      vc_flags.flagword = new_flags | VC_VXF_SCHED_HARD;
-      VC_SYSCALL(vc_set_cflags(ctx, &vc_flags));
-    }
+  VC_SYSCALL(vc_set_sched(ctx, &vc_sched));
+
+  vc_flags.mask = VC_VXF_SCHED_FLAGS;
+  vc_flags.flagword = new_flags | VC_VXF_SCHED_HARD;
+  VC_SYSCALL(vc_set_cflags(ctx, &vc_flags));
 
   return 0;
 }
