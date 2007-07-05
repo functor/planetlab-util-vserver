@@ -1,4 +1,4 @@
-dnl $Id: ensc_e2fscheck.m4,v 1.3 2004/02/19 22:31:04 ensc Exp $
+dnl $Id: ensc_e2fscheck.m4 2411 2006-12-01 18:41:01Z dhozac $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -48,7 +48,7 @@ the following reasons:
 * kernel headers are broken (e.g. these of linux 2.6 are known to be)
   and you do not have e2fsprogs headers installed; please try to install
   - e2fsprogs-devel (for Red Hat), or
-  - libext2fs2-devel (for Mandrake), or
+  - lib*ext2fs2-devel (for Mandriva), or
   - e2fslibs-dev (for Debian)
   in this case.
 

@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: vuseradd,v 1.26 2006/11/13 18:49:31 mlhuang Exp $
+# $Id: vuseradd,v 1.31 2007/07/05 17:36:42 dhozac Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -65,13 +65,56 @@ USERID=`id -u $NAME`
 GROUPID=`id -g $NAME`
 GROUPNAME=`id -gn $NAME`
 
-# Create /etc/vservers configuration file
-if [ ! -f $__CONFDIR/$NAME.conf ] ; then
-    sed \
-	-e "s/.*S_CONTEXT=.*/S_CONTEXT=$USERID/" \
-	-e "s/.*ONBOOT=.*/ONBOOT=yes/" \
-	< $__PKGLIBDIR/defaults/sample.conf \
-	> $__CONFDIR/$NAME.conf
+# Create /etc/vservers configuration files
+if [ ! -d $__CONFDIR/$NAME ] ; then
+    # Move away the guest contents for now
+    if [ -d $__DEFAULT_VSERVERDIR/$NAME ] ; then
+	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
+	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
+	mv $__DEFAULT_VSERVERDIR/$NAME "$TMP"
+        HAS_VSERVERDIR=1
+    else
+	HAS_VSERVERDIR=0
+    fi
+
+    $_VSERVER $NAME build -m skeleton --context $USERID \
+		--interface nodev:0.0.0.0/0 \
+		--flags persistent,~info_init,sched_hard
+    RETVAL=$?
+    DIR=$__CONFDIR/$NAME
+    if [ $RETVAL -ne 0 ] ; then
+	echo "Error $RETVAL building $DIR"
+	rm -rf $DIR $__DEFAULT_VSERVERDIR/$NAME
+    fi
+    mkdir -p $DIR/apps/init $DIR/rlimits $DIR/sched $DIR/dlimits/0
+    echo default > $DIR/apps/init/mark
+    echo 1000 > $DIR/rlimits/nproc
+
+    # Set persistent for the network context
+    echo persistent > $DIR/nflags
+
+    # Set up the scheduler
+    echo 1000 > $DIR/sched/interval
+    echo 1000 > $DIR/sched/interval2
+    echo 0 > $DIR/sched/fill-rate
+    echo 32 > $DIR/sched/fill-rate2
+    touch $DIR/sched/idle-time
+    echo 100 > $DIR/sched/tokens
+    echo 50 > $DIR/sched/tokens-min
+    echo 100 > $DIR/sched/tokens-max
+
+    # Set up disk limits (unlimited)
+    echo `$_READLINK $DIR/vdir` > $DIR/dlimits/0/directory
+    echo 2 > $DIR/dlimits/0/reserved
+    echo -1 > $DIR/dlimits/0/inodes_total
+    echo -1 > $DIR/dlimits/0/space_total
+
+    # Remove the basically empty guest directory
+    rm -rf $__DEFAULT_VSERVERDIR/$NAME
+    # Move the guest back
+    if [ "$HAS_VSERVERDIR" = 1 ] ; then
+	mv "$TMP" $__DEFAULT_VSERVERDIR/$NAME
+    fi
 fi
 
 if [ ! -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
@@ -89,7 +132,7 @@ if [ ! -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
 	# Build in temporary directory
 	mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
 	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/$NAME.XXXXXX")
-	"$__PKGLIBDIR/vbuild" "$REF" "$TMP"
+	"$_VCLONE" "$REF"/ "$TMP"/
 	RETVAL=$?
 
 	# Move it to its permanent location when complete
@@ -97,7 +140,7 @@ if [ ! -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
 	    mv "$TMP" "$__DEFAULT_VSERVERDIR/$NAME"
 	else
 	    echo "Error $RETVAL building $__DEFAULT_VSERVERDIR/$NAME"
-	    rm -rf "$TMP" $__CONFDIR/$NAME.conf $__PKGSTATEDIR/$NAME.ctx
+	    rm -rf "$TMP" $__CONFDIR/$NAME $__PKGSTATEDIR/$NAME.ctx
 	    userdel -r $NAME
 	    exit $RETVAL
 	fi
@@ -109,7 +152,7 @@ if [ -d "$__DEFAULT_VSERVERDIR/$NAME" ] ; then
     chmod 755 "$__DEFAULT_VSERVERDIR/$NAME"
 
     # Add user in vserver
-    $_VSERVER_LEGACY $NAME suexec root sh -c \
+    $_VSERVER ----insecure $NAME suexec root sh -c \
 	"groupadd -g $GROUPID $GROUPNAME ; useradd -u $USERID -g $GROUPID -p '' $NAME"
 
     # Add an unrestricted entry to /etc/sudoers file

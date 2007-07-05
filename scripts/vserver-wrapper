@@ -26,35 +26,13 @@ test -n "$MARK" || MARK=default
 : ${LOCKFILE:=vservers-$MARK}
 : ${NUMPARALLEL:=6}
 
-
-if test -e /etc/init.d/functions; then
-    . /etc/init.d/functions
-    lockfile=/var/lock/subsys/$LOCKFILE
-else
-    success() { echo .; }
-    passed()  { echo .; }
-    failure() { echo ERROR; }
-    lockfile=/var/run/$LOCKFILE
-fi
-
-
-function _tellResult()
-{
-    local rc=$1
-    case "$rc" in
-	(0)	success;;
-	(2)	passed; rc=0;;
-	(*)	failure;;
-    esac
-    echo
-    return $rc
-}
+. "$_LIB_VSERVER_INIT_FUNCTIONS"
 
 function start()
 {
-    echo -n $"Starting vservers of type '$MARK'..."
+    _beginResult $"Starting vservers of type '$MARK'"
     $_START_VSERVERS -m "$MARK" -j "$NUMPARALLEL" --all --start
-    _tellResult $?
+    _endResult $?
     local rc=$?
     test "$rc" -ne 0 || touch "$lockfile"
     return $rc
@@ -62,9 +40,9 @@ function start()
 
 function stop()
 {
-    echo -n $"Stopping vservers of type '$MARK'..."
+    _beginResult $"Stopping vservers of type '$MARK'"
     $_START_VSERVERS -m "$MARK" -j "$NUMPARALLEL" --all --stop
-    _tellResult $?
+    _endResult $?
     local rc=$?
     $_RM -f "$lockfile"
     return $rc

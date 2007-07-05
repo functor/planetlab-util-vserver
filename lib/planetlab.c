@@ -31,6 +31,9 @@ POSSIBILITY OF SUCH DAMAGE.
 
 */
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,10 +43,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/resource.h>
+#include <fcntl.h>
 
-#include "config.h"
-#include "sched_cmd.h"
-#include "virtual.h"
 #include "vserver.h"
 #include "planetlab.h"
 
@@ -51,6 +52,25 @@ static int
 create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 {
   struct vc_ctx_caps  vc_caps;
+  struct vc_net_nx  vc_net;
+  struct vc_net_flags  vc_nf;
+
+  /* Create network context */
+  if (vc_net_create(ctx) == VC_NOCTX)
+    return -1;
+
+  /* Make the network context persistent */
+  vc_nf.mask = vc_nf.flagword = VC_NXF_PERSISTENT;
+  if (vc_set_nflags(ctx, &vc_nf))
+    return -1;
+
+  /* XXX: Allow access to all IPv4 addresses (for now) */
+  vc_net.type = vcNET_IPV4;
+  vc_net.count = 1;
+  vc_net.ip[0] = 0;
+  vc_net.mask[0] = 0;
+  if (vc_net_add(ctx, &vc_net) == -1)
+    return -1;
 
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
@@ -77,10 +97,10 @@ pl_setup_done(xid_t ctx)
   struct vc_ctx_flags  vc_flags;
 
   /* unset SETUP flag - this allows other processes to migrate */
-
+  /* set the PERSISTENT flag - so the context doesn't vanish */
   /* Don't clear the STATE_INIT flag, as that would make us the init task. */
-  vc_flags.mask = VC_VXF_STATE_SETUP;
-  vc_flags.flagword = 0;
+  vc_flags.mask = VC_VXF_STATE_SETUP|VC_VXF_PERSISTENT;
+  vc_flags.flagword = VC_VXF_PERSISTENT;
   if (vc_set_cflags(ctx, &vc_flags))
     return -1;
 
@@ -93,6 +113,7 @@ int
 pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 {
   int  retry_count = 0;
+  int  net_migrated = 0;
 
   for (;;)
     {
@@ -134,8 +155,12 @@ pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 
       /* context has been setup */
     migrate:
-      if (!vc_ctx_migrate(ctx))
-	break;  /* done */
+      if (net_migrated || !vc_net_migrate(ctx))
+	{
+	  if (!vc_ctx_migrate(ctx, 0))
+	    break;  /* done */
+	  net_migrated = 1;
+	}
 
       /* context disappeared - retry */
     }
@@ -160,12 +185,18 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
   uint32_t  new_flags;
 
   vc_sched.set_mask = (VC_VXSM_FILL_RATE | VC_VXSM_INTERVAL | VC_VXSM_TOKENS |
-		       VC_VXSM_TOKENS_MIN | VC_VXSM_TOKENS_MAX);
-  vc_sched.fill_rate = cpu_share;  /* tokens accumulated per interval */
-  vc_sched.interval = 1000;  /* milliseconds */
+		       VC_VXSM_TOKENS_MIN | VC_VXSM_TOKENS_MAX | VC_VXSM_MSEC |
+		       VC_VXSM_FILL_RATE2 | VC_VXSM_INTERVAL2 | VC_VXSM_FORCE |
+		       VC_VXSM_IDLE_TIME);
+  vc_sched.fill_rate = 0;
+  vc_sched.fill_rate2 = cpu_share;  /* tokens accumulated per interval */
+  vc_sched.interval = vc_sched.interval2 = 1000;  /* milliseconds */
   vc_sched.tokens = 100;     /* initial allocation of tokens */
   vc_sched.tokens_min = 50;  /* need this many tokens to run */
   vc_sched.tokens_max = 100;  /* max accumulated number of tokens */
+
+  if (cpu_share == VC_LIM_KEEP)
+    vc_sched.set_mask &= ~(VC_VXSM_FILL_RATE|VC_VXSM_FILL_RATE2);
 
   VC_SYSCALL(vc_set_sched(ctx, &vc_sched));
 
@@ -173,9 +204,13 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
   VC_SYSCALL(vc_get_cflags(ctx, &vc_flags));
 
   /* guaranteed CPU corresponds to SCHED_SHARE flag being cleared */
-  new_flags = (cpu_sched_flags & VS_SCHED_CPU_GUARANTEED
-	       ? 0
-	       : VC_VXF_SCHED_SHARE);
+  if (cpu_sched_flags & VS_SCHED_CPU_GUARANTEED) {
+    new_flags = VC_VXF_SCHED_SHARE;
+    vc_sched.fill_rate = vc_sched.fill_rate2;
+  }
+  else
+    new_flags = 0;
+
   if ((vc_flags.flagword & VC_VXF_SCHED_SHARE) != new_flags)
     {
       vc_flags.mask = VC_VXF_SCHED_FLAGS;
@@ -200,37 +235,35 @@ void
 pl_get_limits(char *context, struct sliver_resources *slr)
 {
   FILE *fb;
-  size_t len = strlen(VSERVERCONF) + strlen(context) + strlen(".conf") + NULLBYTE_SIZE;
-  char *conf = (char *)malloc(len);	
+  int cwd;
+  size_t len = strlen(VSERVERCONF) + strlen(context) + NULLBYTE_SIZE;
+  char *conf = (char *)malloc(len + strlen("rlimits/openfd.hard"));
   struct pl_resources *r;
   struct pl_resources sliver_list[] = {
-    {"CPULIMIT", &slr->vs_cpu},
-    {"CPUSHARE", &slr->vs_cpu},
-    {"CPUGUARANTEED", &slr->vs_cpuguaranteed},
+    {"sched/fill-rate2", &slr->vs_cpu},
+    {"sched/fill-rate", &slr->vs_cpuguaranteed},
   
-    {"TASKLIMIT", &slr->vs_nproc.hard}, /* backwards compatible */
-    {"VS_NPROC_HARD", &slr->vs_nproc.hard},
-    {"VS_NPROC_SOFT", &slr->vs_nproc.soft},
-    {"VS_NPROC_MINIMUM", &slr->vs_nproc.min},
+    {"rlimits/nproc.hard", &slr->vs_nproc.hard},
+    {"rlimits/nproc.soft", &slr->vs_nproc.soft},
+    {"rlimits/nproc.min", &slr->vs_nproc.min},
   
-    {"MEMLIMIT", &slr->vs_rss.hard}, /* backwards compatible */
-    {"VS_RSS_HARD", &slr->vs_rss.hard},
-    {"VS_RSS_SOFT", &slr->vs_rss.soft},
-    {"VS_RSS_MINIMUM", &slr->vs_rss.min},
+    {"rlimits/rss.hard", &slr->vs_rss.hard},
+    {"rlimits/rss.soft", &slr->vs_rss.soft},
+    {"rlimits/rss.min", &slr->vs_rss.min},
   
-    {"VS_AS_HARD", &slr->vs_as.hard},
-    {"VS_AS_SOFT", &slr->vs_as.soft},
-    {"VS_AS_MINIMUM", &slr->vs_as.min},
+    {"rlimits/as.hard", &slr->vs_as.hard},
+    {"rlimits/as.soft", &slr->vs_as.soft},
+    {"rlimits/as.min", &slr->vs_as.min},
   
-    {"VS_OPENFD_HARD", &slr->vs_openfd.hard},
-    {"VS_OPENFD_SOFT", &slr->vs_openfd.soft},
-    {"VS_OPENFD_MINIMUM", &slr->vs_openfd.min},
+    {"rlimits/openfd.hard", &slr->vs_openfd.hard},
+    {"rlimits/openfd.soft", &slr->vs_openfd.soft},
+    {"rlimits/openfd.min", &slr->vs_openfd.min},
 
-    {"VS_WHITELISTED", &slr->vs_whitelisted},
+    {"whitelisted", &slr->vs_whitelisted},
     {0,0}
   };
 
-  sprintf(conf, "%s%s.conf", VSERVERCONF, context);
+  sprintf(conf, "%s%s", VSERVERCONF, context);
 
   slr->vs_cpu = VC_LIM_KEEP;
   slr->vs_cpuguaranteed = 0;
@@ -254,6 +287,33 @@ pl_get_limits(char *context, struct sliver_resources *slr)
 
   slr->vs_whitelisted = 1;
 
+  cwd = open(".", O_RDONLY);
+  if (cwd == -1) {
+    perror("cannot get a handle on .");
+    goto out;
+  }
+  if (chdir(conf) == -1) {
+    fprintf(stderr, "cannot chdir to ");
+    perror(conf);
+    goto out_fd;
+  }
+
+  for (r = &sliver_list[0]; r->name; r++) {
+    char buf[1000];
+    fb = fopen(r->name, "r");
+    if (fb == NULL)
+      continue;
+    if (fgets(buf, sizeof(buf), fb) != NULL && isdigit(*buf)) {
+      *r->limit = atoi(buf);
+    }
+    fclose(fb);
+  }
+
+  fchdir(cwd);
+out_fd:
+  close(cwd);
+out:
+#if 0
   /* open the conf file for reading */
   fb = fopen(conf,"r");
   if (fb != NULL) {
@@ -288,7 +348,7 @@ pl_get_limits(char *context, struct sliver_resources *slr)
 	  
 	  *r->limit = atoi(&buffer[index]);
 	  if (0) /* for debugging only */
-	    fprintf(stderr,"pl_get_limits found %s=%ld\n",
+	    fprintf(stderr,"pl_get_limits found %s=%lld\n",
 		    r->name,*r->limit);
 	  break;
 	}
@@ -299,6 +359,7 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   } else {
     fprintf(stderr,"cannot open %s\n",conf);
   }
+#endif
   free(conf);
 }
 
@@ -391,11 +452,7 @@ pl_set_limits(xid_t ctx, struct sliver_resources *slr)
 	  PERROR("pl_setrlimit(%u, RLIMIT_NOFILE)", ctx);
 	  exit(1);
 	}
-#ifndef VLIMIT_OPENFD
-#warning VLIMIT_OPENFD should be defined from standard header
-#define VLIMIT_OPENFD	17
-#endif
-      if (vc_set_rlimit(ctx, VLIMIT_OPENFD, &slr->vs_openfd))
+      if (vc_set_rlimit(ctx, VC_VLIMIT_OPENFD, &slr->vs_openfd))
 	{
 	  PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
 	  exit(1);

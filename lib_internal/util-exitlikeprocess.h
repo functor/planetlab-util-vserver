@@ -1,4 +1,4 @@
-// $Id: util-exitlikeprocess.h,v 1.3 2004/05/11 18:25:14 ensc Exp $    --*- c -*--
+// $Id: util-exitlikeprocess.h 1557 2004-05-11 18:25:14Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

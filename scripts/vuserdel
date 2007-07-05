@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004  The Trustees of Princeton University (Trustees).
 #
-# $Id: vuserdel,v 1.9 2005/08/21 21:44:09 mlhuang Exp $
+# $Id: vuserdel,v 1.11 2007/06/29 14:13:01 dhozac Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -25,8 +25,7 @@ usage()
 NAME=$1
 
 # read config file to get context ID
-. /etc/vservers/$NAME.conf
-CTX=$S_CONTEXT
+CTX=`cat $__CONFDIR/$NAME/context`
 
 # don't bother stopping gracefully, just kill all the processes
 chcontext --silent --secure --ctx $CTX $__LEGACYDIR/vserverkillall
@@ -44,8 +43,8 @@ done
 # delete user
 [ -z "$STATIC" ] && userdel -r $NAME
 
-# remove vserver configuration file
-rm -f /etc/vservers/$NAME.conf
+# remove vserver configuration directory
+rm -rf /etc/vservers/$NAME
 
 # remove vserver profile
 rm -f /var/run/vservers/$NAME.ctx

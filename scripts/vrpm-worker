@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vrpm-worker,v 1.5 2004/04/08 06:05:06 ensc Exp $
+# $Id: vrpm-worker 1440 2004-04-08 06:05:06Z ensc $
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

@@ -1,4 +1,4 @@
-// $Id: sigexec.c,v 1.1 2004/05/11 18:32:58 ensc Exp $    --*- c -*--
+// $Id: sigexec.c 1562 2004-05-11 18:32:58Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

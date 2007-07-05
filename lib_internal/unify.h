@@ -1,4 +1,4 @@
-// $Id: unify.h,v 1.5 2005/03/18 03:55:03 ensc Exp $    --*- c -*--
+// $Id: unify.h 2476 2007-01-27 10:05:58Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -46,14 +46,23 @@ Unify_isIUnlinkable(char const *filename) NONNULL((1));
   ((bool)((LHS)->st_dev ==(RHS)->st_dev  &&	\
 	  (LHS)->st_ino ==(RHS)->st_ino))
 
-#define Unify_isUnifyable(LHS, RHS)		\
+#define _Unify_isUnifyable(LHS, RHS)		\
   ((bool)((LHS)->st_dev  ==(RHS)->st_dev  &&	\
 	  (LHS)->st_ino  !=(RHS)->st_ino  &&	\
 	  (LHS)->st_mode ==(RHS)->st_mode &&	\
 	  (LHS)->st_uid  ==(RHS)->st_uid  &&	\
 	  (LHS)->st_gid  ==(RHS)->st_gid  &&	\
-	  (LHS)->st_size ==(RHS)->st_size &&	\
-	  (LHS)->st_mtime==(RHS)->st_mtime))
+	  (LHS)->st_size ==(RHS)->st_size))
+#ifdef UTIL_VSERVER_UNIFY_MTIME_OPTIONAL
+#  define Unify_isUnifyable(LHS, RHS)		\
+    ((bool)(_Unify_isUnifyable(LHS, RHS)  &&	\
+	    (global_args->ignore_mtime ||	\
+	     (LHS)->st_mtime==(RHS)->st_mtime)))
+#else
+#  define Unify_isUnifyable(LHS, RHS)		\
+    ((bool)(_Unify_isUnifyable(LHS, RHS)  &&	\
+	    (LHS)->st_mtime==(RHS)->st_mtime))
+#endif
   
 
 #endif	//  H_UTIL_VSERVER_LIB_INTERNAL_UNIFY_H

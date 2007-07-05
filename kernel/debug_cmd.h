@@ -6,9 +6,20 @@
 
 #define VCMD_dump_history	VC_CMD(DEBUG, 1, 0)
 
-#ifdef	__KERNEL__
+#define VCMD_read_history	VC_CMD(DEBUG, 5, 0)
+#define VCMD_read_monitor	VC_CMD(DEBUG, 6, 0)
 
-extern int vc_dump_history(uint32_t);
+struct  vcmd_read_history_v0 {
+	uint32_t index;
+	uint32_t count;
+	char *data;
+};
 
-#endif	/* __KERNEL__ */
+struct  vcmd_read_monitor_v0 {
+	uint32_t index;
+	uint32_t count;
+	char *data;
+};
+
+
 #endif	/* _VX_DEBUG_CMD_H */

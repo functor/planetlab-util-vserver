@@ -1,4 +1,4 @@
-# $Id: vserver-build.debootstrap,v 1.13 2005/07/04 18:14:29 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.debootstrap 2528 2007-04-13 09:02:29Z hollow $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -15,25 +15,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
-function cleanUp
-{
-    test ! -d "$workdir"  || $_RM -rf "$workdir"
-}
-
 function init
 {
     workdir=
     mirror=
-    trap "cleanUp" EXIT
 }
 
 function initVariables
 {
     base.init
 
-    test -n "${mirror-unset}" || {
+    test -n "${mirror}" || {
 	local aux
-	findFile aux "$__CONFDIR"/.defaults/apps/debootstrap/mirror ''
+	findFile aux "$__CONFDIR"/.defaults/apps/debootstrap/mirror "$__PKGLIBDEFAULTDIR"/debootstrap.mirror
 	test -z "$aux" || read mirror <"$aux"
     }
 }
@@ -48,11 +42,15 @@ function initFilesystem
 
 function findDebootstrap
 {
+    test ! -x "$DEBOOTSTRAP" || return 0
+
     pushd . &>/dev/null
     DEBOOTSTRAP=$(which debootstrap 2>/dev/null) || {
-        dir=$($_MKTEMPDIR /var/tmp/debootstrap.XXXXXX)
+        dir=$($_MKTEMPDIR -p /var/tmp debootstrap.XXXXXX)
         workdir=$dir
         dst=$dir/debootstrap.deb
+
+        base._addGeneratedFile "$workdir"
         
         findFile DEBOOTSTRAP_URI "$__CONFDIR"/.defaults/apps/debootstrap/uri "$__PKGLIBDEFAULTDIR"/debootstrap.uri
         read tmp <$DEBOOTSTRAP_URI
@@ -66,7 +64,7 @@ ${tmp}..."
 		$_CAT <<EOF >&2
 ERROR: Could not download the debootstrap package from
 
-   $dst
+   $tmp
 
 Usually, this means that Debian released a new version which is unknown
 to util-vserver and removed the known ones. To fix this, go to
@@ -91,6 +89,18 @@ EOF
         tar xzf data.tar.gz
         export DEBOOTSTRAP_DIR=`pwd`/usr/lib/debootstrap
         DEBOOTSTRAP=`pwd`/usr/sbin/debootstrap
+
+	local arch
+	arch=$(uname -i 2>/dev/null) || \
+	    arch=$(arch 2>/dev/null) ||
+	    arch=
+
+	## Wash the calculated architecture
+	case $arch in
+	    (i?86|athlon)	arch=i386;;
+	esac
+
+	test -z "$arch" || echo "$arch" >$DEBOOTSTRAP_DIR/arch
     }
     popd &>/dev/null
 
@@ -107,25 +117,26 @@ function fixupDebian
 ###   main starts here <---
 
 
-tmp=$(getopt -o '+d:m:' --long debug -n "$0" -- "$@") || exit 1
+tmp=$(getopt -o '+d:m:s:' --long debug -n "$0" -- "$@") || exit 1
 eval set -- "$tmp"
 
 init
 
 while true; do
     case "$1" in
-	-d)		DISTRIBUTION=$2; shift;;
-	-m)		mirror=$2;       shift;;
-	--debug)	set -x;;
-	--)		shift; break ;;
-	*)		echo "vserver-build.debootstrap: internal error: unrecognized option '$1'" >&2
+	(-d)		DISTRIBUTION=$2; shift;;
+	(-m)		mirror=$2;       shift;;
+	(-s)            script=$2;       shift;;
+	(--debug)	set -x;;
+	(--)		shift; break ;;
+	(*)		echo "vserver-build.debootstrap: internal error: unrecognized option '$1'" >&2
 			exit 1
 			;;
     esac
     shift
 done
 
-getDistribution
+getDistribution '' 1
 
 initVariables  
 initFilesystem "$OPTION_FORCE"
@@ -135,10 +146,11 @@ setup_writeInitialFstab
 
 findDebootstrap
 
-test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS"
+test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS" "$mirror"
 mv "$VDIR"/dev "$VDIR"/dev.X
-"$DEBOOTSTRAP" "$@" "$DISTRIBUTION" "$VDIR" "$mirror" || :	## HACK: ignore all errors...
+"$_VNAMESPACE" --new -- "$DEBOOTSTRAP" "$@" "$DISTRIBUTION" "$VDIR" "$mirror" "$script" || :   ## HACK: ignore all errors...
 fixupDebian "$VDIR"
-test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS"
+test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS" "$mirror"
 
+$_RM -fr "$workdir"
 base.setSuccess

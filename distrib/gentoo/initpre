@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Copyright (C) 2006 Benedikt Boehm <hollow@gentoo.org>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+## Called as: initpost <cfgdir> <path of util-vserver-vars>
+
+vdir="$1"/vdir
+. "$2"
+
+# portage stuff
+echo ">>> Adding shared /usr/portage to fstab ... "
+
+hash portageq &>/dev/null
+
+if test $? -eq 0; then
+	_PORTDIR=$(portageq portdir)
+	_DISTDIR=$(portageq distdir)
+else
+	_PORTDIR=/usr/portage
+	_DISTDIR=/usr/portage/distfiles
+fi
+
+if test -d $_PORTDIR; then
+	( echo
+	  echo "# shared portage tree"
+	  echo "${_PORTDIR} /usr/portage           none bind,ro 0 0"
+	) >> "$1"/fstab
+else
+	echo "!!! Cannot find a portage tree! You should definitely use a"
+	echo "!!! shared portage tree if you have multiple Gentoo guests!"
+fi
+
+if test -d $_DISTDIR; then
+	echo "${_DISTDIR} /usr/portage/distfiles none bind,rw 0 0" >> "$1"/fstab
+else
+	echo "!!! Cannot find distfiles directory! You should definitely use a"
+	echo "!!! shared distfiles directory if you have multiple Gentoo guests!"
+fi
+
+
+# initstyle sanity
+initstyle=sysv
+test -e "$1"/apps/init/style && initstyle=$(<"$1"/apps/init/style)
+
+echo ">>> Checking init-style ... $initstyle"
+
+if test "$initstyle" != "gentoo" -a "$initstyle" != "plain"; then
+	echo "!!! The init-style you specified is not supported for Gentoo"
+	echo "!!! Please use one of: plain, gentoo"
+fi
+
+echo -n ">>> Unpacking template ... "

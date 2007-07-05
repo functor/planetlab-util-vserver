@@ -1,4 +1,4 @@
-// $Id: chcontext.c,v 1.24 2005/03/22 15:05:24 ensc Exp $
+// $Id: chcontext.c 2403 2006-11-24 23:06:08Z dhozac $
 
 // Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on chcontext.cc by Jacques Gelinas
@@ -95,6 +95,10 @@ static void
 showHelp(int fd, char const *cmd, int res)
 {
   VSERVER_DECLARE_CMD(cmd);
+
+#if !defined(VC_ENABLE_API_COMPAT) && !defined(VC_ENABLE_API_LEGACY)
+  WRITE_MSG(1, "ERROR: tools were built without legacy API support; chcontext will not work!\n\n");
+#endif
   
   WRITE_MSG(fd, "Usage: ");
   WRITE_STR(fd, cmd);
@@ -177,6 +181,8 @@ showVersion()
 	    VERSION_COPYRIGHT_DISCLAIMER);
   exit(0);
 }
+
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
 
 static inline void
 setCap(char const *str, uint32_t *add_caps, uint32_t *remove_caps)
@@ -266,6 +272,9 @@ tellContext(xid_t ctx)
 
 #include "context-sync.hc"
 
+#endif
+
+
 int main (int argc, char *argv[])
 {
   struct Arguments args = {
@@ -278,10 +287,13 @@ int main (int argc, char *argv[])
     .hostname      = 0,
     .domainname    = 0
   };
+
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
   xid_t		newctx;
   int		xflags;
   int		p[2][2];
   pid_t		pid;
+#endif
   
   global_args = &args;
   signal(SIGCHLD, SIG_DFL);
@@ -298,6 +310,7 @@ int main (int argc, char *argv[])
       case CMD_DOMAINNAME	:  args.domainname    = optarg; break;
       case CMD_HOSTNAME		:  args.hostname      = optarg; break;
 	
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
       case CMD_CAP		:
 	setCap(optarg, &args.add_caps, &args.remove_caps);
 	break;
@@ -316,17 +329,23 @@ int main (int argc, char *argv[])
 	}
 	args.ctxs[args.nbctx++] = Evc_xidopt2xid(optarg, true);
 	break;
-
+#else
+      case CMD_CAP		:
+      case CMD_SECURE		:
+      case CMD_FLAG		:
+      case CMD_CTX		:  break;
+#endif	
 	  
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return 255;
 	break;
     }
   }
 
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
   if (optind>=argc) {
     WRITE_MSG(2, "No command given; use '--help' for more information.\n");
     exit(255);
@@ -364,7 +383,13 @@ int main (int argc, char *argv[])
 
   waitOnSync(pid, p, args.ctxs[0]!=VC_DYNAMIC_XID);
   return EXIT_SUCCESS;
+#else
+  WRITE_MSG(2, "chcontext: tools were built without legacy API support; can not continue\n");
+  return EXIT_FAILURE;
+#endif
 }
+
+#if defined(VC_ENABLE_API_COMPAT) || defined(VC_ENABLE_API_LEGACY)
 
 #ifdef ENSC_TESTSUITE
 #define FLAG_TEST(STR,EXP) \
@@ -393,4 +418,8 @@ test()
   CAP_TEST("!CHOWN",     0, 1);
   CAP_TEST("!CAP_CHOWN", 0, 1);
 }
+#endif
+
+#else
+void test() {}
 #endif

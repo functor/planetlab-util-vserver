@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.4 2005/02/25 23:31:19 ensc Exp $		--*- makefile -*--
+## $Id: Makefile-files 2323 2006-09-19 15:20:56Z dhozac $		--*- makefile -*--
 
 ## Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -25,8 +25,10 @@ noinst_HEADERS +=		ensc_wrappers/wrappers-clone.hc \
 				ensc_wrappers/wrappers-pivot.hc \
 				ensc_wrappers/wrappers-resource.hc \
 				ensc_wrappers/wrappers-socket.hc \
+				ensc_wrappers/wrappers-stat.hc \
 				ensc_wrappers/wrappers-stdlib.hc \
 				ensc_wrappers/wrappers-string.hc \
+				ensc_wrappers/wrappers-termios.hc \
 				ensc_wrappers/wrappers-unistd.hc \
 				ensc_wrappers/wrappers-vserver.hc \
 				ensc_wrappers/wrappers-wait.hc \

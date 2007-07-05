@@ -1,4 +1,4 @@
-dnl $Id: ensc_syscall.m4,v 1.6 2005/05/19 18:04:12 ensc Exp $
+dnl $Id: ensc_syscall.m4 2194 2005-10-28 17:51:48Z ensc $
 
 dnl Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -39,7 +39,6 @@ AC_DEFUN([ENSC_SYSCALL_ALTERNATIVE],
 
 AC_DEFUN([ENSC_SYSCALL],
 [
-	AC_REQUIRE([ENSC_KERNEL_HEADERS])
 	AC_REQUIRE([ENSC_SYSCALL_ALTERNATIVE])
 
         AC_MSG_CHECKING([for syscall(2) invocation method])
@@ -104,7 +103,7 @@ int main() {
         fi
         
         AH_BOTTOM([
-#if defined(__pic__) && defined(__i386) && !defined(ENSC_SYSCALL_TRADITIONAL)
+#if defined(__pic__) && defined(__i386) && !defined(ENSC_SYSCALL_TRADITIONAL) && !defined(ENSC_USE_ALTERNATIVE_SYSCALL_MACROS)
 #  define ENSC_SYSCALL_TRADITIONAL	1
 #endif])
 ])

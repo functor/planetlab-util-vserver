@@ -1,4 +1,4 @@
-// $Id: ncaps_list-net.c,v 1.2 2005/04/24 20:24:36 ensc Exp $    --*- c -*--
+// $Id: ncaps_list-net.c 2038 2005-04-24 20:24:36Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <>
 //  

@@ -47,11 +47,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "planetlab.h"
 #include "vserver-internal.h"
 
-/* I don't like needing to define __KERNEL__ -- mef */
-#define __KERNEL__
-#include "kernel/limit.h"
-#undef __KERNEL__
-
 #define NONE  ({ Py_INCREF(Py_None); Py_None; })
 
 /*
@@ -153,11 +148,11 @@ vserver_set_rlimit(PyObject *self, PyObject *args) {
 
   lresource = resource;
   switch (resource) {
-  case VLIMIT_NSOCK:
-  case VLIMIT_ANON:
-  case VLIMIT_SHMEM:
+  case VC_VLIMIT_NSOCK:
+  case VC_VLIMIT_ANON:
+  case VC_VLIMIT_SHMEM:
     goto do_vc_set_rlimit;
-  case VLIMIT_OPENFD:
+  case VC_VLIMIT_OPENFD:
     lresource = RLIMIT_NOFILE;
     break;
   default:
@@ -206,16 +201,14 @@ vserver_get_dlimit(PyObject *self, PyObject *args)
   PyObject *res;
   char* path;
   unsigned xid;
-  struct vcmd_ctx_dlimit_v0 data;
+  struct vc_ctx_dlimit data;
   int r;
 
   if (!PyArg_ParseTuple(args, "si", &path,&xid))
     return NULL;
 
   memset(&data, 0, sizeof(data));
-  data.name = path;
-  data.flags = 0;
-  r = vserver(VCMD_get_dlimit, xid, &data);
+  r = vc_get_dlimit(path, xid, 0, &data);
   if (r>=0) {
     res = Py_BuildValue("(i,i,i,i,i)",
 			data.space_used,
@@ -236,8 +229,7 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 {
   char* path;
   unsigned xid;
-  struct vcmd_ctx_dlimit_base_v0 init;
-  struct vcmd_ctx_dlimit_v0 data;
+  struct vc_ctx_dlimit data;
 
   memset(&data,0,sizeof(data));
   if (!PyArg_ParseTuple(args, "siiiiii", &path,
@@ -249,15 +241,8 @@ vserver_set_dlimit(PyObject *self, PyObject *args)
 			&data.reserved))
     return NULL;
 
-  data.name = path;
-  data.flags = 0;
-
-  memset(&init, 0, sizeof(init));
-  init.name = path;
-  init.flags = 0;
-
-  if ((vserver(VCMD_add_dlimit, xid, &init) && errno != EEXIST) ||
-      vserver(VCMD_set_dlimit, xid, &data))
+  if ((vc_add_dlimit(path, xid, 0) && errno != EEXIST) ||
+      vc_set_dlimit(path, xid, 0, &data))
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return NONE;	
@@ -268,16 +253,11 @@ vserver_unset_dlimit(PyObject *self, PyObject *args)
 {
   char  *path;
   unsigned  xid;
-  struct vcmd_ctx_dlimit_base_v0  init;
 
   if (!PyArg_ParseTuple(args, "si", &path, &xid))
     return NULL;
 
-  memset(&init, 0, sizeof(init));
-  init.name = path;
-  init.flags = 0;
-
-  if (vserver(VCMD_rem_dlimit, xid, &init) && errno != ESRCH)
+  if (vc_rem_dlimit(path, xid, 0) && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return NONE;	
@@ -336,14 +316,25 @@ initvserverimpl(void)
   PyModule_AddStringConstant(mod, "VSERVER_BASEDIR", DEFAULT_VSERVERDIR);
 
   /* export limit-related constants */
-  PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)CDLIM_KEEP);
-  PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)CDLIM_INFINITY);
+  PyModule_AddIntConstant(mod, "DLIMIT_KEEP", (int)VC_CDLIM_KEEP);
+  PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)VC_CDLIM_INFINITY);
   PyModule_AddIntConstant(mod, "VC_LIM_KEEP", (int)VC_LIM_KEEP);
 
-  PyModule_AddIntConstant(mod, "VLIMIT_NSOCK", (int)VLIMIT_NSOCK);
-  PyModule_AddIntConstant(mod, "VLIMIT_OPENFD", (int)VLIMIT_OPENFD);
-  PyModule_AddIntConstant(mod, "VLIMIT_ANON", (int)VLIMIT_ANON);
-  PyModule_AddIntConstant(mod, "VLIMIT_SHMEM", (int)VLIMIT_SHMEM);
+  PyModule_AddIntConstant(mod, "RLIMIT_CPU", (int)RLIMIT_CPU);
+  PyModule_AddIntConstant(mod, "RLIMIT_RSS", (int)RLIMIT_RSS);
+  PyModule_AddIntConstant(mod, "RLIMIT_NPROC", (int)RLIMIT_NPROC);
+  PyModule_AddIntConstant(mod, "RLIMIT_NOFILE", (int)RLIMIT_NOFILE);
+  PyModule_AddIntConstant(mod, "RLIMIT_MEMLOCK", (int)RLIMIT_MEMLOCK);
+  PyModule_AddIntConstant(mod, "RLIMIT_AS", (int)RLIMIT_AS);
+  PyModule_AddIntConstant(mod, "RLIMIT_LOCKS", (int)RLIMIT_LOCKS);
+
+  PyModule_AddIntConstant(mod, "RLIMIT_SIGPENDING", (int)RLIMIT_SIGPENDING);
+  PyModule_AddIntConstant(mod, "RLIMIT_MSGQUEUE", (int)RLIMIT_MSGQUEUE);
+
+  PyModule_AddIntConstant(mod, "VLIMIT_NSOCK", (int)VC_VLIMIT_NSOCK);
+  PyModule_AddIntConstant(mod, "VLIMIT_OPENFD", (int)VC_VLIMIT_OPENFD);
+  PyModule_AddIntConstant(mod, "VLIMIT_ANON", (int)VC_VLIMIT_ANON);
+  PyModule_AddIntConstant(mod, "VLIMIT_SHMEM", (int)VC_VLIMIT_SHMEM);
 
   /* scheduler flags */
   PyModule_AddIntConstant(mod,

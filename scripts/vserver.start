@@ -1,4 +1,4 @@
-# $Id: vserver.start,v 1.45 2005/07/15 19:01:06 ensc Exp $  --*- sh -*--
+# $Id: vserver.start 2466 2007-01-21 08:02:44Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -71,20 +71,39 @@ is_mounted=
 is_vshelper_init=
 have_interfaces=
 startsync_pipe=
+have_initcmd=
 
 while test "$#" -gt 0; do
     case "$1" in
 	(--rescue)	INITSTYLE=rescue;;
-	(--rescue-cmd)	INITCMD_RESCUE=( $2 ); shift;;
-	(*)		panic $"vserver ... start: unknown option '$1'";;
+	(--rescue-cmd)
+	    warning $"\
+The '--rescue-cmd' option is deprecated; just add the the initcmd
+inclusive its arguments to the cmdline."
+	    INITCMD_RESCUE=( $2 );
+	    have_initcmd=1
+	    shift;;
+	(--rescue-init)	_IS_FAKEINIT=1;;
+	(--)		shift; break;;
+	(-*)		panic $"vserver ... start: unknown option '$1'";;
+	(*)		break;
     esac
     shift
 done
+
+if test x"$INITSTYLE" = xrescue -a -z "$have_initcmd" -a "$#" -gt 0; then
+    INITCMD_RESCUE=( "$@" )
+fi
+
 
 set -e
 trap "cleanup" EXIT
 
 sanityCheck      "$VSERVER_DIR"
+
+pushd "$VSERVER_DIR" >/dev/null
+execScriptlets   "$VSERVER_DIR" "$VSERVER_NAME" initialize
+popd >/dev/null
 
 mountRootFS      "$VSERVER_DIR"
 generateOptions  "$VSERVER_DIR"
@@ -93,10 +112,13 @@ pushd "$VSERVER_DIR" >/dev/null
 execScriptlets   "$VSERVER_DIR" "$VSERVER_NAME" prepre-start
 popd >/dev/null
 
+setDiskLimits    "$VSERVER_DIR"
+
 enableInterfaces "$VSERVER_DIR" && have_interfaces=1
 
 mountVserver "$VSERVER_DIR"     && is_mounted=1
 prepareInit  "$VSERVER_DIR"
+addtoCPUSET  "$VSERVER_DIR"
 
 pushd "$VSERVER_DIR"/vdir/ >/dev/null
 execScriptlets   "$VSERVER_DIR" "$VSERVER_NAME" pre-start
@@ -113,19 +135,20 @@ if $_VSERVER_INFO - FEATURE migrate; then
     $_VCONTEXT   --create "${OPTS_VCONTEXT_CREATE[@]}" -- \
     ${USE_VNAMESPACE:+$_VNAMESPACE --set -- } \
     $_VLIMIT     --dir "$VSERVER_DIR"/rlimits --missingok -- \
-    $_VSCHED     --xid self "${OPTS_VSCHED[@]}" -- \
-    $_VUNAME     --xid self --dir "$VSERVER_DIR"/uts     --missingok -- \
+    $_VSCHED     --xid self --force "${OPTS_VSCHED[@]}" -- \
+    $_VSYSCTL    --xid self --dir "$VSERVER_DIR"/sysctl --missingok -- \
+    $_VUNAME     --xid self --dir "$VSERVER_DIR"/uts    --missingok -- \
     "${VSERVER_EXTRA_CMDS[@]}" \
     $_VUNAME     --xid self --set -t context="$VSERVER_DIR" -- \
     $_VATTRIBUTE --set "${OPTS_VATTRIBUTE[@]}" -- \
     $_SAVE_CTXINFO "$VSERVER_DIR" \
-    $_ENV -i -- \
+    $_ENV -i "${OPTS_ENV[@]}" \
     $_VCONTEXT   --migrate-self --endsetup --chroot $SILENT_OPT \
     "${OPTS_VCONTEXT_MIGRATE[@]}" "${OPTS_VCONTEXT_ENTER[@]}" -- \
     "${INITCMD_START[@]}"
 else
     if test -n "$_IS_FAKEINIT"; then
-	startsync_pipe=$($_MKTEMP /tmp/vserver-start.XXXXXX)
+	startsync_pipe=$($_MKTEMP vserver-start.XXXXXX)
 	$_RM -f "$startsync_pipe"
 	$_MKFIFO -m600 "$startsync_pipe"	## safe, since mkfifo does not follow symlinks
     fi
@@ -135,7 +158,7 @@ else
     $_EXEC_ULIMIT      "$VSERVER_DIR/ulimits" \
     $_CHCONTEXT_COMPAT "${CHCONTEXT_OPTS[@]}" "${CHCONTEXT_INIT_OPTS[@]}" \
     $_SAVE_CTXINFO     "$VSERVER_DIR" \
-    $_ENV -i -- \
+    $_ENV -i "${OPTS_ENV[@]}" \
     $_CHAINECHO "${_IS_FAKEINIT:+$startsync_pipe}" "" \
     $_CAPCHROOT        "${CAPCHROOT_OPTS[@]}" . \
     "${INITCMD_START[@]}"

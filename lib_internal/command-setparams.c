@@ -1,4 +1,4 @@
-// $Id: command-setparams.c,v 1.1 2004/08/19 14:08:17 ensc Exp $    --*- c -*--
+// $Id: command-setparams.c 1664 2004-08-19 14:08:17Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

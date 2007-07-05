@@ -1,4 +1,4 @@
-// $Id: switchtowatchxid.c,v 1.4 2005/03/25 02:37:41 ensc Exp $    --*- c -*--
+// $Id: switchtowatchxid.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -35,7 +35,7 @@ switchToWatchXid(char const **errptr)
   if (vc_get_task_xid(0)==1) return true;
 
   if (vc_isSupported(vcFEATURE_MIGRATE)) {
-    if (vc_ctx_migrate(1)==-1) {
+    if (vc_ctx_migrate(1, 0)==-1) {
       if (errptr) *errptr = "vc_migrate_context()";
       return false;
     }

@@ -1,4 +1,4 @@
-// $Id: mask2prefix.c,v 1.1 2003/10/09 01:41:06 ensc Exp $    --*- c++ -*--
+// $Id: mask2prefix.c 63 2003-10-09 01:41:06Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

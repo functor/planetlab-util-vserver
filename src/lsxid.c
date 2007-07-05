@@ -1,4 +1,4 @@
-// $Id: lsxid.c,v 1.9 2005/03/24 12:44:17 ensc Exp $    --*- c -*--
+// $Id: lsxid.c 1980 2005-03-24 12:44:17Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

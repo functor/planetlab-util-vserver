@@ -1,4 +1,4 @@
-// $Id: listdevip.c,v 1.3 2004/02/20 16:59:40 ensc Exp $
+// $Id: listdevip.c 965 2004-02-20 16:59:40Z ensc $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on listdevip.cc by Jacques Gelinas

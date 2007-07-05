@@ -1,4 +1,89 @@
-version 0.30.208
+version 0.30.213
+================
+	- added support for the device mapping feature present in development
+	kernels.
+
+	- further improved Gentoo support, again thanks to Benedikt Böhm.
+
+	- support persistent contexts.
+
+	- add another initscript that creates directories, configures vshelper
+	as well as kills all contexts.
+
+	- new vserver-stat implementation, which uses the accounting APIs
+	available in Linux-VServer 2.2.
+
+	- added support for setting sysctl values in the guest configuration.
+
+	- added a clone build method, which simply links already unified files.
+
+	- implement dynamic contexts in userspace, generating a static one
+	during vserver ... build.
+
+	- fix the endless loop in vlogin.
+
+	- fix Ubuntu builds.
+
+	- improved support for Debian Etch, thanks to Benedikt Böhm.
+
+	- added CentOS 5.
+
+	- use the state change helper to try to cleanup after us if the guest
+	exited on its own.
+
+version 0.30.212
+================
+	- support for the Linux-VServer 2.1 API has been implemented.
+
+	- the scheduler configuration has been split up into multiple files.
+
+	- namespace cleanup is enabled by default. This can be disabled by
+	touch ${sysconfdir}/vservers/.defaults/nonamespace-cleanup
+
+	- all unset ulimits are now reset to infinity, so limits are no longer
+	inherited from the host.
+
+	- much improved Gentoo support, thanks to Benedikt Böhm.
+
+version 0.30.211
+================
+
+	- novlandev is now the default. To reenable the old behaviour of
+	creating VLAN interfaces where used, touch
+	${sysconfdir}/vservers/.defaults/interfaces/vlandev.
+
+	- vshelper now works correctly with the kernel legacy support turned
+	off.
+
+	- vlogin provides a terminal proxy which allocates a new psuedo-tty
+	on the inside when you enter a guest.
+
+	- and lots of other features/fixes, see ChangeLog.
+
+
+version 0.30.210
+================
+
+	- LEGACY BREAKAGE: by default, only recent kernel APIs will be
+	supported so you have to make sure to use at least the vs2.0.1
+	kernel patch. With older kernels, you have to call 'configure'
+	with '--enable-apis=NOLEGACY'. Some programs will not work anymore
+	with the default settings; these ones are:
+
+	     + capchroot
+	     * chcontext-context
+	     * reducecap
+
+	- dlimit support was integrated into the standard vserver
+	operations. Thanks to Daniel Hokka Zakrisson for his patch.
+
+	- recent kernel API is now used for setting up the network
+	contexts. So it should be now possible to use a kernel compiled
+	without CONFIG_VSERVER_LEGACYNET. Thanks to Daniel Hokka Zakrisson
+	for his patch.  .
+
+
+version 0.30.209
 ================
 
 	- large revamping...

@@ -1,4 +1,4 @@
-// $Id: mount.h,v 1.1 2004/08/19 15:02:57 ensc Exp $    --*- c -*--
+// $Id: mount.h 1676 2004-08-19 15:02:57Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

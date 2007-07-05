@@ -1,4 +1,4 @@
-// $Id: secure-mount.c,v 1.24 2005/03/24 12:45:06 ensc Exp $    --*- c++ -*--
+// $Id: secure-mount.c 2480 2007-01-28 11:35:19Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -52,6 +52,7 @@
 #include <sys/wait.h>
 #include <libgen.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #define ENSC_WRAPPERS_FCNTL	1
 #define ENSC_WRAPPERS_UNISTD	1
@@ -69,6 +70,7 @@ struct MountInfo {
     unsigned long	xflag;
     unsigned long	mask;
     char *		data;
+    char *		data_parsed;
 };
 
 struct Options {
@@ -120,7 +122,7 @@ static struct FstabOption {
     unsigned long const 	xflag;
     bool const			is_dflt;
 } const FSTAB_OPTIONS[] = {
-  { "defaults",   0,             (MS_RDONLY|MS_NOSUID|MS_NODEV|MS_NOEXEC|
+  { "defaults",   MS_NODEV,      (MS_RDONLY|MS_NOSUID|MS_NODEV|MS_NOEXEC|
 				  MS_SYNCHRONOUS), 0, false },
   { "rbind",      MS_BIND|MS_REC, MS_BIND|MS_REC,  0, false },
   { "bind",       MS_BIND,        MS_BIND,         0, false },
@@ -399,6 +401,27 @@ secureChdir(char const *dir, struct Options const *opt)
 }
 
 static bool
+canHandleInternal(struct MountInfo const *mnt)
+{
+  static char const *	FS[] = {
+    "tmpfs", "sysfs", "proc", "sockfs", "pipefs", "futexfs",
+    "inotifyfs", "devpts", "ext3", "ext2", "ramfs",
+    "hugetlbfs", "usbfs", "binfmt_misc",
+    0
+  };
+  char const **		i;
+  
+  if (!mnt)                                 return false;
+  else if ((mnt->flag & (MS_BIND|MS_MOVE))) return true;
+  else if (mnt->type==0)                    return false;
+
+  for (i=FS+0; *i!=0; ++i)
+    if (strcmp(mnt->type, *i)==0) return true;
+
+  return false;
+}
+
+static bool
 mountSingle(struct MountInfo const *mnt, struct Options const *opt)
 {
   assert(mnt->dst!=0);
@@ -406,13 +429,10 @@ mountSingle(struct MountInfo const *mnt, struct Options const *opt)
   if (!secureChdir(mnt->dst, opt))
     return false;
 
-  if (mnt->flag & (MS_BIND|MS_MOVE)) {
-    unsigned long	flag = mnt->flag;
-    if ((flag & MS_NODEV)==0) flag |= MS_NODEV;
-    
+  if (canHandleInternal(mnt)) {
     if (mount(mnt->src, ".",
 	      mnt->type ? mnt->type : "",
-	      flag,  mnt->data)==-1) {
+	      mnt->flag,  mnt->data_parsed)==-1) {
       perror("secure-mount: mount()");
       return false;
     }
@@ -443,6 +463,8 @@ static bool
 transformOptionList(struct MountInfo *info, size_t UNUSED *col)
 {
   char const *			ptr = info->data;
+  char *			data = malloc(strlen(info->data));
+  char *			dst = data;
 
   do {
     char const *		pos = strchr(ptr, ',');
@@ -457,6 +479,13 @@ transformOptionList(struct MountInfo *info, size_t UNUSED *col)
       info->mask  |=  opt->mask;
       info->xflag |=  opt->xflag;
     }
+    else {
+      if (dst != data)
+        *(dst++) = ',';
+      strncpy(dst, ptr, pos-ptr);
+      dst += pos - ptr;
+      *dst = '\0';
+    }
 
     if (*pos!='\0')
       ptr = pos+1;
@@ -465,6 +494,7 @@ transformOptionList(struct MountInfo *info, size_t UNUSED *col)
 
   } while (*ptr!='\0');
 
+  info->data_parsed = data;
   return true;
 }
 
@@ -500,7 +530,10 @@ static enum {prDOIT, prFAIL, prIGNORE}
 
   if      (strcmp(info->type, "swap")  ==0) return prIGNORE;
   else if (strcmp(info->type, "none")  ==0) info->type  = 0;
-  else if (strcmp(info->type, "devpts")==0) info->mask |= MS_NODEV;
+  else if (strcmp(info->type, "devpts")==0) {
+    info->mask |=  MS_NODEV;
+    info->flag &= ~MS_NODEV;
+  }
 
   if (col) *col = err_col;
   if (!transformOptionList(info,col)) return prFAIL;
@@ -624,7 +657,7 @@ int main(int argc, char *argv[])
     .src         = 0,
     .dst         = 0,
     .type        = 0,
-    .flag        = 0,
+    .flag        = MS_NODEV,
     .xflag	 = 0,
     .data        = 0,
   };
@@ -664,7 +697,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }

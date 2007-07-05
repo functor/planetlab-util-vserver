@@ -1,4 +1,4 @@
-// $Id: testlimit.c,v 1.3 2004/01/13 14:56:26 ensc Exp $
+// $Id: testlimit.c 570 2004-01-13 14:56:26Z ensc $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on tests/testlimit.cc by Jacques Gelinas

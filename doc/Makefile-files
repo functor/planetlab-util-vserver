@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.12 2005/03/19 01:59:47 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files 2338 2006-09-28 22:39:19Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -29,7 +29,8 @@ doc_configuration_SRCS =	doc/configuration.xml \
 				doc/configuration.xsd \
 				doc/configuration.dtd \
 				doc/configuration.css \
-				doc/configuration-xhtml.xsl
+				doc/configuration-xhtml.xsl \
+				doc/configuration-wiki.xsl
 
 doc_compatibility_SRCS =	doc/compatibility.xml \
 				doc/compatibility.dtd \

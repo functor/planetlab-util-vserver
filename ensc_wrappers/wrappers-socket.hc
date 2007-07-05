@@ -1,4 +1,4 @@
-// $Id: wrappers-socket.hc,v 1.2 2004/08/19 13:54:27 ensc Exp $    --*- c -*--
+// $Id: wrappers-socket.hc 1649 2004-08-19 13:54:27Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: syscall_getvxinfo-oldproc.hc,v 1.3 2004/03/05 04:40:59 ensc Exp $    --*- c -*--
+// $Id: syscall_getvxinfo-oldproc.hc 1091 2004-03-05 04:40:59Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

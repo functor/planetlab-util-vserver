@@ -1,6 +1,6 @@
-// $Id: vcontext.c,v 1.18 2005/04/28 18:08:12 ensc Exp $    --*- c -*--
+// $Id: vcontext.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
 
-// Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+// Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@
 #include <sys/un.h>
 #include <assert.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <linux/personality.h>
 
@@ -62,6 +65,7 @@
 #define CMD_NAMESPACE		0x400d
 #define CMD_PERSTYPE		0x400e
 #define CMD_PERSFLAG		0x400f
+#define CMD_VLOGIN		0x4010
 
 
 struct option const
@@ -85,6 +89,7 @@ CMDLINE_OPTIONS[] = {
   { "syncmsg",      required_argument, 	0, CMD_SYNCMSG },
   { "personality-type",  required_argument, 0, CMD_PERSTYPE },
   { "personality-flags", required_argument, 0, CMD_PERSFLAG },
+  { "vlogin",       no_argument,        0, CMD_VLOGIN },
 #if 1  
   { "fakeinit",     no_argument,       	0, CMD_INITPID },	// compatibility
 #endif  
@@ -100,17 +105,20 @@ struct Arguments {
     bool		is_initpid;
     bool		is_silentexist;
     bool		set_namespace;
+    bool		do_vlogin;
     uint_least32_t	personality_flags;
     uint_least32_t	personality_type;
     int			verbosity;
     bool		do_chroot;
-    uid_t		uid;
+    char const *	uid;
     xid_t		xid;
     char const *	sync_sock;
     char const *	sync_msg;
 };
 
 int		wrapper_exit_code = 255;
+
+void do_vlogin(int argc, char *argv[], int ind);
 
 static void
 showHelp(int fd, char const *cmd, int res)
@@ -145,6 +153,7 @@ showHelp(int fd, char const *cmd, int res)
 	    "    --syncmsg <message>\n"
 	    "                    ...  use <message> as synchronization message; by\n"
 	    "                         default, 'ok' will be used\n"
+	    "    --vlogin        ...  enable terminal proxy\n"
 	    "\n"
 	    "'vcontext --create' exits with code 254 iff the context exists already.\n"
 	    "\n"
@@ -159,7 +168,7 @@ showVersion()
   WRITE_MSG(1,
 	    "vcontext " VERSION " -- manages the creation of security contexts\n"
 	    "This program is part of " PACKAGE_STRING "\n\n"
-	    "Copyright (C) 2004 Enrico Scholz\n"
+	    "Copyright (C) 2004-2006 Enrico Scholz\n"
 	    VERSION_COPYRIGHT_DISCLAIMER);
   exit(0);
 }
@@ -233,7 +242,7 @@ doExternalSync(int fd, char const *msg)
 }
 
 static inline ALWAYSINLINE int
-doit(struct Arguments const *args, char *argv[])
+doit(struct Arguments const *args, int argc, char *argv[])
 {
   int			p[2][2];
   pid_t			pid = initSync(p, args->do_disconnect);
@@ -250,10 +259,10 @@ doit(struct Arguments const *args, char *argv[])
 	switch (errno) {
 	  case EEXIST	:
 	    if (!args->is_silentexist)
-	      perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+	      perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
 	    return 254;
 	  default	:
-	    perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+	    perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
 	    return wrapper_exit_code;
 	}
       }
@@ -265,19 +274,45 @@ doit(struct Arguments const *args, char *argv[])
     if (args->do_chroot) {
       Echroot(".");
       if (args->set_namespace) {
-	if (args->do_migrateself)  Evc_set_namespace();
-	else if (args->do_migrate) Evc_enter_namespace(xid);
+	if (args->do_migrateself)  Evc_set_namespace(xid, 0);
+	else if (args->do_migrate) Evc_enter_namespace(xid, 0);
       }
     }
 
     setFlags(args, xid);
 
     if (args->do_migrate && !args->do_migrateself)
-      Evc_ctx_migrate(xid);
+      Evc_ctx_migrate(xid, 0);
 
-    if (args->uid!=(uid_t)(-1) && getuid()!=args->uid) {
-      Esetuid(args->uid);
-      if (getuid()!=args->uid) {
+    if (args->uid != NULL) {
+      uid_t uid = 0;
+      unsigned long tmp;
+
+      if (!isNumberUnsigned(args->uid, &tmp, false)) {
+#ifdef __dietlibc__
+	struct passwd *pw;
+	pw = getpwnam(args->uid);
+	if (pw == NULL) {
+	  WRITE_MSG(2, ENSC_WRAPPERS_PREFIX "Username '");
+	  WRITE_STR(2, args->uid);
+	  WRITE_MSG(2, "' does not exist\n");
+	  return wrapper_exit_code;
+	}
+	uid = pw->pw_uid;
+	Einitgroups(args->uid, pw->pw_gid);
+	Esetgid(pw->pw_gid);
+#else
+	WRITE_MSG(2, ENSC_WRAPPERS_PREFIX "Uid '");
+	WRITE_STR(2, args->uid);
+	WRITE_MSG(2, "' is not a number\n");
+	return wrapper_exit_code;
+#endif
+      }
+      else
+	uid = (uid_t) tmp;
+
+      Esetuid((uid_t) uid);
+      if (getuid()!=uid) {
 	WRITE_MSG(2, ENSC_WRAPPERS_PREFIX "Something went wrong while changing the UID\n");
 	exit(wrapper_exit_code);
       }
@@ -287,12 +322,15 @@ doit(struct Arguments const *args, char *argv[])
 	sys_personality(args->personality_type | args->personality_flags)==-1) {
       perror(ENSC_WRAPPERS_PREFIX "personality()");
       exit(wrapper_exit_code);
-    }  
+    }
 
     doExternalSync(ext_sync_fd, args->sync_msg);
     doSyncStage1(p, args->do_disconnect);
     DPRINTF("doit: pid=%u, ppid=%u\n", getpid(), getppid());
-    execvp (argv[optind],argv+optind);
+    if (!args->do_vlogin)
+      execvp (argv[optind],argv+optind);
+    else
+      do_vlogin(argc, argv, optind);
     doSyncStage2(p, args->do_disconnect);
 
     PERROR_Q(ENSC_WRAPPERS_PREFIX "execvp", argv[optind]);
@@ -341,11 +379,12 @@ int main (int argc, char *argv[])
     .do_migrateself    = false,
     .do_disconnect     = false,
     .do_endsetup       = false,
+    .do_vlogin         = false,
     .is_initpid        = false,
     .is_silentexist    = false,
     .set_namespace     = false,
     .verbosity         = 1,
-    .uid               = -1,
+    .uid               = NULL,
     .xid               = VC_DYNAMIC_XID,
     .personality_type  = VC_BAD_PERSONALITY,
     .personality_flags = 0,
@@ -363,13 +402,14 @@ int main (int argc, char *argv[])
       case CMD_MIGRATE		:  args.do_migrate     = true;   break;
       case CMD_DISCONNECT	:  args.do_disconnect  = true;   break;
       case CMD_ENDSETUP		:  args.do_endsetup    = true;   break;
+      case CMD_VLOGIN		:  args.do_vlogin      = true;   break;
       case CMD_INITPID		:  args.is_initpid     = true;   break;
       case CMD_CHROOT		:  args.do_chroot      = true;   break;
       case CMD_NAMESPACE	:  args.set_namespace  = true;   break;
       case CMD_SILENTEXIST	:  args.is_silentexist = true;   break;
       case CMD_SYNCSOCK		:  args.sync_sock      = optarg; break;
       case CMD_SYNCMSG		:  args.sync_msg       = optarg; break;
-      case CMD_UID		:  args.uid = atol(optarg);      break;
+      case CMD_UID		:  args.uid            = optarg; break;
       case CMD_XID		:  args.xid = Evc_xidopt2xid(optarg,true); break;
       case CMD_SILENT		:  --args.verbosity; break;
       case CMD_PERSTYPE		:
@@ -386,7 +426,7 @@ int main (int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return wrapper_exit_code;
 	break;
     }
@@ -398,7 +438,7 @@ int main (int argc, char *argv[])
     args.xid = Evc_get_task_xid(0);
   
   if (!args.do_create && !args.do_migrate)
-    WRITE_MSG(2, "Neither '--create' nor '--migrate specified; try '--help' for more information\n");
+    WRITE_MSG(2, "Neither '--create' nor '--migrate' specified; try '--help' for more information\n");
   else if (args.do_create  &&  args.do_migrate)
     WRITE_MSG(2, "Can not specify '--create' and '--migrate' at the same time; try '--help' for more information\n");
   else if (!args.do_migrate && args.is_initpid)
@@ -408,7 +448,7 @@ int main (int argc, char *argv[])
   else if (optind>=argc)
     WRITE_MSG(2, "No command given; use '--help' for more information.\n");
   else
-    return doit(&args, argv);
+    return doit(&args, argc, argv);
 
   return wrapper_exit_code;
 }

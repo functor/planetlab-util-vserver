@@ -1,4 +1,4 @@
-dnl $Id: ensc_pathprog.m4,v 1.2 2005/02/02 14:09:28 ensc Exp $
+dnl $Id: ensc_pathprog.m4 2504 2007-02-24 20:03:10Z dhozac $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -57,6 +57,10 @@ AC_DEFUN([ENSC_PATHPROG],
 Can not find the '$2' tool within '${ensc_searchpath:-$PATH}'.
 $4])
 		fi
+	fi
+
+	if test -e "${$1}"; then
+		$1=`readlink -f "${$1}"`
 	fi
 
 	test "${$1}" && ENSC_PATHPROG_SED="${ENSC_PATHPROG_SED}s!@'$1'@!${$1}!g;"

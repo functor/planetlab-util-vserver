@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vcached,v 1.12 2005/09/03 21:47:11 mlhuang Exp $
+# $Id: vcached,v 1.14 2007/06/28 21:02:41 dhozac Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -90,7 +90,7 @@ for i in $(seq 0 $(($slots - 1))) ; do
 	echo "$(date) Caching v$i"
 	# build image in .vtmp
 	TMP=$(mktemp -d "$__DEFAULT_VSERVERDIR/.vtmp/v$i.XXXXXX")
-	"$__PKGLIBDIR/vbuild" "$__DEFAULT_VSERVERDIR/.vref/default" "$TMP"
+	"$_VCLONE" "$__DEFAULT_VSERVERDIR/.vref/default/" "$TMP"/
 	RETVAL=$?
 	# move it to .vcache when complete
 	if [ $RETVAL -eq 0 ] ; then

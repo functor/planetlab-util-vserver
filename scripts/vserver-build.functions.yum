@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions.yum,v 1.5 2005/04/16 21:20:45 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.functions.yum 2030 2005-04-16 21:20:45Z ensc $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  

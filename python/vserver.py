@@ -9,17 +9,26 @@ import signal
 import sys
 import time
 import traceback
-import resource
 
 import mountimpl
 import runcmd
 import utmp
-import vserverimpl, vduimpl
+import vserverimpl
 import cpulimit, bwlimit
 
 from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
 from vserverimpl import DLIMIT_INF
 from vserverimpl import VC_LIM_KEEP
+
+from vserverimpl import RLIMIT_CPU
+from vserverimpl import RLIMIT_RSS
+from vserverimpl import RLIMIT_NPROC
+from vserverimpl import RLIMIT_NOFILE
+from vserverimpl import RLIMIT_MEMLOCK
+from vserverimpl import RLIMIT_AS
+from vserverimpl import RLIMIT_LOCKS
+from vserverimpl import RLIMIT_SIGPENDING
+from vserverimpl import RLIMIT_MSGQUEUE
 from vserverimpl import VLIMIT_NSOCK
 from vserverimpl import VLIMIT_OPENFD
 from vserverimpl import VLIMIT_ANON
@@ -37,21 +46,71 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
-RLIMITS = { "NSOCK": VLIMIT_NSOCK,
-            "OPENFD": VLIMIT_OPENFD,
-            "ANON": VLIMIT_ANON,
-            "SHMEM": VLIMIT_SHMEM}
-
-# add in the platform supported rlimits
-for entry in resource.__dict__.keys():
-    if entry.find("RLIMIT_")==0:
-        k = entry[len("RLIMIT_"):]
-        if not RLIMITS.has_key(k):
-            RLIMITS[k]=resource.__dict__[entry]
-        else:
-            print "WARNING: duplicate RLIMITS key %s" % k
+RLIMITS = {"CPU": RLIMIT_CPU,
+           "RSS": RLIMIT_RSS,
+           "NPROC": RLIMIT_NPROC,
+           "NOFILE": RLIMIT_NOFILE,
+           "MEMLOCK": RLIMIT_MEMLOCK,
+           "AS": RLIMIT_AS,
+           "LOCKS": RLIMIT_LOCKS,
+           "SIGPENDING": RLIMIT_SIGPENDING,
+           "MSGQUEUE": RLIMIT_MSGQUEUE,
+           "NSOCK": VLIMIT_NSOCK,
+           "OPENFD": VLIMIT_OPENFD,
+           "ANON": VLIMIT_ANON,
+           "SHMEM": VLIMIT_SHMEM}
 
 class NoSuchVServer(Exception): pass
+
+
+class VServerConfig:
+    mapping = {
+        'S_CONTEXT':		'context',
+        'VS_WHITELISTED':	'whitelisted',
+        'CPULIMIT':		'sched/fill-rate2',
+	'CPUGUARANTEED':	'sched/fill-rate',
+        'VS_DISK_MAX':		'dlimits/0/space_total',
+      }
+
+    def __init__(self, name, directory):
+        global RLIMITS
+        for i in RLIMITS.keys():
+            for j in ('HARD', 'SOFT', 'MINIMUM'):
+                self.mapping['VS_%s_%s' % (i, j)] = 'rlimits/%s.%s' % (i.lower(), j.replace('MINIMUM', 'min').lower())
+        self.name = name
+        self.dir = directory
+
+    def get(self, option, default = None):
+        try:
+            filename = self.mapping[option]
+            f = open(os.path.join(self.dir, filename), "r")
+            buf = f.readline().rstrip()
+            f.close()
+            return buf
+        except KeyError, e:
+            # No mapping exists for this option
+            raise e
+        except IOError, e:
+            if default is not None:
+                return default
+            else:
+                raise KeyError, "Key %s is not set for %s" % (option, self.name)
+
+    def update(self, vars):
+        for (option, value) in vars.iteritems():
+            try:
+                old_umask = os.umask(0022)
+                filename = os.path.join(self.dir, self.mapping[option])
+                try:
+                    os.makedirs(os.path.dirname(filename), 0755)
+                except:
+                    pass
+                f = open(filename, 'w')
+                f.write("%s\n" % value)
+                f.close()
+                os.umask(old_umask)
+            except KeyError, e:
+                raise KeyError, "Don't know how to handle %s, sorry" % option
 
 
 class VServer:
@@ -63,21 +122,14 @@ class VServer:
 
         self.name = name
         self.rlimits_changed = False
-        self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
                 os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
             raise NoSuchVServer, "no such vserver: " + name
-        self.config = {}
-        for config_file in ["/etc/vservers.conf", self.config_file]:
-            try:
-                self.config.update(self.__read_config_file(config_file))
-            except IOError, ex:
-                if ex.errno != errno.ENOENT:
-                    raise
+        self.config = VServerConfig(name, "/etc/vservers/%s" % name)
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         if vm_id == None:
-            vm_id = int(self.config['S_CONTEXT'])
+            vm_id = int(self.config.get('S_CONTEXT'))
         self.ctx = vm_id
         self.vm_running = vm_running
 
@@ -137,51 +189,6 @@ class VServer:
     def set_WHITELISTED_config(self,whitelisted):
         resources = {'VS_WHITELISTED': whitelisted}
         self.update_resources(resources)
-
-    config_var_re = re.compile(r"^ *([A-Z_]+)=(.*)\n?$", re.MULTILINE)
-
-    def __read_config_file(self, filename):
-
-        f = open(filename, "r")
-        data = f.read()
-        f.close()
-        config = {}
-        for m in self.config_var_re.finditer(data):
-            (key, val) = m.groups()
-            config[key] = val.strip('"')
-        return config
-
-    def __update_config_file(self, filename, newvars):
-
-        # read old file, apply changes
-        f = open(filename, "r")
-        data = f.read()
-        f.close()
-        todo = newvars.copy()
-        changed = False
-        offset = 0
-        for m in self.config_var_re.finditer(data):
-            (key, val) = m.groups()
-            newval = todo.pop(key, None)
-            if newval != None:
-                data = data[:offset+m.start(2)] + str(newval) + data[offset+m.end(2):]
-                offset += len(str(newval)) - (m.end(2)-m.start(2))
-                changed = True
-        for (newkey, newval) in todo.items():
-            data += "%s=%s\n" % (newkey, newval)
-            changed = True
-
-        if not changed:
-            return
-
-        # write new file
-        newfile = filename + ".new"
-        f = open(newfile, "w")
-        f.write(data)
-        f.close()
-
-        # replace old file with new
-        os.rename(newfile, filename)
 
     def __do_chroot(self):
 
@@ -301,8 +308,7 @@ class VServer:
     def __do_chcontext(self, state_file):
 
         if state_file:
-            print >>state_file, "S_CONTEXT=%u" % self.ctx
-            print >>state_file, "S_PROFILE="
+            print >>state_file, "%u" % self.ctx
             state_file.close()
 
         if vserverimpl.chcontext(self.ctx):
@@ -326,9 +332,8 @@ class VServer:
                          ([], filter_fn))[0]
         garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
                                               os.listdir(LOCKDIR)))
-        if False:
-            for f in garbage:
-                os.unlink(f)
+        for f in garbage:
+            os.unlink(f)
 
         # set the initial runlevel
         f = open(RUNDIR + "/utmp", "w")
@@ -351,10 +356,8 @@ class VServer:
             raise ex
 
     def enter(self):
-
-        state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
         self.__do_chroot()
-        self.__do_chcontext(state_file)
+        self.__do_chcontext(None)
 
     def start(self, wait, runlevel = 3):
         self.vm_running = True
@@ -368,7 +371,7 @@ class VServer:
                 os.setsid()
 
                 # open state file to record vserver info
-                state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
+                state_file = open("/var/run/vservers/%s" % self.name, "w")
 
                 # use /dev/null for stdin, /var/log/boot.log for stdout/err
                 os.close(0)
@@ -418,14 +421,19 @@ class VServer:
 
         self.config.update(resources)
 
-        # write new values to configuration file
-        self.__update_config_file(self.config_file, resources)
-
     def init_disk_info(self):
+        cmd = "/usr/sbin/vdu --script --space --inodes --blocksize 1024 --xid %d %s" % (self.ctx, self.dir)
+        (child_stdin, child_stdout, child_stderr) = os.popen3(cmd)
+        child_stdin.close()
+        line = child_stdout.readline()
+        if not line:
+            sys.stderr.write(child_stderr.readline())
+        (space, inodes) = line.split()
+        self.disk_inodes = int(inodes)
+        self.disk_blocks = int(space)
+        #(self.disk_inodes, self.disk_blocks) = vduimpl.vdu(self.dir)
 
-        (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
-
-        return size
+        return self.disk_blocks * 1024
 
     def stop(self, signal = signal.SIGKILL):
         vserverimpl.killall(self.ctx, signal)

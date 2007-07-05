@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.5 2005/07/15 16:25:39 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files 2457 2007-01-18 07:56:35Z ensc $  -*- makefile -*-
 
 ## Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -30,6 +30,9 @@ EXTRA_DIST +=				$(contrib_subst_SRCS) \
 					contrib/yum-2.2.1-chroot.patch \
 					contrib/yum-2.3.2-chroot.patch \
 					contrib/yum-2.3.3-chroot.patch \
-					contrib/yum-2.3.4-chroot.patch
+					contrib/yum-2.3.4-chroot.patch \
+					contrib/yum-2.6.0-chroot.patch \
+					contrib/yum-2.9.6-chroot.patch \
+					contrib/yum-3.0.3-chroot.patch
 
 contrib/manifest.dat:			contrib/.manifest.dat.pathsubst.stamp

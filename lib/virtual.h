@@ -1,4 +1,4 @@
-// $Id: virtual.h,v 1.24 2005/07/03 17:51:00 ensc Exp $    --*- c -*--
+// $Id: virtual.h 2427 2006-12-12 01:39:54Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,20 +19,19 @@
 #ifndef H_UTIL_VSERVER_LIB_VIRTUAL_H
 #define H_UTIL_VSERVER_LIB_VIRTUAL_H
 
-#include <kernel/context.h>
 #include <kernel/context_cmd.h>
 #include <kernel/cvirt_cmd.h>
 #include <kernel/cvirt_cmd.h>
-#include <kernel/dlimit.h>
 #include <kernel/dlimit_cmd.h>
 #include <kernel/inode_cmd.h>
 #include <kernel/limit_cmd.h>
-#include <kernel/namespace_cmd.h>
+#include <kernel/space_cmd.h>
+#include <kernel/network.h>
 #include <kernel/network_cmd.h>
 #include <kernel/sched_cmd.h>
 #include <kernel/signal_cmd.h>
+#include <kernel/device_cmd.h>
 
-#include <kernel/network.h>
 #include <kernel/legacy.h>
 
 #endif	//  H_UTIL_VSERVER_LIB_VIRTUAL_H

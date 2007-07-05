@@ -1,4 +1,4 @@
-// $Id: rpm-fake-resolver.c,v 1.15 2005/07/03 13:16:34 ensc Exp $    --*- c -*--
+// $Id: rpm-fake-resolver.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -116,7 +116,7 @@ parseArgs(struct ArgInfo *args, int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	exit(1);
 	break;
     }
@@ -250,7 +250,7 @@ daemonize(struct ArgInfo const UNUSED * args, int pid_fd)
 
 static void
 activateContext(xid_t xid, bool in_ctx,
-		uint32_t xid_caps, int xid_flags)
+		uint32_t UNUSED xid_caps, int UNUSED xid_flags)
 {
   if (in_ctx) {
     struct vc_ctx_flags		flags = {
@@ -261,7 +261,7 @@ activateContext(xid_t xid, bool in_ctx,
     Evc_set_cflags(xid, &flags);
   }
   else if (vc_isSupported(vcFEATURE_MIGRATE))
-      Evc_ctx_migrate(xid);
+      Evc_ctx_migrate(xid, 0);
   else {
 #ifdef VC_ENABLE_API_COMPAT
     Evc_new_s_context(xid, xid_caps, xid_flags);

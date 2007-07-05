@@ -1,4 +1,4 @@
-## $Id: Makefile-files,v 1.70 2005/07/02 09:17:55 ensc Exp $  -*- makefile -*-
+## $Id: Makefile-files 2491 2007-02-05 20:59:03Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -18,22 +18,19 @@
 ##  
 
 src_sbin_CXX_PROGS =	
-src_pkglib_CXX_PROGS =	src/vbuild
 
-src_pkglib_C99_PROGS =	src/vunify src/vcopy
+src_pkglib_C99_PROGS =	src/vunify src/vcopy src/vclone
 
 
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += \
 			src/parserpmdump \
 			src/showperm \
-			src/vbuild \
 			src/vcheck \
 			src/vreboot \
 			src/save_ctxinfo \
 			src/mask2prefix \
 			src/ifspec \
 			src/rebootmgr \
-			src/vdu \
 			src/vfiles
 
 DIETPROGS +=		src/chcontext-compat \
@@ -47,7 +44,7 @@ DIETPROGS +=		src/chcontext-compat \
 	     		src/secure-mount \
 	     		src/save_ctxinfo \
 	     		src/mask2prefix \
-			src/chbind \
+			src/chbind-compat \
 			src/exec-cd \
 	     		src/fakerunlevel \
 			src/keep-ctx-alive \
@@ -75,7 +72,14 @@ DIETPROGS +=		src/chcontext-compat \
 			src/vserver-info \
 			src/vdlimit \
 			src/vsh \
-			src/vwait
+			src/vdu \
+			src/vwait \
+			src/ncontext \
+			src/nattribute \
+			src/naddress \
+			src/vdevmap \
+			src/vsysctl \
+			src/vclone
 
 if ENSC_CAN_BEECRYPT_WITH_DIETLIBC
 DIETPROGS +=		src/vhashify
@@ -111,6 +115,8 @@ pkglib_PROGRAMS +=	src/capchroot \
 			src/rpm-fake-resolver \
 			src/vshelper-sync \
 			src/sigexec \
+			src/chbind-compat \
+			src/vsysctl \
 			$(src_pkglib_C99_X_PROGS) \
 			$(src_pkglib_CXX_X_PROGS)
 
@@ -129,8 +135,7 @@ legacy_PROGRAMS +=	src/ifspec \
 
 pkglib_LTLIBRARIES +=	src/rpm-fake.la
 
-sbin_PROGRAMS +=	src/chbind \
-			src/exec-cd \
+sbin_PROGRAMS +=	src/exec-cd \
 			src/lsxid \
 			src/chxid \
 			src/vps \
@@ -150,6 +155,10 @@ sbin_PROGRAMS +=	src/chbind \
 			src/vuname \
 			src/vsh \
 			src/vwait \
+			src/ncontext \
+			src/nattribute \
+			src/naddress \
+			src/vdevmap \
 			$(src_sbin_CXX_X_PROGS)
 
 if ENSC_HAVE_C99_COMPILER
@@ -161,20 +170,20 @@ src_capchroot_SOURCES =		src/capchroot.c
 src_capchroot_LDADD =		$(VSERVER_LDADDS)
 src_capchroot_LDFLAGS =		$(VSERVER_LDFLGS)
 
-src_chbind_SOURCES =		src/chbind.c
-src_chbind_LDADD =		$(VSERVER_LDADDS)
-src_chbind_LDFLAGS =		$(VSERVER_LDFLGS)
+src_chbind_compat_SOURCES =	src/chbind.c
+src_chbind_compat_LDADD =	$(VSERVER_LDADDS)
+src_chbind_compat_LDFLAGS =	$(VSERVER_LDFLGS)
 
 src_chcontext_compat_SOURCES =	src/chcontext.c
 src_chcontext_compat_LDADD =	$(VSERVER_LDADDS) $(LIBINTERNAL)
 src_chcontext_compat_LDFLAGS =	$(VSERVER_LDFLGS)
 
-src_vcontext_SOURCES		=  src/vcontext.c
+src_vcontext_SOURCES		=  src/vcontext.c src/vlogin.c
 src_vcontext_LDADD		=  $(VSERVER_LDADDS) $(LIBINTERNAL)
 src_vcontext_LDFLAGS		=  $(VSERVER_LDFLGS)
 
 src_vsched_SOURCES		=  src/vsched.c
-src_vsched_LDADD		=  $(VSERVER_LDADDS)
+src_vsched_LDADD		=  $(VSERVER_LDADDS) $(LIBINTERNAL)
 src_vsched_LDFLAGS		=  $(VSERVER_LDFLGS)
 
 src_filetime_SOURCES		=  src/filetime.c
@@ -183,6 +192,7 @@ src_filetime_LDFLAGS		=  $(VSERVER_LDFLGS)
 
 src_chain_echo_SOURCES		=  src/chain-echo.c
 src_chroot_sh_SOURCES		=  src/chroot-sh.c
+src_chroot_sh_LDADD		=  $(LIBINTERNAL)
 src_exec_cd_SOURCES		=  src/exec-cd.c
 src_fakerunlevel_SOURCES	=  src/fakerunlevel.c
 src_ifspec_SOURCES		=  src/ifspec.c
@@ -200,7 +210,7 @@ src_reducecap_LDFLAGS		=  $(VSERVER_LDFLGS)
 
 src_vkill_SOURCES		=  src/vkill.c
 src_vkill_LDADD			=  $(VSERVER_LDADDS)
-src_vkill_LDFLAGS		=  $(VSERVER_LDFLGS)
+src_vkill_LDFLAGS		=  $(VSERVER_LDFLGS) $(LIBINTERNAL)
 src_vkill_CPPFLAGS		=  $(AM_CPPFLAGS) -DLEGACYDIR=\"$(legacydir)\"
 
 src_vlimit_SOURCES		=  src/vlimit.c
@@ -211,7 +221,10 @@ src_save_ctxinfo_SOURCES	=  src/save_ctxinfo.c
 src_save_ctxinfo_LDADD		=  $(VSERVER_LDADDS)
 src_save_ctxinfo_LDFLAGS	=  $(VSERVER_LDFLGS)
 
-src_vdu_SOURCES =		src/vdu.c
+src_vdu_SOURCES 		=  src/vdu.c
+src_vdu_LDADD			=  $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vdu_LDFLAGS			=  $(VSERVER_LDFLGS)
+
 src_vreboot_SOURCES =		src/vreboot.c
 
 src_secure_mount_SOURCES =	src/secure-mount.c
@@ -243,8 +256,6 @@ src_vserver_info_LDFLAGS	=  $(VSERVER_LDFLGS)
 src_vserver_stat_SOURCES	=  src/vserver-stat.c
 src_vserver_stat_LDADD		=  $(LIBINTERNAL) $(VSERVER_LDADDS) $(LIBENSCVECTOR)
 src_vserver_stat_LDFLAGS	=  $(VSERVER_LDFLGS)
-
-src_vbuild_SOURCES              =  src/vbuild.cc src/vutil.cc src/vserver.cc
 
 src_lsxid_SOURCES		=  src/fstool.c src/lsxid.c
 src_lsxid_LDADD			=  $(LIBINTERNAL) $(VSERVER_LDADDS) $(LIBENSCVECTOR)
@@ -304,6 +315,30 @@ src_vsh_LDFLAGS			= $(VSERVER_LDFLGS)
 src_vwait_SOURCES		= src/vwait.c
 src_vwait_LDADD			= $(VSERVER_LDADDS)
 src_vwait_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_ncontext_SOURCES		= src/ncontext.c
+src_ncontext_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_ncontext_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_nattribute_SOURCES		= src/nattribute.c
+src_nattribute_LDADD		= $(VSERVER_LDADDS)
+src_nattribute_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_naddress_SOURCES		= src/naddress.c
+src_naddress_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_naddress_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vdevmap_SOURCES		= src/vdevmap.c
+src_vdevmap_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vdevmap_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vsysctl_SOURCES		= src/vsysctl.c
+src_vsysctl_LDADD		= $(VSERVER_LDADDS)
+src_vsysctl_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vclone_SOURCES		= src/vclone.c
+src_vclone_LDADD		= $(LIBINTERNAL) $(VSERVER_LDADDS)
+src_vclone_LDFLAGS		= $(VSERVER_LDLFGS)
 
 EXTRA_PROGRAMS +=		$(src_sbin_CXX_PROGS) $(src_pkglib_CXX_PROGS)
 

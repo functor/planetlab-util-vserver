@@ -1,4 +1,4 @@
-// $Id: val2text.hc,v 1.3 2004/05/08 01:27:48 ensc Exp $    --*- c -*--
+// $Id: val2text.hc 1544 2004-05-08 01:27:48Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

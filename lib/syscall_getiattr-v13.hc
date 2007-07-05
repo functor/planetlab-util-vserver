@@ -1,4 +1,4 @@
-// $Id: syscall_getiattr-v13.hc,v 1.7 2004/03/12 02:56:46 ensc Exp $    --*- c -*--
+// $Id: syscall_getiattr-v13.hc 1216 2004-03-12 02:57:01Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: syscall_setvhiname-v13.hc,v 1.4 2005/07/03 17:49:57 ensc Exp $    --*- c -*--
+// $Id: syscall_setvhiname-v13.hc 2133 2005-07-03 17:49:57Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

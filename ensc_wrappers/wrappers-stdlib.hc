@@ -1,4 +1,4 @@
-// $Id: wrappers-stdlib.hc,v 1.2 2004/08/19 13:54:45 ensc Exp $    --*- c -*--
+// $Id: wrappers-stdlib.hc 1650 2004-08-19 13:54:45Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -3,6 +3,7 @@
 
 #include <linux/types.h>
 
+
 #define VC_CATEGORY(c)		(((c) >> 24) & 0x3F)
 #define VC_COMMAND(c)		(((c) >> 16) & 0xFF)
 #define VC_VERSION(c)		((c) & 0xFFF)
@@ -18,7 +19,7 @@
 	 |STATS  |DESTROY|ALTER  |CHANGE |LIMIT  |TEST   | |       |       |
 	 |INFO   |SETUP  |       |MOVE   |       |       | |       |       |
   -------+-------+-------+-------+-------+-------+-------+ +-------+-------+
-  SYSTEM |VERSION|VSETUP |VHOST  |       |       |       | |DEVICES|       |
+  SYSTEM |VERSION|VSETUP |VHOST  |       |       |       | |DEVICE |       |
   HOST   |     00|     01|     02|     03|     04|     05| |     06|     07|
   -------+-------+-------+-------+-------+-------+-------+ +-------+-------+
   CPU    |       |VPROC  |PROCALT|PROCMIG|PROCTRL|       | |SCHED. |       |
@@ -33,7 +34,7 @@
   DISK   |       |       |       |       |DLIMIT |       | |INODE  |       |
   VFS    |     32|     33|     34|     35|     36|     37| |     38|     39|
   -------+-------+-------+-------+-------+-------+-------+ +-------+-------+
-  OTHER  |       |       |       |       |       |       | |VINFO  |       |
+  OTHER  |VSTAT  |       |       |       |       |       | |VINFO  |       |
 	 |     40|     41|     42|     43|     44|     45| |     46|     47|
   =======+=======+=======+=======+=======+=======+=======+ +=======+=======+
   SPECIAL|EVENT  |       |       |       |FLAGS  |       | |       |       |
@@ -50,6 +51,8 @@
 #define VC_CAT_VSETUP		1
 #define VC_CAT_VHOST		2
 
+#define VC_CAT_DEVICE		6
+
 #define VC_CAT_VPROC		9
 #define VC_CAT_PROCALT		10
 #define VC_CAT_PROCMIG		11
@@ -65,6 +68,7 @@
 #define VC_CAT_DLIMIT		36
 #define VC_CAT_INODE		38
 
+#define VC_CAT_VSTAT		40
 #define VC_CAT_VINFO		46
 #define VC_CAT_EVENT		48
 
@@ -77,21 +81,15 @@
 
 /*  interface version */
 
-#define VCI_VERSION		0x00020001
+#define VCI_VERSION		0x00020102
 #define VCI_LEGACY_VERSION	0x000100FF
 
 /*  query version */
 
 #define VCMD_get_version	VC_CMD(VERSION, 0, 0)
+#define VCMD_get_vci		VC_CMD(VERSION, 1, 0)
 
 
-#ifdef	__KERNEL__
-
-#include <linux/errno.h>
-
-
-#else	/* __KERNEL__ */
 #define __user
-#endif	/* __KERNEL__ */
 
 #endif	/* _VX_SWITCH_H */

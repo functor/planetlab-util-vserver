@@ -1,4 +1,4 @@
-// $Id: vector-zeroend.c,v 1.1 2004/06/16 10:10:55 ensc Exp $    --*- c -*--
+// $Id: vector-zeroend.c 1585 2004-06-16 10:10:55Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

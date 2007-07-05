@@ -1,23 +1,26 @@
-# $Id: util-vserver.spec.in,v 1.49 2005/07/15 19:06:58 ensc Exp $
+# $Id: util-vserver.spec.in 2482 2007-01-29 23:37:07Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
-## --without xalan           ...   do not require/use the xalan xslt processor
+## --with xalan              ...   require/use the xalan xslt processor
+## --without doc             ...   disable doc generation
+## --with legacy             ...   enable the legacy APIs
 
 %global confdir		%_sysconfdir/vservers
 %global confdefaultdir	%confdir/.defaults
 %global pkglibdir	%_libdir/%name
-%global __chattr	/usr/bin/chattr
 %global chkconfig	/sbin/chkconfig
 
 %global _localstatedir	%_var
 
+%global ver		%( echo @VERSION@ | sed 's/-.*//' )
+%global subver		%( s=`echo @VERSION@ | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global fullver		@VERSION@
 
-%{!?release_func:%global release_func() %1%{?dist}}
 
 %define name @PACKAGE@
 %define version @VERSION@
-%define release 16%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%{!?release_func:%global release_func() 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -32,12 +35,13 @@ URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
 Name:		@PACKAGE@
-Version:	@VERSION@
-Release:	%{release}
+Version:	%ver
+Release:	%release_func 0%subver
 License:	GPL
 Group:		System Environment/Base
 #URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://savannah.nongnu.org/download/util-vserver/stable.pkg/%version/%name-%version.tar.bz2
+Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2
+#Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -48,11 +52,12 @@ Obsoletes:	vserver < %version
 BuildRequires:	mount vconfig gawk iproute iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel beecrypt-devel
-BuildRequires:	doxygen tetex-latex
+%{!?_without_doc:BuildRequires:	doxygen tetex-latex}
+Requires(post):		%name-core
 Requires(pre):		%pkglibdir
 Requires(postun):	%pkglibdir
 %{!?_without_dietlibc:BuildRequires:	dietlibc >= 0:0.25}
-%{!?_without_xalan:BuildRequires:	xalan-j}
+%{?_with_xalan:BuildRequires:	xalan-j}
 
 %package lib
 Summary:		Dynamic libraries for util-vserver
@@ -70,6 +75,7 @@ Requires:		rpm wget binutils tar e2fsprogs
 Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
+Requires(post):		%name-core
 
 %package sysv
 Summary:		SysV-initscripts for vserver
@@ -185,7 +191,7 @@ but more readily accessible from Python code.
 
 
 %prep
-%setup -q
+%setup -q -n %name-%fullver
 
 aclocal -I m4
 autoconf
@@ -193,10 +199,12 @@ automake --add-missing
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
-           %{?_without_dietlibc:--disable-dietlibc}
+           %{?_without_dietlibc:--disable-dietlibc} \
+           %{!?_without_legacy:--enable-apis=NOLEGACY} \
+           --with-initscripts=sysv
 
 %__make %{?_smp_mflags} all
-%__make %{?_smp_mflags} doc
+%{!?_without_doc:%__make %{?_smp_mflags} doc}
 
 %__make -C python
 
@@ -213,7 +221,7 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 # install python bindings
 %__make -C python DESTDIR="$PWD/tmp" install
 install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
-install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
+install tmp%{_libdir}/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
 install -D -m 755 python/bwlimit $RPM_BUILD_ROOT/%{_sbindir}/bwlimit
 install -D -m 755 python/disklimit $RPM_BUILD_ROOT/%{_sbindir}/disklimit
 
@@ -230,10 +238,15 @@ rm -rf $RPM_BUILD_ROOT
 test -d /vservers      || mkdir -m0000 /vservers
 test -d /vservers/.pkg || mkdir -m0755 /vservers/.pkg
 
-f="%confdefaultdir/vdirbase"; test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
-f="%confdefaultdir/run.rev";  test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
+f="%confdefaultdir/vdirbase";  test -L "$f" -o -e "$f" || ln -s /vservers                        "$f"
+f="%confdefaultdir/run.rev";   test -L "$f" -o -e "$f" || ln -s %_localstatedir/run/vservers.rev "$f"
+f="%confdefaultdir/cachebase"; test -L "$f" -o -e "$f" || ln -s %_localstatedir/cache/vservers   "$f"
 
-%_sbindir/setattr --barrier /vservers || :
+%_sbindir/setattr --barrier /vservers /vservers/.pkg || :
+
+
+%preun
+test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 
 # add /bin/vsh to list of secure shells
 if [ ! -f /etc/shells ] || ! grep -q '^/bin/vsh$' /etc/shells ; then
@@ -257,21 +270,24 @@ fi
 #%chkconfig --add vprocunhide
 # PlanetLab Node Manager takes care of starting and stopping VServers
 %chkconfig --del vservers-default
+%chkconfig --del util-vserver
 # PlanetLab does not require /proc security
 %chkconfig --del vprocunhide
+
 
 %preun sysv
 #test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
 
 #test "$1" != 0 || %chkconfig --del vprocunhide
 #test "$1" != 0 || %chkconfig --del vservers-default
+#test "$1" != 0 || %chkconfig --del util-vserver
 
 
 %postun sysv
 #test "$1" = 0  || %_initrddir/vprocunhide condrestart >/dev/null || :
 
 
-%triggerin build -- fedora-release
+%triggerin build -- fedora-release, centos-release
 function copy()
 {
     base=$1
@@ -286,6 +302,16 @@ function copy()
 }
 copy fedora /usr/share/doc/fedora-release-*/RPM-GPG-*
 copy fedora /etc/pki/rpm-gpg/RPM-GPG-*
+copy centos /usr/share/doc/centos-*/RPM-GPG-KEY-*
+
+
+%post build
+test -d /vservers/.hash || mkdir -m0700 /vservers/.hash
+
+f="%confdefaultdir/apps/vunify/hash"; test -e "$f"/method -o -e "$f"/00 || \
+	ln -s /vservers/.hash "$f"/00
+
+%_sbindir/setattr --barrier /vservers/.hash || :
 
 
 %preun build
@@ -338,9 +364,11 @@ done
 %dir %confdefaultdir/apps
 %dir %confdefaultdir/files
 %dir %pkglibdir/defaults
+%ghost %confdefaultdir/cachebase
 %ghost %confdefaultdir/vdirbase
 %ghost %confdefaultdir/run.rev
 
+%dir %_localstatedir/cache/vservers
 %dir %_localstatedir/run/vservers
 %dir %_localstatedir/run/vservers.rev
 %dir %_localstatedir/run/vshelper
@@ -374,8 +402,8 @@ done
 
 %files devel -f %name-devel.list
 %defattr(-,root,root,-)
-%doc lib/apidoc/latex/refman.pdf
-%doc lib/apidoc/html
+%{!?_without_doc:%doc lib/apidoc/latex/refman.pdf}
+%{!?_without_doc:%doc lib/apidoc/html}
 
 
 %post python
@@ -447,8 +475,23 @@ fi
 
 
 %changelog
+* Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
+- add --with legacy and --without doc switches
+- add util-vserver initscript
+
 * Fri Feb 17 2006 Steve Muir <smuir@cs.princeton.edu>
 - add support for setting guaranteed CPU share flag in rspec
+
+* Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
+- do not require 'xalan' anymore by default
+- removed 'Requires: apt'; apt-rpm is not maintained upstream anymore
+- removed 'chattr' leftovers
+- create the '/etc/vservers/.defaults/cachebase' symlink
+- added /var/cache/vservers and the needed support
+- set barrier attribute on /vservers/.pkg and /vservers/.hash
+- added 'centos-release' to the list of packages in the copy-the-keys
+  trigger script
+- create '/vservers/.hash' and add initial configuration for it
 
 * Fri Jan 13 2006 Steve Muir <smuir@cs.princeton.edu>
 - fix bug in python/vserverimpl.c where attempting to adjust CPU share
@@ -470,6 +513,10 @@ fi
 
 * Wed Nov  2 2005 Steve Muir <smuir@cs.princeton.edu>
 - fix Python modules to handling scheduling parameters correctly
+
+* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.209-0
+- version 0.30.209
+- copy centos keys
 
 * Fri Oct 28 2005 Steve Muir <smuir@cs.princeton.edu>
 - raise exception about being over disk limit after setting usage values
@@ -493,7 +540,11 @@ fi
 * Thu Jul 21 2005 Steve Muir <smuir@cs.princeton.edu>
 - add bwlimit and cpulimit modules
 
+* Sat Jul 16 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-2
+- updated URLs
+
 * Fri Jul 15 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.208-1
+- version 0.30.208
 - require the -lib subpackage by -devel
 - copy GPG keys from /etc/pki/rpm-gpg/
 

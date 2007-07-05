@@ -1,4 +1,4 @@
-// $Id: util-dotfile.h,v 1.2 2004/03/18 06:06:07 ensc Exp $    --*- c -*--
+// $Id: util-dotfile.h 1307 2004-03-18 06:06:07Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

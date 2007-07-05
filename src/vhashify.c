@@ -1,4 +1,4 @@
-// $Id: vhashify.c,v 1.6 2005/03/24 12:46:59 ensc Exp $    --*- c -*--
+// $Id: vhashify.c 2475 2007-01-27 09:38:56Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -19,6 +19,8 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
+
+#define UTIL_VSERVER_UNIFY_MTIME_OPTIONAL
 
 #include "vhashify.h"
 #include "util.h"
@@ -70,6 +72,7 @@
 #define CMD_SLEDGE		0x1002
 #define CMD_MANUALLY		0x1003
 #define CMD_REFRESH		0x1004
+#define CMD_NOMTIME		0x1005
 
 struct option const
 CMDLINE_OPTIONS[] = {
@@ -80,6 +83,7 @@ CMDLINE_OPTIONS[] = {
   { "sledgehammer", no_argument,      	0, CMD_SLEDGE },
   { "manually",     no_argument,	0, CMD_MANUALLY },
   { "refresh",      no_argument,        0, CMD_REFRESH },
+  { "ignore-mtime", no_argument,        0, CMD_NOMTIME },
   { "dry-run",      no_argument,	0, 'n' },
   { "verbose",      no_argument,	0, 'v' },
   { 0,0,0,0 }
@@ -269,6 +273,7 @@ convertDigest(HashPath d_path)
   return true;
 }
 
+#ifndef ENSC_TESTSUITE
 static bool
 addStatHash(hashFunctionContext *h_ctx, struct stat const * const st)
 {
@@ -288,12 +293,23 @@ addStatHash(hashFunctionContext *h_ctx, struct stat const * const st)
     SET_ATTR(gid),
     SET_ATTR(rdev),
     SET_ATTR(size),
-    SET_ATTR(mtime)
+    .mtime = (global_args->ignore_mtime ? 0 : st->st_mtime),
   };
 
+#undef SET_ATTR
+#undef DECL_ATTR
+
+  
   return hashFunctionContextUpdate(h_ctx, (void *)&tmp, sizeof tmp)!=-1;
 }
-
+#else
+static bool
+addStatHash(hashFunctionContext UNUSED *h_ctx, struct stat const UNUSED * const st)
+{
+  return true;
+}
+#endif
+  
 static bool
 calculateHashFromFD(int fd, HashPath d_path, struct stat const * const st)
 {
@@ -676,6 +692,7 @@ int main(int argc, char *argv[])
     .insecure           =  0,
     .dry_run            =  false,
     .do_refresh         =  false,
+    .ignore_mtime	=  false,
   };
 
   Vector_init(&global_info.hash_dirs, sizeof(struct HashDirInfo));
@@ -694,12 +711,13 @@ int main(int argc, char *argv[])
       case CMD_INSECURE		:  args.insecure    = 1;    break;
       case CMD_SLEDGE		:  args.insecure    = 2;    break;
       case CMD_REFRESH		:  args.do_refresh  = true; break;
+      case CMD_NOMTIME		:  args.ignore_mtime = true; break;
       case 'n'			:  args.dry_run     = true; break;
       case 'v'			:  ++args.verbosity; break;
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	return EXIT_FAILURE;
 	break;
     }
@@ -740,4 +758,6 @@ int main(int argc, char *argv[])
   freeHashList(&global_info.hash_dirs);
   hashFunctionContextFree(&global_info.hash_context);
 #endif
+
+  return EXIT_SUCCESS;
 }

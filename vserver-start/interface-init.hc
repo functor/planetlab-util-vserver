@@ -1,4 +1,4 @@
-// $Id: interface-init.hc,v 1.1 2004/07/03 00:07:42 ensc Exp $    --*- c -*--
+// $Id: interface-init.hc 1628 2004-07-03 00:07:42Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

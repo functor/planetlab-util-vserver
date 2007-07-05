@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions,v 1.18 2005/07/04 22:38:42 ensc Exp $	--*- sh -*--
+# $Id: vserver-build.functions 2515 2007-03-18 15:32:22Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -20,6 +20,8 @@
 
 ROOTDIR=
 ROOTDIR_REL=
+CACHEDIR=
+CACHEDIR_REL=
 VSERVERDIRNAME=
 
 VDIR=
@@ -46,6 +48,17 @@ function makeDevEntry
 		false
 		;;
     esac
+}
+
+function populateDev
+{
+    local spec
+
+    mkdir -p -m755 "$VDIR"/dev/pts
+
+    while read spec; do
+	makeDevEntry "$VDIR"/dev $spec
+    done <$_DEV_FILE
 }
 
 function populateDirectory
@@ -82,7 +95,24 @@ function _setRootDir
     }
 }
 
-function _setVserverDir
+function _setCacheDir
+{
+    test -z "$CACHEDIR" || return 0
+    
+    for item in "\"$__CONFDIR/.defaults/cachebase\" 1" "$__PKGCACHEDIR"; do
+	eval set -- "$item"
+	CACHEDIR=$1
+	CACHEDIR_REL=$2
+	test ! -d "$CACHEDIR" || break
+    done
+
+    test -d "$CACHEDIR" || {
+	echo "Cache-directory '$CACHEDIR' does not exist or is invalid" >&2
+	exit 1
+    }
+}
+
+function _setVserverDirName
 {
     test -z "$VSERVERDIRNAME" || return 0
     VSERVERDIRNAME="$VSERVER_NAME"
@@ -105,7 +135,7 @@ function _renameVserverCfg
     local i
     
     for i in "$VDIR" "$SETUP_CONFDIR"; do
-	test ! -e "$i" || {
+	test ! -e "$i" || isDirectoryEmpty "$i" || {
 	    mv "$i" "$i$suffix"
 	    say "Renamed '$i' to '$i$suffix'"
 	}
@@ -113,37 +143,46 @@ function _renameVserverCfg
 }
 
 
-## Usage: getDistribution [<default>]
+## Usage: getDistribution [<default>] [<ignore-config>]
 function getDistribution
 {
-    test -z "$DISTRIBUTION" || return 0
+    local ignore_config=$2
+    
+    if test -z "$DISTRIBUTION"; then
+	if test -e /etc/fedora-release; then
+	    set -- $(cat /etc/fedora-release)
+	    DISTRIBUTION=fdr$4
+	elif test -e /etc/redhat-release; then
+	    set -- $(cat /etc/redhat-release)
+	    DISTRIBUTION=rh$5
+	elif test -e /etc/debian_version; then
+	    set -- $(cat /etc/debian_version)
+	    DISTRIBUTION=deb$1
+	elif test -e /etc/SuSE-release; then
+	    set -- $(cat /etc/SuSE-release)
+	    DISTRIBUTION=suse$3
+	elif test -e /etc/gentoo-release; then
+	    set -- $(cat /etc/gentoo-release)
+	    DISTRIBUTION=gentoo$5
+	elif test -e /etc/slackware-version; then
+	    set -- $(cat /etc/slackware-version)
+	    DISTRIBUTION=slackware$2
+	elif test -n "$1"; then
+	    DISTRIBUTION=$1
+	else
+	    colpanic $"\
+ERROR: Can not determine distribution; please specify it manually with
+  the '-d' option."
+	fi
+    fi
 
-    if test -e /etc/fedora-release; then
-	set -- $(cat /etc/fedora-release)
-	DISTRIBUTION=fdr$4
-    elif test -e /etc/redhat-release; then
-	set -- $(cat /etc/redhat-release)
-	DISTRIBUTION=rh$5
-    elif test -e /etc/debian_version; then
-	set -- $(cat /etc/debian_version)
-	DISTRIBUTION=deb$1
-    elif test -e /etc/SuSE-release; then
-	set -- $(cat /etc/SuSE-release)
-	DISTRIBUTION=suse$3
-    elif test -e /etc/gentoo-release; then
-	set -- $(cat /etc/gentoo-release)
-	DISTRIBUTION=gentoo$5
-    elif test -e /etc/slackware-release; then
-	set -- $(cat /etc/slackware-release)
-	DISTRIBUTION=slackware$2
-    elif test -n "$1"; then
-	DISTRIBUTION=$1
-    else
-	echo \
-"Can not determine distribution; please specify it manually
-with the '-d' option"  >&2
-	exit 1
-    fi >&2
+    test -n "$ignore_config" -o \
+         -d "$__CONFDIR/.distributions/$DISTRIBUTION" -o \
+         -d "$__DISTRIBDIR/$DISTRIBUTION" ||
+	    colpanic $"\
+ERROR: Can not find configuration for the distribution '$DISTRIBUTION';
+  please read http://linux-vserver.org/HowToRegisterNewDistributions
+  for information how to add support for your own distribution."
 }
 
 function base._addGeneratedFile
@@ -155,27 +194,21 @@ function base._addGeneratedFile
 function base.initFilesystem
 {
     test -z "$1" || _renameVserverCfg
-    test ! -d "$VDIR" -a ! -d "$SETUP_CONFDIR" || {
-	echo \
-"vserver-topdirectory '$VDIR' and/or configuration at '$SETUP_CONFDIR'
-exist already; please try to use '--force', or remove them manually"
->&2
-	exit 1
-    } >&2
+    { isDirectoryEmpty "$VDIR" && test  ! -e "$SETUP_CONFDIR"; } || colpanic $"\
+vserver-topdirectory '$VDIR' and/or configuration at '$SETUP_CONFDIR'
+exist already; please try to use '--force', or remove them manually."
 
     mkdir -p -m755 "$VDIR"
-    chattr -t "$VDIR"
+    $_SETATTR --~barrier "$VDIR"
     base._addGeneratedFile "$VDIR"
     
-    mkdir -p -m755 "$SETUP_CONFDIR"/apps "$VDIR"/{dev/pts,etc}
+    mkdir -p -m755 "$SETUP_CONFDIR"/apps "$VDIR"/etc
     base._addGeneratedFile "$SETUP_CONFDIR"
     
-    ln -s "$VDIR"       "$SETUP_CONFDIR/vdir"
+    ln -s "$VDIR"                     "$SETUP_CONFDIR/vdir"
+    ln -s "$CACHEDIR/$VSERVERDIRNAME" "$SETUP_CONFDIR/cache"
 
-    local spec
-    while read spec; do
-	makeDevEntry "$VDIR"/dev $spec
-    done <$_DEV_FILE
+    populateDev
 
     mkdir -p "$VDIR"/proc
     findAndCopy "$VDIR"/etc/hosts         "$__CONFDIR"/.defaults/files/hosts "$__CONFDIR/.distributions/$DISTRIBUTION"/files/hosts \
@@ -189,7 +222,8 @@ exist already; please try to use '--force', or remove them manually"
 function base._initVariables
 {
     _setRootDir
-    _setVserverDir
+    _setCacheDir
+    _setVserverDirName
     _setVdir
 
     findFile _DEV_FILE      "$__CONFDIR/.distributions/$DISTRIBUTION/devs"      "$__DISTRIBDIR/$DISTRIBUTION/devs"     "$__DISTRIBDIR/defaults/devs"
@@ -203,7 +237,7 @@ function base.__cleanup
     test -z "$OPTION_KEEP"    || return 0
     test -z "$__BASE_SUCCESS" || return 0
     
-    echo rm -rf "${__BASE_GENERATED_FILES[@]}"
+    rm -rf "${__BASE_GENERATED_FILES[@]}"
 }
 
 function base.init

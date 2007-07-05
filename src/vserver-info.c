@@ -1,4 +1,4 @@
-// $Id: vserver-info.c,v 1.23 2005/07/04 22:36:46 ensc Exp $    --*- c -*--
+// $Id: vserver-info.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -320,6 +320,13 @@ getInitPid_emulated(char *buf, xid_t xid)
 
   return 0;
 }
+#else // VC_ENABLE_API_COMPAT
+static char *
+getInitPid_emulated(char UNUSED *buf, xid_t UNUSED xid)
+{
+  WRITE_MSG(2, "tools were built without compat API, getInitPid() not available\n");
+  return 0;
+}
 #endif // VC_ENABLE_API_COMPAT
 
 static char *
@@ -492,7 +499,7 @@ execQuery(char const *vserver, VserverTag tag, int argc, char *argv[])
       signed long		xid;	// type is a small hack, but should be ok...
       struct vc_vx_info		info;
 	
-      if (isNumber(vserver, &xid) && xid>=0)
+      if (isNumber(vserver, &xid, true) && xid>=0)
 	res = (vc_get_vx_info(xid, &info)==-1) ? 0 : "1";
       else
 	res = (vc_getVserverCtx(vserver, vcCFG_AUTO, false, 0)==VC_NOCTX) ? 0 : "1";
@@ -555,7 +562,7 @@ int main(int argc, char *argv[])
       default		:
 	WRITE_MSG(2, "Try '");
 	WRITE_STR(2, argv[0]);
-	WRITE_MSG(2, " --help\" for more information.\n");
+	WRITE_MSG(2, " --help' for more information.\n");
 	exit(1);
 	break;
     }

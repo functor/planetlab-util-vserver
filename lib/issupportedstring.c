@@ -1,4 +1,4 @@
-// $Id: issupportedstring.c,v 1.4 2005/05/19 18:05:18 ensc Exp $    --*- c -*--
+// $Id: issupportedstring.c 2449 2007-01-10 18:53:07Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -31,9 +31,10 @@ static struct {
     vcFeatureSet	feature;
     char const *	name;
 } FEATURES[] = {
-  DECL(VKILL),   DECL(IATTR),     DECL(RLIMIT), DECL(COMPAT),
-  DECL(MIGRATE), DECL(NAMESPACE), DECL(SCHED),  DECL(VINFO),
-  DECL(VHI),     DECL(VSHELPER0), DECL(VSHELPER), DECL(VWAIT)
+  DECL(VKILL),   DECL(IATTR),     DECL(RLIMIT),   DECL(COMPAT),
+  DECL(MIGRATE), DECL(NAMESPACE), DECL(SCHED),    DECL(VINFO),
+  DECL(VHI),     DECL(VSHELPER0), DECL(VSHELPER), DECL(VWAIT),
+  DECL(VNET),    DECL(VSTAT),
 };
 
 bool

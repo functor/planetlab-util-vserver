@@ -1,4 +1,4 @@
-// $Id: rpm-fake.c,v 1.32 2005/07/03 12:26:28 ensc Exp $    --*- c++ -*--
+// $Id: rpm-fake.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -65,10 +65,6 @@ int rpm_execcon(unsigned int verified,
 
 #undef _POSIX_SOURCE
 #include "capability-compat.h"
-
-#ifndef CLONE_NEWNS
-#  define CLONE_NEWNS	0x00020000
-#endif
 
 #define LIBNAME		"rpm-fake.so"
 #define PLATFORM_FILE	"/etc/rpm/platform"
@@ -251,7 +247,7 @@ setupContext(xid_t xid, char const **xid_str)
     if ((xid==VC_DYNAMIC_XID || !vc_is_dynamic_xid(xid)) &&
 	(rc=vc_ctx_create(xid))==VC_NOCTX &&
 	errno!=EEXIST) {
-      perror(ENSC_WRAPPERS_PREFIX "vc_create_context()");
+      perror(ENSC_WRAPPERS_PREFIX "vc_ctx_create()");
       exit(255);
     }
 
@@ -599,7 +595,7 @@ execvWorker(char const *path, char * const argv[], char * const envp[])
   int		res = -1;
 
   if (vc_isSupported(vcFEATURE_MIGRATE))
-    res = vc_ctx_migrate(ctx);
+    res = vc_ctx_migrate(ctx, 0);
   else {
 #ifdef VC_ENABLE_API_COMPAT  
     res = vc_new_s_context(ctx,caps,flags);

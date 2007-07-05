@@ -1,4 +1,4 @@
-// $Id: fmtx.hc,v 1.1 2004/06/16 10:06:03 ensc Exp $    --*- c -*--
+// $Id: fmtx.hc 2179 2005-10-25 16:11:32Z ensc $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -32,7 +32,7 @@
 size_t
 CONCAT(FMT_P(xuint),)(char *ptr, CONCAT(uint_least,_t) val)
 {
-  FMT_FN(16,8);
+  FMT_FN(16,2);
 }
 
 size_t

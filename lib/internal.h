@@ -1,4 +1,4 @@
-// $Id: internal.h,v 1.13 2005/04/28 17:52:30 ensc Exp $    --*- c++ -*--
+// $Id: internal.h 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,6 +23,8 @@
 #define H_UTIL_VSERVER_LIB_INTERNAL_H
 
 #include "fmt.h"
+#include "vserver.h"
+
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -30,7 +32,13 @@
 extern "C" {
 #endif
 
+char *	vc_getVserverByCtx_Internal(xid_t ctx, /*@null@*/vcCfgStyle *style,
+				    /*@null@*/char const *revdir,
+				    bool validate_result);
+
+  
 int	utilvserver_checkCompatVersion();
+uint_least32_t	utilvserver_checkCompatConfig();
 bool	utilvserver_isDirectory(char const *path, bool follow_link);
 bool	utilvserver_isFile(char const *path, bool follow_link);
 bool	utilvserver_isLink(char const *path);

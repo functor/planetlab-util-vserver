@@ -1,4 +1,4 @@
-// $Id: interface-add.c,v 1.3 2005/03/19 02:07:40 ensc Exp $    --*- c -*--
+// $Id: interface-add.c 1939 2005-03-19 02:07:40Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

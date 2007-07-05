@@ -1,4 +1,4 @@
-// $Id: vcopy-init.hc,v 1.3 2005/03/18 00:24:27 ensc Exp $    --*- c -*--
+// $Id: vcopy-init.hc 1921 2005-03-18 00:24:27Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

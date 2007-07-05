@@ -3,6 +3,9 @@
 /* Define to 1 if dietlibc supports C99 */
 #undef ENSC_DIETLIBC_C99
 
+/* Define to 1 if dietlibc declares syscall */
+#undef ENSC_DIETLIBC_HAS_SYSCALL
+
 /* define when <ext2fs/ext2_fs.h> is usable */
 #undef ENSC_HAVE_EXT2FS_EXT2_FS_H
 
@@ -139,6 +142,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `util' library (-lutil). */
+#undef HAVE_LIBUTIL
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -226,6 +232,12 @@
 /* Enable support for API of vserver 1.3.x */
 #undef VC_ENABLE_API_V13
 
+/* Enable support for some obsoleted API of vserver 1.3.x */
+#undef VC_ENABLE_API_V13OBS
+
+/* Enable support for API of vserver 2.1.x */
+#undef VC_ENABLE_API_V21
+
 /* Version number of package */
 #undef VERSION
 
@@ -233,7 +245,7 @@
 #undef _FILE_OFFSET_BITS
 
 
-#if defined(__pic__) && defined(__i386) && !defined(ENSC_SYSCALL_TRADITIONAL)
+#if defined(__pic__) && defined(__i386) && !defined(ENSC_SYSCALL_TRADITIONAL) && !defined(ENSC_USE_ALTERNATIVE_SYSCALL_MACROS)
 #  define ENSC_SYSCALL_TRADITIONAL	1
 #endif
 

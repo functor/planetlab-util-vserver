@@ -1,4 +1,4 @@
-dnl $Id: ensc_initrddir.m4,v 1.2 2005/03/09 14:42:39 ensc Exp $
+dnl $Id: ensc_initrddir.m4 1887 2005-03-09 14:42:39Z ensc $
 
 dnl Copyright (C) 2002 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  

@@ -1,4 +1,4 @@
-// $Id: wrappers-fcntl.hc,v 1.3 2004/04/20 17:57:12 ensc Exp $    --*- c -*--
+// $Id: wrappers-fcntl.hc 1473 2004-04-20 17:57:12Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

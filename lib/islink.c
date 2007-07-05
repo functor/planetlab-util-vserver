@@ -1,4 +1,4 @@
-// $Id: islink.c,v 1.1 2004/10/21 19:01:26 ensc Exp $    --*- c -*--
+// $Id: islink.c 1759 2004-10-21 19:01:26Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

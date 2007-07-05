@@ -1,4 +1,4 @@
-// $Id: syscall_ctxcreate-v13.hc,v 1.2 2004/04/22 20:45:50 ensc Exp $    --*- c -*--
+// $Id: syscall_ctxcreate-v13.hc 2193 2005-10-28 17:51:09Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -23,7 +23,7 @@
 static inline ALWAYSINLINE xid_t
 vc_ctx_create_v13(xid_t xid)
 {
-  xid_t		res = vserver(VCMD_ctx_create, CTX_USER2KERNEL(xid), 0);
+  xid_t		res = vserver(VCMD_ctx_create_v0, CTX_USER2KERNEL(xid), 0);
 
   return CTX_KERNEL2USER(res);
 }

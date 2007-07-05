@@ -1,4 +1,4 @@
-// $Id: parselimit.c,v 1.1 2004/03/05 17:20:31 ensc Exp $    --*- c -*--
+// $Id: parselimit.c 1101 2004-03-05 17:21:36Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

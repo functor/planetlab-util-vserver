@@ -1,4 +1,4 @@
-// $Id: jail.h,v 1.2 2004/03/15 21:37:06 ensc Exp $    --*- c -*--
+// $Id: jail.h 1250 2004-03-15 21:37:06Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

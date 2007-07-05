@@ -54,19 +54,36 @@ function doInternalMethod
 	    case "$ACTION" in
 		(restart)
 		    logging $"Restarting vserver '$VSERVER'"
-		    spawn   killContext "$XID"
-		    execute $_VSERVER --defaulttty "$VSERVER" restart
+
+		    local sync_dir
+		    vshelper.initStopSync sync_dir
+
+		    spawn $_VSERVER --defaulttty "$VSERVER" restart &
+
+		    disown %%
+		    vshelper.waitForStopSync "$sync_dir"
 		    ;;
 		(halt|poweroff)
 		    logging $"Stopping vserver '$VSERVER'"
-		    spawn   killContext "$XID"
-		    execute $_VSERVER --defaulttty "$VSERVER" stop
+
+		    local sync_dir
+		    vshelper.initStopSync sync_dir
+
+		    spawn $_VSERVER --defaulttty "$VSERVER" stop &
+
+		    disown %%
+		    vshelper.waitForStopSync "$sync_dir"
+		    spawn killContext "$XID"
 		    ;;
 		(swsusp)
 		    ## TODO: any senseful action here? Perhaps shutdown scheduler for it?
 		    exit 0
 		    ;;
 		(restart2)	;;
+		(shutdown)
+		    logging $"Cleaning up after vserver '$VSERVER'"
+		    spawn $_VSERVER --defaulttty "$VSERVER" stop
+		    ;;
 		(*)
 		    warning $"Unknown action '$ACTION' for vserver '$VSERVER'"
 		    exit 1
@@ -165,7 +182,7 @@ while true; do
     responsible_xid=$pxid
 done
 
-vserver_id=$($_VSERVER_INFO "$responsible_xid" ID) ||
+vserver_id=$($_VSERVER_INFO "$responsible_xid" ID) || test "$ACTION" = "shutdown" ||
     panic $"No responsible vserver found for xid '$responsible_xid' ($XID); aborting..."
     
 test "$XID" = "$responsible_xid" || {

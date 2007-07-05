@@ -1,4 +1,4 @@
-// $Id: syscall.c,v 1.10 2004/04/08 06:04:41 ensc Exp $    --*- c++ -*--
+// $Id: syscall.c 2448 2007-01-10 18:49:13Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -25,7 +25,7 @@
 #include "internal.h"
 
 #define _LINUX_TYPES_H 1
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #if defined(VC_ENABLE_API_COMPAT) && defined(VC_ENABLE_API_LEGACY)
 #  define VC_MULTIVERSION_SYSCALL	1
@@ -60,5 +60,7 @@ vc_set_ipv4root(uint32_t  bcast, size_t nb, struct vc_ip_mask_pair const *ips)
 	  CALL_VC_LEGACY(vc_set_ipv4root, bcast, nb, ips));
 }
 
-LINK_WARNING("vc_new_s_context", "warning: vc_new_s_context() is obsoleted; use vc_create_context() instead of");
+LINK_WARNING("vc_new_s_context", "warning: vc_new_s_context() is obsoleted; use vc_ctx_create() instead of");
+LINK_WARNING("vc_set_ipv4root",  "warning: vc_set_ipv4root() is obsoleted; use vc_net_create() instead of");
+
 #endif

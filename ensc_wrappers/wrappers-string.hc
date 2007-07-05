@@ -1,4 +1,4 @@
-// $Id: wrappers-string.hc,v 1.1 2005/02/25 23:31:19 ensc Exp $    --*- c -*--
+// $Id: wrappers-string.hc 1872 2005-02-25 23:31:19Z ensc $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

@@ -1,4 +1,4 @@
-// $Id: syscall_setdlimit.c,v 1.2 2005/03/02 01:27:54 ensc Exp $    --*- c++ -*--
+// $Id: syscall_setdlimit.c 2207 2005-10-29 10:31:42Z ensc $    --*- c++ -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,7 +21,7 @@
 #endif
 
 #include "vserver.h"
-#include "linuxvirtual.h"
+#include "virtual.h"
 
 #include "vserver-internal.h"
 

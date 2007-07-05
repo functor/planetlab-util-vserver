@@ -1,4 +1,4 @@
-// $Id: setattr.c,v 1.11 2004/03/05 19:50:45 ensc Exp $    --*- c -*--
+// $Id: setattr.c 2431 2006-12-19 19:18:12Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -58,6 +58,9 @@ CMDLINE_OPTIONS[] = {
   { "iunlink-but-not-immutable",   no_argument, 0, CMD_IMMUX },
   { "~iunlink-but-not-immutable",  no_argument, 0, CMD_UNSET_IMMUX },
   { "!iunlink-but-not-immutable",  no_argument, 0, CMD_UNSET_IMMUX },
+  { "immutable",   no_argument, 0, CMD_IMMUTABLE },
+  { "~immutable",  no_argument, 0, CMD_UNSET_IMMUTABLE },
+  { "!immutable",  no_argument, 0, CMD_UNSET_IMMUTABLE },
   { 0,0,0,0 }
 };
 
