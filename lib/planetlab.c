@@ -460,7 +460,7 @@ pl_set_limits(xid_t ctx, struct sliver_resources *slr)
   }
   
   if (pl_setsched(ctx, vs_cpu, cpu_sched_flags) < 0) {
-    PERROR("pl_setsched(&u)", ctx);
+    PERROR("pl_setsched(%u)", ctx);
     exit(1);
   }
 }
