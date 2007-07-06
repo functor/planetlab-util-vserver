@@ -118,7 +118,7 @@ class VServer:
     INITSCRIPTS = [('/etc/rc.vinit', 'start'),
                    ('/etc/rc.d/rc', '%(runlevel)d')]
 
-    def __init__(self, name, vm_id = None, vm_running = False):
+    def __init__(self, name, vm_id = None, vm_running = None):
 
         self.name = name
         self.rlimits_changed = False
@@ -131,6 +131,8 @@ class VServer:
         if vm_id == None:
             vm_id = int(self.config.get('S_CONTEXT'))
         self.ctx = vm_id
+        if vm_running == None:
+            vm_running = self.is_running()
         self.vm_running = vm_running
 
     def have_limits_changed(self):
@@ -267,8 +269,6 @@ class VServer:
         configuration file. This method does not modify the kernel CPU
         scheduling parameters for this context. """
 
-        if cpu_share == int(self.config.get("CPULIMIT", -1)):
-            return
         cpu_guaranteed = sched_flags & SCHED_CPU_GUARANTEED
         cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
         self.update_resources(cpu_config)
