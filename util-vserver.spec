@@ -423,7 +423,7 @@ done
 
 # Install the prebuilt extensions by hand
 python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-install -D -m 755 *.so "$python_sitelib"/
+install -m 755 *.so "$python_sitelib"/
 
 popd
 
@@ -451,7 +451,7 @@ done
 
 # Install the prebuilt extensions by hand
 python_sitelib=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")
-install -D -m 755 *.so "$python_sitelib"/
+install -m 755 *.so "$python_sitelib"/
 
 popd
 
