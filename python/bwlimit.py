@@ -46,7 +46,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2006 The Trustees of Princeton University
 #
-# $Id: bwlimit.py,v 1.14 2006/12/13 21:48:14 faiyaza Exp $
+# $Id: bwlimit.py,v 1.15 2007/02/07 04:21:11 mlhuang Exp $
 #
 
 import sys, os, re, getopt
@@ -349,7 +349,10 @@ def init(dev = dev, bwcap = bwmax):
     # by root end up here and are capped at the node bandwidth
     # cap.
     on(root_xid, dev, share = root_share)
-    file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
+    try:
+        file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
+    except:
+        pass
 
     # Set up the default class. Packets that fail classification end
     # up here.
