@@ -64,26 +64,13 @@ class NoSuchVServer(Exception): pass
 
 
 class VServerConfig:
-    mapping = {
-        'S_CONTEXT':		'context',
-        'VS_WHITELISTED':	'whitelisted',
-        'CPULIMIT':		'sched/fill-rate2',
-	'CPUGUARANTEED':	'sched/fill-rate',
-        'VS_DISK_MAX':		'dlimits/0/space_total',
-      }
-
     def __init__(self, name, directory):
-        global RLIMITS
-        for i in RLIMITS.keys():
-            for j in ('HARD', 'SOFT', 'MINIMUM'):
-                self.mapping['VS_%s_%s' % (i, j)] = 'rlimits/%s.%s' % (i.lower(), j.replace('MINIMUM', 'min').lower())
         self.name = name
         self.dir = directory
 
     def get(self, option, default = None):
         try:
-            filename = self.mapping[option]
-            f = open(os.path.join(self.dir, filename), "r")
+            f = open(os.path.join(self.dir, option), "r")
             buf = f.readline().rstrip()
             f.close()
             return buf
@@ -96,21 +83,23 @@ class VServerConfig:
             else:
                 raise KeyError, "Key %s is not set for %s" % (option, self.name)
 
-    def update(self, vars):
-        for (option, value) in vars.iteritems():
+    def update(self, option, value):
+        try:
+            old_umask = os.umask(0022)
+            filename = os.path.join(self.dir, option)
             try:
-                old_umask = os.umask(0022)
-                filename = os.path.join(self.dir, self.mapping[option])
-                try:
-                    os.makedirs(os.path.dirname(filename), 0755)
-                except:
-                    pass
-                f = open(filename, 'w')
+                os.makedirs(os.path.dirname(filename), 0755)
+            except:
+                pass
+            f = open(filename, 'w')
+            if isinstance(value, list):
+                f.write("%s\n" % "\n".join(value))
+            else:
                 f.write("%s\n" % value)
-                f.close()
-                os.umask(old_umask)
-            except KeyError, e:
-                raise KeyError, "Don't know how to handle %s, sorry" % option
+            f.close()
+            os.umask(old_umask)
+        except KeyError, e:
+            raise KeyError, "Don't know how to handle %s, sorry" % option
 
 
 class VServer:
@@ -129,7 +118,7 @@ class VServer:
         self.config = VServerConfig(name, "/etc/vservers/%s" % name)
         self.remove_caps = ~vserverimpl.CAP_SAFE;
         if vm_id == None:
-            vm_id = int(self.config.get('S_CONTEXT'))
+            vm_id = int(self.config.get('context'))
         self.ctx = vm_id
         if vm_running == None:
             vm_running = self.is_running()
@@ -159,15 +148,12 @@ class VServer:
 
     def set_rlimit_config(self,type,hard,soft,minimum):
         """Generic set resource limit function for vserver"""
-        resources = {}
         if hard <> VC_LIM_KEEP:
-            resources["VS_%s_HARD"%type] = hard
+            self.config.update('rlimits/%s.hard' % type.lower(), hard)
         if soft <> VC_LIM_KEEP:
-            resources["VS_%s_SOFT"%type] = soft
+            self.config.update('rlimits/%s.soft' % type.lower(), soft)
         if minimum <> VC_LIM_KEEP:
-            resources["VS_%s_MINIMUM"%type] = minimum
-        if len(resources)>0:
-            self.update_resources(resources)
+            self.config.update('rlimits/%s.min' % type.lower(), minimum)
         self.set_rlimit_limit(type,hard,soft,minimum)
 
     def get_rlimit_limit(self,type):
@@ -183,14 +169,13 @@ class VServer:
 
     def get_rlimit_config(self,type):
         """Generic get resource configuration function for vserver"""
-        hard = int(self.config.get("VS_%s_HARD"%type,VC_LIM_KEEP))
-        soft = int(self.config.get("VS_%s_SOFT"%type,VC_LIM_KEEP))
-        minimum = int(self.config.get("VS_%s_MINIMUM"%type,VC_LIM_KEEP))
+        hard = int(self.config.get("rlimits/%s.hard"%type.lower(),VC_LIM_KEEP))
+        soft = int(self.config.get("rlimits/%s.soft"%type.lower(),VC_LIM_KEEP))
+        minimum = int(self.config.get("rlimits/%s.min"%type.lower(),VC_LIM_KEEP))
         return (hard,soft,minimum)
 
     def set_WHITELISTED_config(self,whitelisted):
-        resources = {'VS_WHITELISTED': whitelisted}
-        self.update_resources(resources)
+        self.config.update('whitelisted', whitelisted)
 
     def __do_chroot(self):
 
@@ -244,8 +229,7 @@ class VServer:
             print "Unexpected error with setdlimit for context %d" % self.ctx
 
 
-        resources = {'VS_DISK_MAX': block_limit}
-        self.update_resources(resources)
+        self.config.update('dlimits/0/space_total', block_limit)
 
     def is_running(self):
         return vserverimpl.isrunning(self.ctx)
@@ -269,9 +253,13 @@ class VServer:
         configuration file. This method does not modify the kernel CPU
         scheduling parameters for this context. """
 
-        cpu_guaranteed = sched_flags & SCHED_CPU_GUARANTEED
-        cpu_config = { "CPULIMIT": cpu_share, "CPUGUARANTEED": cpu_guaranteed }
-        self.update_resources(cpu_config)
+        if sched_flags & SCHED_CPU_GUARANTEED:
+            cpu_guaranteed = cpu_share
+        else:
+            cpu_guaranteed = 0
+        self.config.update('sched/fill-rate2', cpu_share)
+        self.config.update('sched/fill-rate', cpu_guaranteed)
+
         if self.vm_running:
             self.set_sched(cpu_share, sched_flags)
 
@@ -416,10 +404,6 @@ class VServer:
         should be overridden by subclass. """
 
         pass
-
-    def update_resources(self, resources):
-
-        self.config.update(resources)
 
     def init_disk_info(self):
         cmd = "/usr/sbin/vdu --script --space --inodes --blocksize 1024 --xid %d %s" % (self.ctx, self.dir)
