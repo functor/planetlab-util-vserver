@@ -291,9 +291,10 @@ am__lib_libvserver_a_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
 	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
 	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
-	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
-	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
-	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
+	lib/syscall_getccaps-v21.hc ensc_fmt/fmt-32.c \
+	ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c ensc_fmt/fmtx-64.c \
+	ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h ensc_fmt/fmt.hc \
+	ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
 am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_1 = lib/lib_libvserver_a-getprocentry-legacy.$(OBJEXT)
 am__objects_2 = lib/lib_libvserver_a-cflags-compat.$(OBJEXT) \
@@ -663,9 +664,10 @@ am__lib_libvserver_la_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
 	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
 	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
-	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
-	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
-	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
+	lib/syscall_getccaps-v21.hc ensc_fmt/fmt-32.c \
+	ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c ensc_fmt/fmtx-64.c \
+	ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h ensc_fmt/fmt.hc \
+	ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
 am__objects_18 = lib/lib_libvserver_la-getprocentry-legacy.lo
 am__objects_19 = lib/lib_libvserver_la-cflags-compat.lo \
 	lib/lib_libvserver_la-cflags_list-compat.lo
@@ -1776,7 +1778,8 @@ lib_v21_SRCS = lib/syscall_setccaps-v21.hc \
 				lib/syscall_setmapping.c \
 				lib/syscall_setmapping-v21.hc \
 				lib/syscall_schedinfo.c \
-				lib/syscall_schedinfo-v21.hc
+				lib/syscall_schedinfo-v21.hc \
+				lib/syscall_getccaps-v21.hc
 
 PKGCONFIG_FILES = lib/util-vserver
 lib_SRCS = lib/syscall.c \

@@ -57,10 +57,11 @@ vserver_chcontext(PyObject *self, PyObject *args)
 {
   int  ctx_is_new;
   xid_t  ctx;
-  uint_least64_t bcaps = ~vc_get_insecurebcaps();
+  uint_least64_t bcaps = 0;
 
-  if (!PyArg_ParseTuple(args, "I", &ctx))
+  if (!PyArg_ParseTuple(args, "I|K", &ctx, &bcaps))
     return NULL;
+  bcaps |= ~vc_get_insecurebcaps();
 
   if ((ctx_is_new = pl_chcontext(ctx, bcaps, 0)) < 0)
     return PyErr_SetFromErrno(PyExc_OSError);
@@ -278,6 +279,82 @@ vserver_killall(PyObject *self, PyObject *args)
   return NONE;
 }
 
+static PyObject *
+vserver_set_bcaps(PyObject *self, PyObject *args)
+{
+  xid_t ctx;
+  struct vc_ctx_caps caps;
+
+  if (!PyArg_ParseTuple(args, "IK", &ctx, &caps.bcaps))
+    return NULL;
+
+  caps.bmask = vc_get_insecurebcaps();
+  caps.cmask = caps.ccaps = 0;
+  if (vc_set_ccaps(ctx, &caps) == -1 && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return NONE;
+}
+
+static PyObject *
+vserver_text2bcaps(PyObject *self, PyObject *args)
+{
+  struct vc_ctx_caps caps = { .bcaps = 0 };
+  const char *list;
+  int len;
+  struct vc_err_listparser err;
+
+  if (!PyArg_ParseTuple(args, "s#", &list, &len))
+    return NULL;
+
+  if (vc_list2bcap(list, len, &err, &caps) == -1)
+    return NULL;
+
+  return Py_BuildValue("K", caps.bcaps);
+}
+
+static PyObject *
+vserver_get_bcaps(PyObject *self, PyObject *args)
+{
+  xid_t ctx;
+  struct vc_ctx_caps caps;
+
+  if (!PyArg_ParseTuple(args, "I", &ctx))
+    return NULL;
+
+  if (vc_get_ccaps(ctx, &caps) == -1) {
+    if (errno != -ESRCH)
+      return PyErr_SetFromErrno(PyExc_OSError);
+    else
+      caps.bcaps = 0;
+  }
+
+  return Py_BuildValue("K", caps.bcaps & vc_get_insecurebcaps());
+}
+
+static PyObject *
+vserver_bcaps2text(PyObject *self, PyObject *args)
+{
+  struct vc_ctx_caps caps = { .bcaps = 0 };
+  PyObject *list;
+  const char *cap;
+
+  if (!PyArg_ParseTuple(args, "K", &caps.bcaps))
+    return NULL;
+
+  list = PyString_FromString("");
+
+  while ((cap = vc_lobcap2text(&caps.bcaps)) != NULL) {
+    if (list == NULL)
+      break;
+    PyString_ConcatAndDel(&list, PyString_FromFormat(
+			  (PyString_Size(list) > 0 ? ",CAP_%s" : "CAP_%s" ),
+			  cap));
+  }
+
+  return list;
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
@@ -299,6 +376,14 @@ static PyMethodDef  methods[] = {
     "Send signal to all processes in vserver context" },
   { "isrunning", vserver_isrunning, METH_VARARGS,
     "Check if vserver is running"},
+  { "setbcaps", vserver_set_bcaps, METH_VARARGS,
+    "Set POSIX capabilities of a vserver context" },
+  { "getbcaps", vserver_get_bcaps, METH_VARARGS,
+    "Get POSIX capabilities of a vserver context" },
+  { "text2bcaps", vserver_text2bcaps, METH_VARARGS,
+    "Translate a string of capabilities to a bitmap" },
+  { "bcaps2text", vserver_bcaps2text, METH_VARARGS,
+    "Translate a capability-bitmap into a string" },
   { NULL, NULL, 0, NULL }
 };
 

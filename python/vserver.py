@@ -177,6 +177,19 @@ class VServer:
     def set_WHITELISTED_config(self,whitelisted):
         self.config.update('whitelisted', whitelisted)
 
+    def set_capabilities(self, capabilities):
+        return vserverimpl.setbcaps(self.ctx, vserverimpl.text2bcaps(capabilities))
+
+    def set_capabilities_config(self, capabilities):
+        self.config.update('bcapabilities', capabilities)
+	self.set_capabilities(capabilities)
+
+    def get_capabilities(self):
+        return vserverimpl.bcaps2text(vserverimpl.getbcaps(self.ctx))
+ 
+    def get_capabilities_config(self):
+        return self.config.get('bcapabilities')
+
     def __do_chroot(self):
 
         os.chroot(self.dir)
@@ -299,7 +312,7 @@ class VServer:
             print >>state_file, "%u" % self.ctx
             state_file.close()
 
-        if vserverimpl.chcontext(self.ctx):
+        if vserverimpl.chcontext(self.ctx, vserverimpl.text2bcaps(self.get_capabilities_config())):
             self.set_resources()
             vserverimpl.setup_done(self.ctx)
 

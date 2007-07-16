@@ -195,7 +195,7 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags)
   vc_sched.tokens_min = 50;  /* need this many tokens to run */
   vc_sched.tokens_max = 100;  /* max accumulated number of tokens */
 
-  if (cpu_share == VC_LIM_KEEP)
+  if (cpu_share == (uint32_t)VC_LIM_KEEP)
     vc_sched.set_mask &= ~(VC_VXSM_FILL_RATE|VC_VXSM_FILL_RATE2);
 
   /* guaranteed CPU corresponds to SCHED_SHARE flag being cleared */
@@ -254,6 +254,8 @@ pl_get_limits(char *context, struct sliver_resources *slr)
     {"rlimits/openfd.min", &slr->vs_openfd.min},
 
     {"whitelisted", &slr->vs_whitelisted},
+
+    {"bcapabilities", NULL},
     {0,0}
   };
 
@@ -281,6 +283,11 @@ pl_get_limits(char *context, struct sliver_resources *slr)
 
   slr->vs_whitelisted = 1;
 
+  slr->vs_capabilities.bcaps = 0;
+  slr->vs_capabilities.bmask = 0;
+  slr->vs_capabilities.ccaps = 0;
+  slr->vs_capabilities.cmask = 0;
+
   cwd = open(".", O_RDONLY);
   if (cwd == -1) {
     perror("cannot get a handle on .");
@@ -297,9 +304,21 @@ pl_get_limits(char *context, struct sliver_resources *slr)
     fb = fopen(r->name, "r");
     if (fb == NULL)
       continue;
-    if (fgets(buf, sizeof(buf), fb) != NULL && isdigit(*buf)) {
-      *r->limit = atoi(buf);
+    /* XXX: UGLY. */
+    if (strcmp(r->name, "bcapabilities") == 0) {
+      size_t len, i;
+      struct vc_err_listparser err;
+
+      len = fread(buf, 1, sizeof(buf), fb);
+      for (i = 0; i < len; i++) {
+	if (buf[i] == '\n')
+	  buf[i] = ',';
+      }
+      vc_list2bcap(buf, len, &err, &slr->vs_capabilities);
     }
+    else
+      if (fgets(buf, sizeof(buf), fb) != NULL && isdigit(*buf))
+        *r->limit = atoi(buf);
     fclose(fb);
   }
 
@@ -307,53 +326,6 @@ pl_get_limits(char *context, struct sliver_resources *slr)
 out_fd:
   close(cwd);
 out:
-#if 0
-  /* open the conf file for reading */
-  fb = fopen(conf,"r");
-  if (fb != NULL) {
-    size_t index;
-    char *buffer = malloc(1000);
-    char *p;
-    
-    /* the conf file exist */ 
-    while((p=fgets(buffer,1000-1,fb))!=NULL) {
-      index = 0;
-      len = strnlen(buffer,1000);
-      WHITESPACE(buffer,index,len);
-      if (buffer[index] == '#') 
-	continue;
-      
-      for (r=&sliver_list[0]; r->name; r++)
-	if ((p=strstr(&buffer[index],r->name))!=NULL) {
-	  /* adjust index into buffer */
-	  index+= (p-&buffer[index])+strlen(r->name);
-	  
-	  /* skip over whitespace */
-	  WHITESPACE(buffer,index,len);
-	  
-	  /* expecting to see = sign */
-	  if (buffer[index++]!='=') goto out;
-	  
-	  /* skip over whitespace */
-	  WHITESPACE(buffer,index,len);
-	  
-	  /* expecting to see a digit for number */
-	  if (!isdigit((int)buffer[index])) goto out;
-	  
-	  *r->limit = atoi(&buffer[index]);
-	  if (0) /* for debugging only */
-	    fprintf(stderr,"pl_get_limits found %s=%lld\n",
-		    r->name,*r->limit);
-	  break;
-	}
-    }
-  out:
-    fclose(fb);
-    free(buffer);
-  } else {
-    fprintf(stderr,"cannot open %s\n",conf);
-  }
-#endif
   free(conf);
 }
 
@@ -395,7 +367,6 @@ adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
   }
   return adjusted;
 }
-
 
 void
 pl_set_limits(xid_t ctx, struct sliver_resources *slr)
@@ -454,6 +425,12 @@ pl_set_limits(xid_t ctx, struct sliver_resources *slr)
     }
     vs_cpu = slr->vs_cpu;    
     cpu_sched_flags = slr->vs_cpuguaranteed & VS_SCHED_CPU_GUARANTEED;
+
+    slr->vs_capabilities.bmask = vc_get_insecurebcaps();
+    if (vc_set_ccaps(ctx, &slr->vs_capabilities) < 0) {
+      PERROR("pl_setcaps(%u)", ctx);
+      exit(1);
+    }
   } else {
     vs_cpu = 1;
     cpu_sched_flags = 0;
