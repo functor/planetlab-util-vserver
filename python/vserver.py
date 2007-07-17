@@ -1,5 +1,7 @@
 # Copyright 2005 Princeton University
 
+$Id$
+
 import errno
 import fcntl
 import os
