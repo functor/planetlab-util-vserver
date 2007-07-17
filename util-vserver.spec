@@ -1,4 +1,4 @@
-# $Id$
+# $Id: util-vserver.spec.in,v 1.49 2005/07/15 19:06:58 ensc Exp $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -215,7 +215,6 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 install -d $RPM_BUILD_ROOT/%{_datadir}/%{name}
 install tmp/usr/lib/python*/site-packages/*.{py,so} $RPM_BUILD_ROOT/%{_datadir}/%{name}/
 install -D -m 755 python/bwlimit $RPM_BUILD_ROOT/%{_sbindir}/bwlimit
-install -D -m 755 python/disklimit $RPM_BUILD_ROOT/%{_sbindir}/disklimit
 
 
 %check || :
@@ -443,7 +442,6 @@ fi
 %files python
 %{_datadir}/%{name}
 %{_sbindir}/bwlimit
-%{_sbindir}/disklimit
 
 
 %changelog
