@@ -307,8 +307,7 @@ vserver_text2bcaps(PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "s#", &list, &len))
     return NULL;
 
-  if (vc_list2bcap(list, len, &err, &caps) == -1)
-    return NULL;
+  vc_list2bcap(list, len, &err, &caps);
 
   return Py_BuildValue("K", caps.bcaps);
 }

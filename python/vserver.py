@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.58 2007/07/17 17:51:27 faiyaza Exp $
+#$Id: vserver.py,v 1.59 2007/07/17 17:56:04 faiyaza Exp $
 
 import errno
 import fcntl
@@ -76,9 +76,6 @@ class VServerConfig:
             buf = f.readline().rstrip()
             f.close()
             return buf
-        except KeyError, e:
-            # No mapping exists for this option
-            raise e
         except IOError, e:
             if default is not None:
                 return default
@@ -190,7 +187,7 @@ class VServer:
         return vserverimpl.bcaps2text(vserverimpl.getbcaps(self.ctx))
  
     def get_capabilities_config(self):
-        return self.config.get('bcapabilities')
+        return self.config.get('bcapabilities', '')
 
     def __do_chroot(self):
 
@@ -427,6 +424,8 @@ class VServer:
         line = child_stdout.readline()
         if not line:
             sys.stderr.write(child_stderr.readline())
+        child_stdout.close()
+        child_stderr.close()
         (space, inodes) = line.split()
         self.disk_inodes = int(inodes)
         self.disk_blocks = int(space)
