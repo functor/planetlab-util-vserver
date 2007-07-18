@@ -56,8 +56,11 @@ create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
   struct vc_net_flags  vc_nf;
 
   /* Create network context */
-  if (vc_net_create(ctx) == VC_NOCTX)
+  if (vc_net_create(ctx) == VC_NOCTX) {
+    if (errno == EEXIST)
+      goto process;
     return -1;
+  }
 
   /* Make the network context persistent */
   vc_nf.mask = vc_nf.flagword = VC_NXF_PERSISTENT;
@@ -72,6 +75,7 @@ create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
   if (vc_net_add(ctx, &vc_net) == -1)
     return -1;
 
+process:
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
    */
@@ -125,7 +129,7 @@ pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 	    return -1;
 
 	  /* context doesn't exist - create it */
-	  if (create_context(ctx, bcaps,slr))
+	  if (create_context(ctx, bcaps, slr))
 	    {
 	      if (errno == EEXIST)
 		/* another process beat us in a race */
