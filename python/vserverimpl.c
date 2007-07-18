@@ -267,13 +267,27 @@ vserver_unset_dlimit(PyObject *self, PyObject *args)
 static PyObject *
 vserver_killall(PyObject *self, PyObject *args)
 {
-  xid_t  ctx;
-  int  sig;
+  xid_t	ctx;
+  int	sig;
+  struct vc_ctx_flags cflags = {
+    .flagword = 0,
+    .mask = VC_VXF_PERSISTENT
+  };
+  struct vc_net_flags nflags = {
+    .flagword = 0,
+    .mask = VC_NXF_PERSISTENT
+  };
 
   if (!PyArg_ParseTuple(args, "Ii", &ctx, &sig))
     return NULL;
 
   if (vc_ctx_kill(ctx, 0, sig) && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  if (vc_set_cflags(ctx, &cflags) && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  if (vc_set_nflags(ctx, &nflags) && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
 
   return NONE;
