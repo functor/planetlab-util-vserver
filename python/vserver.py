@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.59 2007/07/17 17:56:04 faiyaza Exp $
+#$Id: vserver.py,v 1.60 2007/07/17 18:55:25 dhozac Exp $
 
 import errno
 import fcntl
@@ -11,6 +11,7 @@ import signal
 import sys
 import time
 import traceback
+import subprocess
 
 import mountimpl
 import runcmd
@@ -181,7 +182,7 @@ class VServer:
 
     def set_capabilities_config(self, capabilities):
         self.config.update('bcapabilities', capabilities)
-	self.set_capabilities(capabilities)
+        self.set_capabilities(capabilities)
 
     def get_capabilities(self):
         return vserverimpl.bcaps2text(vserverimpl.getbcaps(self.ctx))
@@ -390,17 +391,17 @@ class VServer:
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
                 self.__do_chcontext(state_file)
-		for cmd in self.INITSCRIPTS + [None]:
-			try:
-			    # enter vserver context
-			    arg_subst = { 'runlevel': runlevel }
-			    cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
-					    cmd[1:])
-			    print >>log, "executing '%s'" % " ".join(cmd_args)
-			    os.spawnvp(os.P_WAIT,cmd[0],*cmd_args)
-			except:
-				traceback.print_exc()
-				os._exit(1)
+                for cmd in self.INITSCRIPTS + [None]:
+                     try:
+                         # enter vserver context
+                         arg_subst = { 'runlevel': runlevel }
+                         cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
+                                                   cmd[1:])
+                         print >>log, "executing '%s'" % " ".join(cmd_args)
+                         os.spawnvp(os.P_WAIT,cmd[0],*cmd_args)
+                     except:
+                         traceback.print_exc()
+                         os._exit(1)
 
             # we get here due to an exception in the top-level child process
             except Exception, ex:
@@ -419,13 +420,17 @@ class VServer:
 
     def init_disk_info(self):
         cmd = "/usr/sbin/vdu --script --space --inodes --blocksize 1024 --xid %d %s" % (self.ctx, self.dir)
-        (child_stdin, child_stdout, child_stderr) = os.popen3(cmd)
-        child_stdin.close()
-        line = child_stdout.readline()
+        p = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             close_fds=True)
+        p.stdin.close()
+        line = p.stdout.readline()
         if not line:
-            sys.stderr.write(child_stderr.readline())
-        child_stdout.close()
-        child_stderr.close()
+            sys.stderr.write(p.stderr.read())
+        p.stdout.close()
+        p.stderr.close()
+        ret = p.wait()
+
         (space, inodes) = line.split()
         self.disk_inodes = int(inodes)
         self.disk_blocks = int(space)
