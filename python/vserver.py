@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.60 2007/07/17 18:55:25 dhozac Exp $
+#$Id: vserver.py,v 1.61 2007/07/18 14:50:49 dhozac Exp $
 
 import errno
 import fcntl
@@ -12,6 +12,7 @@ import sys
 import time
 import traceback
 import subprocess
+import resource
 
 import mountimpl
 import runcmd
@@ -22,16 +23,6 @@ import cpulimit, bwlimit
 from vserverimpl import VS_SCHED_CPU_GUARANTEED as SCHED_CPU_GUARANTEED
 from vserverimpl import DLIMIT_INF
 from vserverimpl import VC_LIM_KEEP
-
-from vserverimpl import RLIMIT_CPU
-from vserverimpl import RLIMIT_RSS
-from vserverimpl import RLIMIT_NPROC
-from vserverimpl import RLIMIT_NOFILE
-from vserverimpl import RLIMIT_MEMLOCK
-from vserverimpl import RLIMIT_AS
-from vserverimpl import RLIMIT_LOCKS
-from vserverimpl import RLIMIT_SIGPENDING
-from vserverimpl import RLIMIT_MSGQUEUE
 from vserverimpl import VLIMIT_NSOCK
 from vserverimpl import VLIMIT_OPENFD
 from vserverimpl import VLIMIT_ANON
@@ -49,19 +40,19 @@ FLAGS_HIDEINFO = 32
 FLAGS_ULIMIT = 64
 FLAGS_NAMESPACE = 128
 
-RLIMITS = {"CPU": RLIMIT_CPU,
-           "RSS": RLIMIT_RSS,
-           "NPROC": RLIMIT_NPROC,
-           "NOFILE": RLIMIT_NOFILE,
-           "MEMLOCK": RLIMIT_MEMLOCK,
-           "AS": RLIMIT_AS,
-           "LOCKS": RLIMIT_LOCKS,
-           "SIGPENDING": RLIMIT_SIGPENDING,
-           "MSGQUEUE": RLIMIT_MSGQUEUE,
-           "NSOCK": VLIMIT_NSOCK,
-           "OPENFD": VLIMIT_OPENFD,
-           "ANON": VLIMIT_ANON,
-           "SHMEM": VLIMIT_SHMEM}
+RLIMITS = { "NSOCK": VLIMIT_NSOCK,
+            "OPENFD": VLIMIT_OPENFD,
+            "ANON": VLIMIT_ANON,
+            "SHMEM": VLIMIT_SHMEM}
+
+# add in the platform supported rlimits
+for entry in resource.__dict__.keys():
+    if entry.find("RLIMIT_")==0:
+        k = entry[len("RLIMIT_"):]
+        if not RLIMITS.has_key(k):
+            RLIMITS[k]=resource.__dict__[entry]
+        else:
+            print "WARNING: duplicate RLIMITS key %s" % k
 
 class NoSuchVServer(Exception): pass
 
