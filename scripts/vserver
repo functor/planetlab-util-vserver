@@ -173,6 +173,9 @@ if test -n "$allow_legacy"; then
     test -d "$VSERVER_DIR" -o ! -e "$__CONFDIR/$vserver.conf" || do_legacy=1
 
     test -z "$do_legacy" || {
+	if test "$cmd" = "convert"; then
+	    exec $__PKGLIBDIR/vserver.convert "$vserver"
+	fi
 	echo $"WARNING: can not find configuration, assuming legacy method" >&2
 	exec "$_VSERVER_LEGACY" "$@"
     }
@@ -281,6 +284,10 @@ case "$2" in
 	    msg $"Vserver '$vserver' is stopped"
 	    exit 3
 	fi
+	;;
+    (convert)
+	echo "Vserver '$vserver' is already converted"
+	exit 1
 	;;
     (*)
 	echo $"Usage: $0 <vserver> {start|stop|suexec|restart|condrestart|exec|enter|chkconfig|running|status|delete}" >&2

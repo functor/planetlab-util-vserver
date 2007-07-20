@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# $Id$
+# Copyright (C) 2007 The Trustees of Princeton University
+# 
+
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo $"Can not find util-vserver installation (the file '$UTIL_VSERVER_VARS' would be expected); aborting..." >&2
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+if test "$#" -ne 1; then
+    echo $"Usage: $0 <guest>" >&2
+    exit 1
+fi
+
+NAME="$1"
+if ! test -r "$__CONFDIR/$NAME.conf" -a -d "$__DEFAULT_VSERVERDIR/$NAME"; then
+    echo $"$NAME does not exist." >&2
+    exit 1
+fi
+
+. "$__CONFDIR/$NAME.conf"
+
+set -e
+
+# build configuration directory
+vuseradd "$NAME"
+
+# copy old settings
+function copy()
+{
+    test -z "$1" && return 0
+    echo "$1" > "$__CONFDIR/$NAME/$2"
+}
+
+copy "$VS_WHITELISTED"	whitelisted
+copy "$VS_DISK_MAX"	dlimits/0/space_total
+if test -n "$CPUSHARE" -a -z "$CPULIMIT"; then
+    CPULIMIT="$CPUSHARE"
+fi
+
+copy "$CPULIMIT"	sched/fill-rate2
+if test "$CPUGUARANTEED" -eq 1; then
+    copy "$CPULIMIT"	sched/fill-rate
+fi
+
+copy "$TASKLIMIT"	rlimits/nproc.hard
+copy "$MEMLIMIT"	rlimits/rss.hard
+for l in CPU RSS NPROC NOFILE MEMLOCK AS LOCKS SIGPENDING MSGQUEUE NSOCK OPENFD ANON SHMEM; do
+    for i in HARD SOFT MINIMUM; do
+	eval copy \"\$VS_${l}_${i}\" \"rlimits/`echo "${l}.${i}" | tr [A-Z] [a-z] | sed 's/minimum$/min/'`\"
+    done
+done
+
+copy "$S_CAPS"		bcapabilities
+
+exit 0
