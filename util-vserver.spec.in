@@ -71,7 +71,7 @@ Requires:		util-linux
 %package build
 Summary:		Tools which can be used to build vservers
 Group:			Applications/System
-Requires:		rpm wget binutils tar e2fsprogs
+Requires:		rpm wget tar
 Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
