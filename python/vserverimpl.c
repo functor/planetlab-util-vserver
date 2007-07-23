@@ -340,17 +340,6 @@ initvserverimpl(void)
   PyModule_AddIntConstant(mod, "DLIMIT_INF", (int)CDLIM_INFINITY);
   PyModule_AddIntConstant(mod, "VC_LIM_KEEP", (int)VC_LIM_KEEP);
 
-  PyModule_AddIntConstant(mod, "RLIMIT_CPU", (int)RLIMIT_CPU);
-  PyModule_AddIntConstant(mod, "RLIMIT_RSS", (int)RLIMIT_RSS);
-  PyModule_AddIntConstant(mod, "RLIMIT_NPROC", (int)RLIMIT_NPROC);
-  PyModule_AddIntConstant(mod, "RLIMIT_NOFILE", (int)RLIMIT_NOFILE);
-  PyModule_AddIntConstant(mod, "RLIMIT_MEMLOCK", (int)RLIMIT_MEMLOCK);
-  PyModule_AddIntConstant(mod, "RLIMIT_AS", (int)RLIMIT_AS);
-  PyModule_AddIntConstant(mod, "RLIMIT_LOCKS", (int)RLIMIT_LOCKS);
-
-  PyModule_AddIntConstant(mod, "RLIMIT_SIGPENDING", (int)RLIMIT_SIGPENDING);
-  PyModule_AddIntConstant(mod, "RLIMIT_MSGQUEUE", (int)RLIMIT_MSGQUEUE);
-
   PyModule_AddIntConstant(mod, "VLIMIT_NSOCK", (int)VLIMIT_NSOCK);
   PyModule_AddIntConstant(mod, "VLIMIT_OPENFD", (int)VLIMIT_OPENFD);
   PyModule_AddIntConstant(mod, "VLIMIT_ANON", (int)VLIMIT_ANON);
