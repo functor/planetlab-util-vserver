@@ -5,7 +5,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (C) 2004-2006 The Trustees of Princeton University
 #
-# $Id: vuseradd,v 1.31 2007/07/05 17:36:42 dhozac Exp $
+# $Id: vuseradd,v 1.28 2007/07/05 19:05:14 dhozac Exp $
 #
 
 : ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
@@ -113,7 +113,8 @@ if [ ! -d $__CONFDIR/$NAME ] ; then
     rm -rf $__DEFAULT_VSERVERDIR/$NAME
     # Move the guest back
     if [ "$HAS_VSERVERDIR" = 1 ] ; then
-	mv "$TMP" $__DEFAULT_VSERVERDIR/$NAME
+	mv "$TMP/$NAME" $__DEFAULT_VSERVERDIR/$NAME
+	rm -rf "$TMP"
     fi
 fi
 

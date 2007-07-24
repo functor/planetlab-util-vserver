@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.61 2007/07/18 14:50:49 dhozac Exp $
+#$Id: vserver.py,v 1.62 2007/07/20 19:45:35 dhozac Exp $
 
 import errno
 import fcntl
@@ -324,8 +324,9 @@ class VServer:
                          ([], filter_fn))[0]
         garbage += filter(os.path.isfile, map((LOCKDIR + "/").__add__,
                                               os.listdir(LOCKDIR)))
-        for f in garbage:
-            os.unlink(f)
+        if False:
+            for f in garbage:
+                os.unlink(f)
 
         # set the initial runlevel
         f = open(RUNDIR + "/utmp", "w")
