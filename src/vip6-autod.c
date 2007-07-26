@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: vip6-autod.c,v 1.2 2007/07/26 19:00:23 dhozac Exp $
  * Copyright (c) 2007 The Trustees of Princeton University
  * Author: Daniel Hokka Zakrisson <daniel@hozac.com>
  *
@@ -154,8 +154,8 @@ static void do_slices_autoconf(struct prefix_list *head)
 			continue;
 
 		nid = strtoul(de->d_name, NULL, 10);
-		addr.type = vcNET_IPV6;
-		addr.count = -1;
+		addr.type = vcNET_IPV6A;
+		addr.count = 0;
 		if (vc_net_remove(nid, &addr) == -1) {
 			perror("vc_net_remove");
 			continue;

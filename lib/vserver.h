@@ -604,6 +604,7 @@ extern "C" {
 
   typedef enum { vcNET_IPV4=1,      vcNET_IPV6=2,
 		 vcNET_IPV4B=0x101, vcNET_IPV6B=0x102,
+		 vcNET_IPV4A=0x201, vcNET_IPV6A=0x202,
 		 vcNET_ANY=~0 }		vc_net_nx_type;
 
   struct vc_net_nx {

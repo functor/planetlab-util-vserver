@@ -32,6 +32,7 @@
 #define NXA_TYPE_IPV6		2
 
 #define NXA_MOD_BCAST		(1<<8)
+#define NXA_MOD_ALL		(1<<9)
 
 #define NXA_TYPE_ANY		((uint16_t)-1)
 
