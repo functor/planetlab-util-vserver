@@ -82,7 +82,7 @@ sbin_PROGRAMS = src/exec-cd$(EXEEXT) src/lsxid$(EXEEXT) \
 	src/vuname$(EXEEXT) src/vsh$(EXEEXT) src/vwait$(EXEEXT) \
 	src/ncontext$(EXEEXT) src/nattribute$(EXEEXT) \
 	src/naddress$(EXEEXT) src/vdevmap$(EXEEXT) $(am__EXEEXT_11) \
-	$(am__EXEEXT_12)
+	$(am__EXEEXT_12) $(am__EXEEXT_13)
 noinst_PROGRAMS = tests/escaperoot$(EXEEXT) tests/forkbomb$(EXEEXT) \
 	tests/testipc$(EXEEXT) tests/testlimit$(EXEEXT) \
 	tests/testopenf$(EXEEXT) $(am__EXEEXT_6)
@@ -135,38 +135,39 @@ DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 @ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@am__append_3 = src/vhashify
 @ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_4 = src/vhashify
 @ENSC_HAVE_C99_COMPILER_TRUE@am__append_5 = src/vdlimit
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_6 = src/testsuite/hashcalc		\
+@ENSC_HAVE_LIBNL_TRUE@am__append_6 = src/vip6-autod
+@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_7 = src/testsuite/hashcalc		\
 @ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@					src/testsuite/hashcalc-plain
 
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_7 = src/testsuite/hashcalc-plain.sh		\
+@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_8 = src/testsuite/hashcalc-plain.sh		\
 @ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@					src/testsuite/hashcalc.sh
 
-@HAVE_XSLTP_TRUE@am__append_8 = $(doc_gen_DOCS)
-@HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@am__append_9 = $(doc_gen_DOCS)
-@HAVE_SYSV_INIT_TRUE@am__append_10 = $(sysv_conf_DTA)
-@HAVE_SYSV_INIT_TRUE@am__append_11 = $(sysv_src_SCRPTS) \
+@HAVE_XSLTP_TRUE@am__append_9 = $(doc_gen_DOCS)
+@HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@am__append_10 = $(doc_gen_DOCS)
+@HAVE_SYSV_INIT_TRUE@am__append_11 = $(sysv_conf_DTA)
+@HAVE_SYSV_INIT_TRUE@am__append_12 = $(sysv_src_SCRPTS) \
 @HAVE_SYSV_INIT_TRUE@			$(sysv_gen_SCRPTS)
 
-@ENSC_USE_GLIBC_TRUE@am__append_12 = $(LIBENSCVECTOR_GLIBC)
-@ENSC_USE_DIETLIBC_TRUE@am__append_13 = $(LIBENSCVECTOR_DIET)
-@USE_DIETLIBC_TRUE@am__append_14 = $(LIBINTERNAL_DIET)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_15 = lib_internal/testsuite/filecfg-ml \
+@ENSC_USE_GLIBC_TRUE@am__append_13 = $(LIBENSCVECTOR_GLIBC)
+@ENSC_USE_DIETLIBC_TRUE@am__append_14 = $(LIBENSCVECTOR_DIET)
+@USE_DIETLIBC_TRUE@am__append_15 = $(LIBINTERNAL_DIET)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_16 = lib_internal/testsuite/filecfg-ml \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/copy \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber-gnu \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus-gnu
 
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_16 = lib_internal/testsuite/filecfg-ml \
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_17 = lib_internal/testsuite/filecfg-ml \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/copy-check \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/isnumber-gnu \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/sigbus-gnu
 
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_17 = vserver-start/vserver.start.bin
 @ENSC_HAVE_C99_COMPILER_TRUE@am__append_18 = vserver-start/vserver.start.bin
-@HAVE_GENTOO_INIT_TRUE@am__append_19 = $(gentoo_src_SCRPTS)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_19 = vserver-start/vserver.start.bin
+@HAVE_GENTOO_INIT_TRUE@am__append_20 = $(gentoo_src_SCRPTS)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ensc_cflags.m4 \
@@ -797,6 +798,7 @@ am__EXEEXT_7 = src/vunify$(EXEEXT) src/vcopy$(EXEEXT) \
 pkglibPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 @ENSC_HAVE_CXX_COMPILER_TRUE@am__EXEEXT_11 = $(am__EXEEXT_1)
 @ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_12 = src/vdlimit$(EXEEXT)
+@ENSC_HAVE_LIBNL_TRUE@am__EXEEXT_13 = src/vip6-autod$(EXEEXT)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(legacy_PROGRAMS) $(noinst_PROGRAMS) $(pkglib_PROGRAMS) \
 	$(sbin_PROGRAMS)
@@ -1063,6 +1065,9 @@ src_vhashify_OBJECTS = $(am_src_vhashify_OBJECTS)
 @ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_9) \
 @ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_4) \
 @ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_11)
+am_src_vip6_autod_OBJECTS = src/vip6-autod.$(OBJEXT)
+src_vip6_autod_OBJECTS = $(am_src_vip6_autod_OBJECTS)
+src_vip6_autod_DEPENDENCIES = $(am__DEPENDENCIES_11)
 am_src_vkill_OBJECTS = src/src_vkill-vkill.$(OBJEXT)
 src_vkill_OBJECTS = $(am_src_vkill_OBJECTS)
 src_vkill_DEPENDENCIES = $(am__DEPENDENCIES_11)
@@ -1213,17 +1218,18 @@ SOURCES = $(nodist_lib_dietlibc_not_enabled_error_a_SOURCES) \
 	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
 	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
 	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
-	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
-	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
-	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
-	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
-	$(src_vsh_SOURCES) $(src_vshelper_sync_SOURCES) \
-	$(src_vsysctl_SOURCES) $(src_vuname_SOURCES) \
-	$(src_vunify_SOURCES) $(src_vwait_SOURCES) \
-	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
-	$(tests_getctx_SOURCES) $(tests_getinitpid_SOURCES) \
-	$(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) \
-	$(tests_testopenf_SOURCES) $(tests_vserver_info_SOURCES) \
+	$(src_vip6_autod_SOURCES) $(src_vkill_SOURCES) \
+	$(src_vlimit_SOURCES) $(src_vnamespace_SOURCES) \
+	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
+	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
+	$(src_vserver_stat_SOURCES) $(src_vsh_SOURCES) \
+	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
+	$(src_vuname_SOURCES) $(src_vunify_SOURCES) \
+	$(src_vwait_SOURCES) $(tests_escaperoot_SOURCES) \
+	$(tests_forkbomb_SOURCES) $(tests_getctx_SOURCES) \
+	$(tests_getinitpid_SOURCES) $(tests_testipc_SOURCES) \
+	$(tests_testlimit_SOURCES) $(tests_testopenf_SOURCES) \
+	$(tests_vserver_info_SOURCES) \
 	$(vserver_start_vserver_start_bin_SOURCES)
 DIST_SOURCES = $(am__lib_libvserver_a_SOURCES_DIST) \
 	$(am__lib_internal_libinternal_diet_a_SOURCES_DIST) \
@@ -1269,17 +1275,18 @@ DIST_SOURCES = $(am__lib_libvserver_a_SOURCES_DIST) \
 	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
 	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
 	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
-	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
-	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
-	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
-	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
-	$(src_vsh_SOURCES) $(src_vshelper_sync_SOURCES) \
-	$(src_vsysctl_SOURCES) $(src_vuname_SOURCES) \
-	$(src_vunify_SOURCES) $(src_vwait_SOURCES) \
-	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
-	$(tests_getctx_SOURCES) $(tests_getinitpid_SOURCES) \
-	$(tests_testipc_SOURCES) $(tests_testlimit_SOURCES) \
-	$(tests_testopenf_SOURCES) $(tests_vserver_info_SOURCES) \
+	$(src_vip6_autod_SOURCES) $(src_vkill_SOURCES) \
+	$(src_vlimit_SOURCES) $(src_vnamespace_SOURCES) \
+	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
+	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
+	$(src_vserver_stat_SOURCES) $(src_vsh_SOURCES) \
+	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
+	$(src_vuname_SOURCES) $(src_vunify_SOURCES) \
+	$(src_vwait_SOURCES) $(tests_escaperoot_SOURCES) \
+	$(tests_forkbomb_SOURCES) $(tests_getctx_SOURCES) \
+	$(tests_getinitpid_SOURCES) $(tests_testipc_SOURCES) \
+	$(tests_testlimit_SOURCES) $(tests_testopenf_SOURCES) \
+	$(tests_vserver_info_SOURCES) \
 	$(vserver_start_vserver_start_bin_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
 	html-recursive info-recursive install-data-recursive \
@@ -1356,6 +1363,8 @@ ENSC_HAVE_C99_COMPILER_FALSE = @ENSC_HAVE_C99_COMPILER_FALSE@
 ENSC_HAVE_C99_COMPILER_TRUE = @ENSC_HAVE_C99_COMPILER_TRUE@
 ENSC_HAVE_CXX_COMPILER_FALSE = @ENSC_HAVE_CXX_COMPILER_FALSE@
 ENSC_HAVE_CXX_COMPILER_TRUE = @ENSC_HAVE_CXX_COMPILER_TRUE@
+ENSC_HAVE_LIBNL_FALSE = @ENSC_HAVE_LIBNL_FALSE@
+ENSC_HAVE_LIBNL_TRUE = @ENSC_HAVE_LIBNL_TRUE@
 ENSC_PATHPROG_SED = @ENSC_PATHPROG_SED@
 ENSC_USE_DIETLIBC_FALSE = @ENSC_USE_DIETLIBC_FALSE@
 ENSC_USE_DIETLIBC_TRUE = @ENSC_USE_DIETLIBC_TRUE@
@@ -1552,7 +1561,7 @@ noinst_HEADERS = $(ENSC_VECTOR_HDRS) compat.h compat-c99.h \
 	lib_internal/util-perror.h lib_internal/util-safechdir.h \
 	lib_internal/util-unixsock.h lib_internal/string.hc
 noinst_LIBRARIES = $(ENSC_VECTOR_LIBS) $(LIBINTERNAL_GLIBC) \
-	$(am__append_14)
+	$(am__append_15)
 lib_LIBRARIES = $(am__append_2)
 lib_LTLIBRARIES = $(LIBVSERVER_GLIBC)
 pkglib_LTLIBRARIES = src/rpm-fake.la
@@ -1564,8 +1573,8 @@ legacy_SCRIPTS = $(scripts_legacy_src_SCRPTS) \
 sbin_SCRIPTS = $(scripts_sbin_src_PRGS) $(scripts_sbin_gen_PRGS) \
 	$(scripts_legacy_src_PRGS)
 noinst_DATA = $(contrib_gen_DTA)
-initrd_SCRIPTS = $(am__append_11) $(am__append_19)
-sysconf_DATA = $(am__append_10)
+initrd_SCRIPTS = $(am__append_12) $(am__append_20)
+sysconf_DATA = $(am__append_11)
 DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	ensc_fmt/lib_libvserver_a-% lib/testsuite/cflags \
 	lib/testsuite/personality lib/testsuite/fmt \
@@ -1583,7 +1592,7 @@ DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	src/vsysctl src/vclone $(am__append_3) $(tests_dietprogs) \
 	lib_internal/libinternal-diet.a \
 	lib_internal/testsuite/isnumber lib_internal/testsuite/sigbus \
-	$(am__append_17)
+	$(am__append_18)
 BUILT_SOURCES = pathconfig.h \
 			.fixups
 
@@ -1616,7 +1625,7 @@ TESTS = lib/testsuite/cflags lib/testsuite/personality \
 	$(src_testsuite_check_active_PRGS) \
 	$(src_testsuite_check_src_SCRPTS) \
 	$(src_testsuite_check_gen_SCRPTS) ensc_vector/testsuite/test1 \
-	ensc_vector/testsuite/test2 $(am__append_16)
+	ensc_vector/testsuite/test2 $(am__append_17)
 TESTS_ENVIRONMENT =  \
 	ensc_use_expensive_tests="$(ENSC_USE_EXPENSIVE_TESTS)" \
 	ensc_test_debug="$(TESTS_DEBUG)" \
@@ -1628,7 +1637,7 @@ AM_CPPFLAGS = -I $(top_srcdir)/lib -I $(top_srcdir)/ensc_wrappers \
 CLEANFILES = $(BUILT_SOURCES) .*.pathsubst.stamp */.*.pathsubst.stamp \
 	*/*/.*.pathsubst.stamp pathconfig.h .fixups lib/libvserver.la \
 	lib/libvserver.a lib/apidoc/.apidoc doc/*.raw.html* \
-	doc/*.html.tmp $(am__append_8) $(am__append_9) \
+	doc/*.html.tmp $(am__append_9) $(am__append_10) \
 	$(scripts_pkglib_gen_DTA) $(scripts_sbin_gen_PRGS) \
 	$(scripts_sbincfg_gen_DTA) $(scripts_legacy_gen_SCRPTS) \
 	$(sysv_gen_SCRPTS) $(contrib_gen_DTA) libensc_vector-diet.a \
@@ -1975,6 +1984,9 @@ src_vsysctl_LDFLAGS = $(VSERVER_LDFLGS)
 src_vclone_SOURCES = src/vclone.c
 src_vclone_LDADD = $(LIBINTERNAL) $(VSERVER_LDADDS)
 src_vclone_LDFLAGS = $(VSERVER_LDLFGS)
+src_vip6_autod_SOURCES = src/vip6-autod.c
+src_vip6_autod_LDADD = $(VSERVER_LDADDS) -lnl
+src_vip6_autod_LDFLAGS = $(VSERVER_LDFLGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_sbin_C99_X_PROGS = 
 @ENSC_HAVE_C99_COMPILER_TRUE@src_sbin_C99_X_PROGS = $(src_sbin_C99_PROGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_pkglib_C99_X_PROGS = 
@@ -1988,11 +2000,11 @@ src_testsuite_check_active_PRGS = src/testsuite/vunify-functest \
 					src/testsuite/chbind-test
 
 src_testsuite_check_passive_PRGS = src/testsuite/rpm-fake-test \
-	$(am__append_6)
+	$(am__append_7)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_testsuite_check_src_C99_SCRPTS = 
 @ENSC_HAVE_C99_COMPILER_TRUE@src_testsuite_check_src_C99_SCRPTS =  \
 @ENSC_HAVE_C99_COMPILER_TRUE@	src/testsuite/vunify-test.sh \
-@ENSC_HAVE_C99_COMPILER_TRUE@	$(am__append_7)
+@ENSC_HAVE_C99_COMPILER_TRUE@	$(am__append_8)
 src_testsuite_check_src_SCRPTS = $(src_testsuite_check_src_C99_SCRPTS)
 src_testsuite_check_gen_SCRPTS = 
 src_testsuite_rpm_fake_test_SOURCES = src/testsuite/rpm-fake-test.c
@@ -2080,7 +2092,8 @@ scripts_pkglib_src_SCRPTS = scripts/pkgmgmt \
 				scripts/vservers.grabinfo.sh \
 				scripts/vshelper \
 				scripts/vsysvwrapper \
-				scripts/vyum-worker
+				scripts/vyum-worker \
+				scripts/vserver.convert
 
 scripts_legacy_src_SCRPTS = scripts/legacy/save_s_context \
 				scripts/legacy/vserver \
@@ -2105,7 +2118,8 @@ scripts_sbin_src_PRGS = scripts/chbind \
 				scripts/vupdateworld \
 				scripts/vuseradd \
 				scripts/vuserdel \
-				scripts/vyum
+				scripts/vyum \
+				scripts/convert-vserver-configs
 
 scripts_sbin_gen_PRGS = 
 scripts_sbincfg_gen_DTA = 
@@ -2186,7 +2200,7 @@ libensc_vector_glibc_a_SOURCES = $(ENSC_VECTOR_SRCS)
 libensc_vector_glibc_a_CPPFLAGS = $(AM_CPPFLAGS)
 libensc_vector_diet_a_SOURCES = $(ENSC_VECTOR_SRCS)
 libensc_vector_diet_a_CPPFLAGS = $(AM_CPPFLAGS)
-ENSC_VECTOR_LIBS = $(am__append_12) $(am__append_13)
+ENSC_VECTOR_LIBS = $(am__append_13) $(am__append_14)
 @ENSC_USE_GLIBC_FALSE@LIBENSCVECTOR_GLIBC = lib-glibc-not-enabled-error.a
 @ENSC_USE_GLIBC_TRUE@LIBENSCVECTOR_GLIBC = libensc_vector-glibc.a
 @ENSC_USE_DIETLIBC_FALSE@LIBENSCVECTOR_DIET = lib-dietlibc-not-enabled-error.a
@@ -3732,6 +3746,11 @@ src/vhashify.$(OBJEXT): src/$(am__dirstamp) \
 src/vhashify$(EXEEXT): $(src_vhashify_OBJECTS) $(src_vhashify_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vhashify$(EXEEXT)
 	$(LINK) $(src_vhashify_LDFLAGS) $(src_vhashify_OBJECTS) $(src_vhashify_LDADD) $(LIBS)
+src/vip6-autod.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vip6-autod$(EXEEXT): $(src_vip6_autod_OBJECTS) $(src_vip6_autod_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vip6-autod$(EXEEXT)
+	$(LINK) $(src_vip6_autod_LDFLAGS) $(src_vip6_autod_OBJECTS) $(src_vip6_autod_LDADD) $(LIBS)
 src/src_vkill-vkill.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vkill$(EXEEXT): $(src_vkill_OBJECTS) $(src_vkill_DEPENDENCIES) src/$(am__dirstamp)
@@ -4490,6 +4509,7 @@ mostlyclean-compile:
 	-rm -f src/vdlimit.$(OBJEXT)
 	-rm -f src/vdu.$(OBJEXT)
 	-rm -f src/vhashify.$(OBJEXT)
+	-rm -f src/vip6-autod.$(OBJEXT)
 	-rm -f src/vlimit.$(OBJEXT)
 	-rm -f src/vlogin.$(OBJEXT)
 	-rm -f src/vnamespace.$(OBJEXT)
@@ -4891,6 +4911,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vhashify.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vip6-autod.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vlogin.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vnamespace.Po@am__quote@

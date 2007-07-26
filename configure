@@ -465,7 +465,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os GPG_KEY CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LN_S PYTHON PYTHON_VERSION PYTHON_PREFIX PYTHON_EXEC_PREFIX PYTHON_PLATFORM pythondir pkgpythondir pyexecdir pkgpyexecdir ENSC_HAVE_CXX_COMPILER_TRUE ENSC_HAVE_CXX_COMPILER_FALSE ENSC_HAVE_C99_COMPILER_TRUE ENSC_HAVE_C99_COMPILER_FALSE ENSC_PATHPROG_SED CAT CHOWN CMP CP DIRNAME EGREP ENV GREP LN MKDIR MKFIFO MKTEMP MOUNT MV NICE PS RM RMDIR SED SH TAC TAR TOUCH TTY UMOUNT WC IP IPTABLES MODPROBE NAMEIF NOHUP RMMOD VCONFIG WGET FILE GZIP BZIP2 CPIO RESTORE RSYNC DOXYGEN XSLTP XSLTPROC HAVE_XSLTP_TRUE HAVE_XSLTP_FALSE HAVE_XSLTPROC_TRUE HAVE_XSLTPROC_FALSE LIB_DEBUG_CPPFLAGS ENSC_USE_EXPENSIVE_TESTS initrddir RELEASE_CPPFLAGS CPP DIET DIETFLAGS USE_DIETLIBC_TRUE USE_DIETLIBC_FALSE USE_DIETLIBC_COMPAT_TRUE USE_DIETLIBC_COMPAT_FALSE ENSC_USE_DIETLIBC_TRUE ENSC_USE_DIETLIBC_FALSE ENSC_USE_GLIBC_TRUE ENSC_USE_GLIBC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL vserverdir SVN2CL HAVE_SVN2CL_TRUE HAVE_SVN2CL_FALSE ENSC_ENABLE_INTERNAL_HEADERS_TRUE ENSC_ENABLE_INTERNAL_HEADERS_FALSE ENSC_HAVE_BEECRYPT_TRUE ENSC_HAVE_BEECRYPT_FALSE ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE HAVE_GENTOO_INIT_TRUE HAVE_GENTOO_INIT_FALSE HAVE_SYSV_INIT_TRUE HAVE_SYSV_INIT_FALSE LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM mkdir_p AWK SET_MAKE am__leading_dot AMTAR am__tar am__untar MAINTAINER_MODE_TRUE MAINTAINER_MODE_FALSE MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os GPG_KEY CXX CXXFLAGS LDFLAGS CPPFLAGS ac_ct_CXX EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE CC CFLAGS ac_ct_CC CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE LN_S PYTHON PYTHON_VERSION PYTHON_PREFIX PYTHON_EXEC_PREFIX PYTHON_PLATFORM pythondir pkgpythondir pyexecdir pkgpyexecdir ENSC_HAVE_CXX_COMPILER_TRUE ENSC_HAVE_CXX_COMPILER_FALSE ENSC_HAVE_C99_COMPILER_TRUE ENSC_HAVE_C99_COMPILER_FALSE ENSC_PATHPROG_SED CAT CHOWN CMP CP DIRNAME EGREP ENV GREP LN MKDIR MKFIFO MKTEMP MOUNT MV NICE PS RM RMDIR SED SH TAC TAR TOUCH TTY UMOUNT WC IP IPTABLES MODPROBE NAMEIF NOHUP RMMOD VCONFIG WGET FILE GZIP BZIP2 CPIO RESTORE RSYNC DOXYGEN XSLTP XSLTPROC HAVE_XSLTP_TRUE HAVE_XSLTP_FALSE HAVE_XSLTPROC_TRUE HAVE_XSLTPROC_FALSE LIB_DEBUG_CPPFLAGS ENSC_USE_EXPENSIVE_TESTS initrddir RELEASE_CPPFLAGS CPP DIET DIETFLAGS USE_DIETLIBC_TRUE USE_DIETLIBC_FALSE USE_DIETLIBC_COMPAT_TRUE USE_DIETLIBC_COMPAT_FALSE ENSC_USE_DIETLIBC_TRUE ENSC_USE_DIETLIBC_FALSE ENSC_USE_GLIBC_TRUE ENSC_USE_GLIBC_FALSE ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL vserverdir SVN2CL HAVE_SVN2CL_TRUE HAVE_SVN2CL_FALSE ENSC_ENABLE_INTERNAL_HEADERS_TRUE ENSC_ENABLE_INTERNAL_HEADERS_FALSE ENSC_HAVE_BEECRYPT_TRUE ENSC_HAVE_BEECRYPT_FALSE ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE ENSC_HAVE_LIBNL_TRUE ENSC_HAVE_LIBNL_FALSE HAVE_GENTOO_INIT_TRUE HAVE_GENTOO_INIT_FALSE HAVE_SYSV_INIT_TRUE HAVE_SYSV_INIT_FALSE LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -27659,6 +27659,263 @@ fi
 
 
 
+ensc_have_libnl=yes
+
+if test x"$ensc_have_libnl" = xyes; then
+
+
+for ac_header in netlink/netlink.h netlink/route/addr.h
+do
+as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+else
+  # Is the header compilable?
+echo "$as_me:$LINENO: checking $ac_header usability" >&5
+echo $ECHO_N "checking $ac_header usability... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+$ac_includes_default
+#include <$ac_header>
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_header_compiler=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_header_compiler=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_compiler" >&5
+echo "${ECHO_T}$ac_header_compiler" >&6
+
+# Is the header present?
+echo "$as_me:$LINENO: checking $ac_header presence" >&5
+echo $ECHO_N "checking $ac_header presence... $ECHO_C" >&6
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <$ac_header>
+_ACEOF
+if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
+  (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } >/dev/null; then
+  if test -s conftest.err; then
+    ac_cpp_err=$ac_c_preproc_warn_flag
+    ac_cpp_err=$ac_cpp_err$ac_c_werror_flag
+  else
+    ac_cpp_err=
+  fi
+else
+  ac_cpp_err=yes
+fi
+if test -z "$ac_cpp_err"; then
+  ac_header_preproc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+  ac_header_preproc=no
+fi
+rm -f conftest.err conftest.$ac_ext
+echo "$as_me:$LINENO: result: $ac_header_preproc" >&5
+echo "${ECHO_T}$ac_header_preproc" >&6
+
+# So?  What about this header?
+case $ac_header_compiler:$ac_header_preproc:$ac_c_preproc_warn_flag in
+  yes:no: )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&5
+echo "$as_me: WARNING: $ac_header: accepted by the compiler, rejected by the preprocessor!" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the compiler's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the compiler's result" >&2;}
+    ac_header_preproc=yes
+    ;;
+  no:yes:* )
+    { echo "$as_me:$LINENO: WARNING: $ac_header: present but cannot be compiled" >&5
+echo "$as_me: WARNING: $ac_header: present but cannot be compiled" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     check for missing prerequisite headers?" >&5
+echo "$as_me: WARNING: $ac_header:     check for missing prerequisite headers?" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: see the Autoconf documentation" >&5
+echo "$as_me: WARNING: $ac_header: see the Autoconf documentation" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&5
+echo "$as_me: WARNING: $ac_header:     section \"Present But Cannot Be Compiled\"" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: proceeding with the preprocessor's result" >&5
+echo "$as_me: WARNING: $ac_header: proceeding with the preprocessor's result" >&2;}
+    { echo "$as_me:$LINENO: WARNING: $ac_header: in the future, the compiler will take precedence" >&5
+echo "$as_me: WARNING: $ac_header: in the future, the compiler will take precedence" >&2;}
+    (
+      cat <<\_ASBOX
+## --------------------------------------------- ##
+## Report this to vserver@list.linux-vserver.org ##
+## --------------------------------------------- ##
+_ASBOX
+    ) |
+      sed "s/^/$as_me: WARNING:     /" >&2
+    ;;
+esac
+echo "$as_me:$LINENO: checking for $ac_header" >&5
+echo $ECHO_N "checking for $ac_header... $ECHO_C" >&6
+if eval "test \"\${$as_ac_Header+set}\" = set"; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  eval "$as_ac_Header=\$ac_header_preproc"
+fi
+echo "$as_me:$LINENO: result: `eval echo '${'$as_ac_Header'}'`" >&5
+echo "${ECHO_T}`eval echo '${'$as_ac_Header'}'`" >&6
+
+fi
+if test `eval echo '${'$as_ac_Header'}'` = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define `echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+  :
+else
+   ensc_have_libnl=no
+fi
+
+done
+
+fi
+
+if test x"$ensc_have_libnl" = xyes; then
+	echo "$as_me:$LINENO: checking for rtnl_addr_alloc in -lnl" >&5
+echo $ECHO_N "checking for rtnl_addr_alloc in -lnl... $ECHO_C" >&6
+if test "${ac_cv_lib_nl_rtnl_addr_alloc+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lnl  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char rtnl_addr_alloc ();
+int
+main ()
+{
+rtnl_addr_alloc ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_nl_rtnl_addr_alloc=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_nl_rtnl_addr_alloc=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_nl_rtnl_addr_alloc" >&5
+echo "${ECHO_T}$ac_cv_lib_nl_rtnl_addr_alloc" >&6
+if test $ac_cv_lib_nl_rtnl_addr_alloc = yes; then
+   :
+else
+   ensc_have_libnl=no
+fi
+
+fi
+
+if test x"$ensc_have_libnl" != xyes; then
+	{ echo "$as_me:$LINENO: WARNING:
+****
+**** 'libnl' could not be found;
+**** this will disable the build of 'vip6-autod'
+****" >&5
+echo "$as_me: WARNING:
+****
+**** 'libnl' could not be found;
+**** this will disable the build of 'vip6-autod'
+****" >&2;}
+fi
+
+
+
+if test x"$ensc_have_libnl" = xyes; then
+  ENSC_HAVE_LIBNL_TRUE=
+  ENSC_HAVE_LIBNL_FALSE='#'
+else
+  ENSC_HAVE_LIBNL_TRUE='#'
+  ENSC_HAVE_LIBNL_FALSE=
+fi
+
+
+
+
 echo "$as_me:$LINENO: checking for host initscripts" >&5
 echo $ECHO_N "checking for host initscripts... $ECHO_C" >&6
 
@@ -27979,6 +28236,13 @@ if test -z "${ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE}" && test -z "${ENSC_CAN_BEEC
   { { echo "$as_me:$LINENO: error: conditional \"ENSC_CAN_BEECRYPT_WITH_DIETLIBC\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5
 echo "$as_me: error: conditional \"ENSC_CAN_BEECRYPT_WITH_DIETLIBC\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+if test -z "${ENSC_HAVE_LIBNL_TRUE}" && test -z "${ENSC_HAVE_LIBNL_FALSE}"; then
+  { { echo "$as_me:$LINENO: error: conditional \"ENSC_HAVE_LIBNL\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+echo "$as_me: error: conditional \"ENSC_HAVE_LIBNL\" was never defined.
 Usually this means the macro was only invoked conditionally." >&2;}
    { (exit 1); exit 1; }; }
 fi
@@ -28711,6 +28975,8 @@ s,@ENSC_HAVE_BEECRYPT_TRUE@,$ENSC_HAVE_BEECRYPT_TRUE,;t t
 s,@ENSC_HAVE_BEECRYPT_FALSE@,$ENSC_HAVE_BEECRYPT_FALSE,;t t
 s,@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@,$ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE,;t t
 s,@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@,$ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE,;t t
+s,@ENSC_HAVE_LIBNL_TRUE@,$ENSC_HAVE_LIBNL_TRUE,;t t
+s,@ENSC_HAVE_LIBNL_FALSE@,$ENSC_HAVE_LIBNL_FALSE,;t t
 s,@HAVE_GENTOO_INIT_TRUE@,$HAVE_GENTOO_INIT_TRUE,;t t
 s,@HAVE_GENTOO_INIT_FALSE@,$HAVE_GENTOO_INIT_FALSE,;t t
 s,@HAVE_SYSV_INIT_TRUE@,$HAVE_SYSV_INIT_TRUE,;t t

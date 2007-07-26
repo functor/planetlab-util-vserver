@@ -148,6 +148,12 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
+/* Define to 1 if you have the <netlink/netlink.h> header file. */
+#undef HAVE_NETLINK_NETLINK_H
+
+/* Define to 1 if you have the <netlink/route/addr.h> header file. */
+#undef HAVE_NETLINK_ROUTE_ADDR_H
+
 /* Define to 1 if the system has the type `nid_t'. */
 #undef HAVE_NID_T
 

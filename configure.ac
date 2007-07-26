@@ -336,6 +336,38 @@ dnl beecrypt stuff ends here}
 dnl
 dnl ########################
 
+dnl ########################
+dnl
+dnl {check for libnl
+dnl
+
+ensc_have_libnl=yes
+
+if test x"$ensc_have_libnl" = xyes; then
+	AC_CHECK_HEADERS([netlink/netlink.h netlink/route/addr.h], [ : ],
+			 [ ensc_have_libnl=no ])
+fi
+
+if test x"$ensc_have_libnl" = xyes; then
+	AC_CHECK_LIB(nl, rtnl_addr_alloc, [ : ],
+		     [ ensc_have_libnl=no ])
+fi
+
+if test x"$ensc_have_libnl" != xyes; then
+	AC_MSG_WARN([
+****
+**** 'libnl' could not be found;
+**** this will disable the build of 'vip6-autod'
+****])
+fi
+
+AM_CONDITIONAL(ENSC_HAVE_LIBNL, test x"$ensc_have_libnl" = xyes)
+
+dnl
+dnl libnl stuff ends here}
+dnl
+dnl #######################
+
 
 dnl Check what distro this is, use Gentoo initscripts if appropriate
 AC_MSG_CHECKING([for host initscripts])

@@ -1,3 +1,12 @@
+/*
+ * $Id$
+ * Copyright (c) 2007 The Trustees of Princeton University
+ * Author: Daniel Hokka Zakrisson <daniel@hozac.com>
+ *
+ * Licensed under the terms of the GNU General Public License
+ * version 2 or later.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -11,16 +20,14 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <errno.h>
+#include <signal.h>
 
 #include <asm/types.h>
-#include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-/*XXX #include <linux/ipv6.h>*/
-struct in6_ifreq {
-	struct in6_addr	ifr6_addr;
-	__u32		ifr6_prefixlen;
-	int		ifr6_ifindex;
-};
+/* not defined for gcc -ansi */
+typedef uint64_t __u64;
+typedef int64_t __s64;
+#include <netlink/netlink.h>
+#include <netlink/route/addr.h>
 
 typedef unsigned int nid_t;
 typedef unsigned int xid_t;
@@ -28,6 +35,10 @@ typedef unsigned int xid_t;
 
 #define HAS_ADDRESS	0x01
 #define HAS_PREFIX	0x02
+struct nid_list {
+	nid_t nid;
+	struct nid_list *next;
+};
 struct prefix_list {
 	struct prefix_list *prev;
 	struct prefix_list *next;
@@ -43,7 +54,10 @@ struct prefix_list {
 		int prefix_len;
 		time_t valid_until;
 	} address;
+	struct nid_list *nids;
 };
+
+struct nl_handle *handle;
 
 /* from linux/include/net/ipv6.h */
 static inline int ipv6_prefix_equal(struct in6_addr *prefix,
@@ -67,25 +81,62 @@ static inline int ipv6_prefix_equal(struct in6_addr *prefix,
 
 static int add_address_to_interface(int ifindex, struct in6_addr *address, int prefix)
 {
-	struct in6_ifreq ireq;
-	int sock;
+	int err = -1;
+	struct rtnl_addr *rta;
+	struct nl_addr *nl;
 
-	ireq.ifr6_ifindex = ifindex;
-	ireq.ifr6_prefixlen = prefix;
-	memcpy(&ireq.ifr6_addr, address, sizeof(*address));
+	nl = nl_addr_build(AF_INET6, address, sizeof(struct in6_addr));
+	rta = rtnl_addr_alloc();
 
-	/* XXX should use netlink */
-	sock = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
-	if (sock == -1)
+	rtnl_addr_set_family(rta, AF_INET6);
+	rtnl_addr_set_ifindex(rta, ifindex);
+	rtnl_addr_set_local(rta, nl);
+	rtnl_addr_set_prefixlen(rta, prefix);
+
+	if (rtnl_addr_add(handle, rta, NLM_F_REPLACE) != -1 || errno == EEXIST)
+		err = 0;
+
+	rtnl_addr_free(rta);
+	nl_addr_destroy(nl);
+	return err;
+}
+
+static int add_nid_to_list(struct prefix_list *i, nid_t nid)
+{
+	struct nid_list *n;
+	n = calloc(1, sizeof(struct nid_list));
+	if (!n)
 		return -1;
-
-	if (ioctl(sock, SIOCSIFADDR, &ireq) == -1 && errno != EEXIST) {
-		close(sock);
-		return -1;
-	}
-
-	close(sock);
+	n->nid = nid;
+	n->next = i->nids;
+	i->nids = n;
 	return 0;
+}
+
+static void cleanup_prefix(struct prefix_list *i)
+{
+	struct nid_list *n;
+
+	for (n = i->nids; n; n = n->next) {
+		struct rtnl_addr *rta;
+		struct nl_addr *nl;
+		struct in6_addr a;
+
+		memcpy(&a, &i->address.addr, sizeof(a));
+		rta = rtnl_addr_alloc();
+		nl = nl_addr_build(AF_INET6, &a, sizeof(a));
+
+		rtnl_addr_set_family(rta, AF_INET6);
+		rtnl_addr_set_ifindex(rta, i->ifindex);
+		rtnl_addr_set_local(rta, nl);
+		rtnl_addr_set_prefixlen(rta, i->address.prefix_len);
+
+		/* ignore errors */
+		rtnl_addr_delete(handle, rta, 0);
+
+		nl_addr_destroy(nl);
+		rtnl_addr_free(rta);
+	}
 }
 
 static void do_slices_autoconf(struct prefix_list *head)
@@ -94,7 +145,7 @@ static void do_slices_autoconf(struct prefix_list *head)
 	struct dirent *de;
 	nid_t nid;
 	struct vc_net_nx addr;
-	struct prefix_list *i, *expired = NULL;
+	struct prefix_list *i;
 
 	if ((dp = opendir("/proc/virtnet")) == NULL)
 		return;
@@ -105,19 +156,28 @@ static void do_slices_autoconf(struct prefix_list *head)
 		nid = strtoul(de->d_name, NULL, 10);
 		addr.type = vcNET_IPV6;
 		addr.count = -1;
-		if (vc_net_remove(nid, &addr) == -1)
+		if (vc_net_remove(nid, &addr) == -1) {
+			perror("vc_net_remove");
 			continue;
+		}
 
 		for (i = head->next; i;) {
 			/* expired */
 			if (i->mask & HAS_PREFIX && i->prefix.valid_until < time(NULL)) {
 				struct prefix_list *tmp;
+				char buf[64];
+
+				inet_ntop(AF_INET6, &i->address.addr, buf, sizeof(buf));
+				printf("Address %s timed out.\n", buf);
+
 				if (i->next)
 					i->next->prev = i->prev;
 				if (i->prev)
 					i->prev->next = i->next;
-				
 				tmp = i->next;
+
+				cleanup_prefix(i);
+
 				free(i);
 				i = tmp;
 				continue;
@@ -138,6 +198,10 @@ static void do_slices_autoconf(struct prefix_list *head)
 				perror("add_address_to_interface");
 				exit(1);
 			}
+			if (add_nid_to_list(i, nid) == -1) {
+				perror("add_nid_to_list");
+				exit(1);
+			}
 next:
 			i = i->next;
 		}
@@ -150,6 +214,9 @@ static int add_prefix(struct prefix_list *head, struct prefixmsg *msg,
 {
 	struct prefix_list *i = head;
 	if (!msg || !prefix || !cache)
+		return -1;
+	/* XXX IF_PREFIX_AUTOCONF == 0x02 */
+	if (!(msg->prefix_flags & 0x02))
 		return -1;
 
 	do {
@@ -187,7 +254,7 @@ static inline int add_address(struct prefix_list *head, struct ifaddrmsg *msg,
 		return -1;
 
 	if (address->s6_addr[11] != 0xFF || address->s6_addr[12] != 0xFE)
-		return 0;
+		return -1;
 
 	do {
 		if (i->next != NULL)
@@ -215,83 +282,111 @@ static inline int add_address(struct prefix_list *head, struct ifaddrmsg *msg,
 	return 1;
 }
 
+static struct nla_policy addr_policy[IFA_MAX+1] = {
+	[IFA_ADDRESS]	= { .minlen = sizeof(struct in6_addr) },
+	[IFA_LABEL]	= { .type = NLA_STRING,
+			    .maxlen = IFNAMSIZ },
+	[IFA_CACHEINFO]	= { .minlen = sizeof(struct ifa_cacheinfo) },
+};
+static struct nla_policy prefix_policy[PREFIX_MAX+1] = {
+	[PREFIX_ADDRESS]   = { .minlen = sizeof(struct in6_addr) },
+	[PREFIX_CACHEINFO] = { .minlen = sizeof(struct prefix_cacheinfo) },
+};
+int handle_valid_msg(struct nl_msg *msg, void *arg)
+{
+	struct nlmsghdr *nlh = nlmsg_hdr(msg);
+	int ret = -1;
+	char *payload;
+	struct sockaddr_nl *source = nlmsg_get_src(msg);
+
+	payload = nlmsg_data(nlh);
+	if (source->nl_groups == RTMGRP_IPV6_PREFIX) {
+		struct prefixmsg *prefixmsg;
+		struct in6_addr *prefix = NULL;
+		struct prefix_cacheinfo *cacheinfo = NULL;
+		struct nlattr *tb[PREFIX_MAX+1];
+
+		if (nlmsg_parse(nlh, sizeof(struct prefixmsg), tb, PREFIX_MAX, prefix_policy) < 0) {
+			printf("Failed to parse prefixmsg.\n");
+			return -1;
+		}
+
+		prefixmsg = (struct prefixmsg *) payload;
+		if (tb[PREFIX_ADDRESS])
+			prefix = nl_data_get(nla_get_data(tb[PREFIX_ADDRESS]));
+		if (tb[PREFIX_CACHEINFO])
+			cacheinfo = nl_data_get(nla_get_data(tb[PREFIX_CACHEINFO]));
+		ret = add_prefix(arg, prefixmsg, prefix, cacheinfo);
+	}	
+	else if (source->nl_groups == RTMGRP_IPV6_IFADDR) {
+		struct ifaddrmsg *ifaddrmsg;
+		struct in6_addr *address = NULL;
+		struct ifa_cacheinfo *cacheinfo = NULL;
+		struct nlattr *tb[IFA_MAX+1];
+
+		if (nlmsg_parse(nlh, sizeof(struct ifaddrmsg), tb, IFA_MAX, addr_policy) < 0) {
+			printf("Failed to parse ifaddrmsg.\n");
+			return -1;
+		}
+
+		ifaddrmsg = (struct ifaddrmsg *) payload;
+		if (tb[IFA_ADDRESS])
+			address = nl_data_get(nla_get_data(tb[IFA_ADDRESS]));
+		if (tb[IFA_CACHEINFO])
+			cacheinfo = nl_data_get(nla_get_data(tb[IFA_CACHEINFO]));
+		ret = add_address(arg, ifaddrmsg, address, cacheinfo);
+	}
+	if (ret >= 0)
+		do_slices_autoconf(arg);
+
+	return 0;
+}
+
+int handle_error_msg(struct sockaddr_nl *source, struct nlmsgerr *err,
+		     void *arg)
+{
+	perror("Got an error");
+	return 0;
+}
+
+int handle_no_op(struct nl_msg *msg, void *arg)
+{
+	return 0;
+}
+
+/* only for access in the signal handler */
+struct prefix_list head;
+void signal_handler(int signal)
+{
+	switch (signal) {
+	case SIGUSR1:
+		do_slices_autoconf(&head);
+		break;
+	}
+}
+
 int main(int argc, char *argv[])
 {
-	int sock;
-	struct sockaddr_nl sa;
-	struct prefix_list head = { .prev = NULL, .next = NULL };
+	struct nl_cb *cbs;
 
-	sock = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
-	if (sock == -1) {
-		perror("socket()");
+	head.prev = head.next = NULL;
+	signal(SIGUSR1, signal_handler);
+
+	handle = nl_handle_alloc_nondefault(NL_CB_VERBOSE);
+	cbs = nl_handle_get_cb(handle);
+	nl_cb_set(cbs, NL_CB_VALID, NL_CB_CUSTOM, handle_valid_msg, &head);
+	nl_cb_set(cbs, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, handle_no_op, NULL);
+	nl_cb_err(cbs, NL_CB_CUSTOM, handle_error_msg, &head);
+	nl_disable_sequence_check(handle);
+
+	nl_join_groups(handle, RTMGRP_IPV6_PREFIX|RTMGRP_IPV6_IFADDR);
+	if (nl_connect(handle, NETLINK_ROUTE) == -1) {
+		perror("nl_connect");
 		exit(1);
 	}
-	sa.nl_family = AF_NETLINK;
-	sa.nl_groups = RTMGRP_IPV6_PREFIX|RTMGRP_IPV6_IFADDR;
-	if (bind(sock, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
-		perror("bind()");
-		exit(1);
-	}
 
-	while (1) {
-		char buf[4000], *payload;
-		struct nlmsghdr *nlh;
-		ssize_t len, this_len;
-		socklen_t socklen = sizeof(sa);
+	while (nl_recvmsgs(handle, cbs) > 0);
 
-		if ((len = recvfrom(sock, buf, sizeof(buf), 0, 
-				    (struct sockaddr *) &sa, &socklen)) <= 0)
-			break;
-		for (nlh = (struct nlmsghdr *) buf; NLMSG_OK(nlh, len); nlh = NLMSG_NEXT(nlh, len)) {
-			struct nlattr *nla;
-
-			if (nlh->nlmsg_type == NLMSG_DONE)
-				break;
-			else if (nlh->nlmsg_type == NLMSG_ERROR)
-				break;
-
-			this_len = NLMSG_ALIGN((nlh)->nlmsg_len) - NLMSG_LENGTH(0);
-			payload = NLMSG_DATA(nlh);
-			if (sa.nl_groups == RTMGRP_IPV6_PREFIX) {
-				struct prefixmsg *prefixmsg;
-				struct in6_addr *prefix;
-				struct prefix_cacheinfo *cacheinfo;
-
-				prefixmsg = (struct prefixmsg *) payload;
-				prefix = NULL;
-				cacheinfo = NULL;
-				for (nla = (struct nlattr *)(payload + sizeof(*prefixmsg)); nla < payload + this_len; nla = (char *) nla + nla->nla_len) {
-					if (nla->nla_type == PREFIX_ADDRESS)
-						prefix = (struct in6_addr *)(((char *) nla) + sizeof(*nla));
-					else if (nla->nla_type == PREFIX_CACHEINFO)
-						cacheinfo = (struct prefix_cacheinfo *)(((char *) nla) + sizeof(*nla));
-				}
-				if (add_prefix(&head, prefixmsg, prefix, cacheinfo) == -1) {
-					printf("Adding prefix failed!\n");
-				}
-			}
-			else if (sa.nl_groups == RTMGRP_IPV6_IFADDR) {
-				struct ifaddrmsg *ifaddrmsg;
-				struct in6_addr *address;
-				struct ifa_cacheinfo *cacheinfo;
-
-				ifaddrmsg = (struct ifaddrmsg *) payload;
-				address = NULL;
-				cacheinfo = NULL;
-				for (nla = (struct nlattr *)(payload + sizeof(*ifaddrmsg)); nla < payload + this_len; nla = (char *) nla + nla->nla_len) {
-					if (nla->nla_type == IFA_ADDRESS)
-						address = (struct in6_addr *)(((char *) nla) + sizeof(*nla));
-					else if (nla->nla_type == IFA_CACHEINFO)
-						cacheinfo = (struct ifa_cacheinfo *)(((char *) nla) + sizeof(*nla));
-				}
-				if (add_address(&head, ifaddrmsg, address, cacheinfo) == -1) {
-					printf("Adding address failed!\n");
-				}
-			}
-		}
-		do_slices_autoconf(&head);
-	}
-
-	close(sock);
+	nl_close(handle);
 	return 0;
 }
