@@ -67,14 +67,6 @@ create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
   if (vc_set_nflags(ctx, &vc_nf))
     return -1;
 
-  /* XXX: Allow access to all IPv4 addresses (for now) */
-  vc_net.type = vcNET_IPV4;
-  vc_net.count = 1;
-  vc_net.ip[0] = 0;
-  vc_net.mask[0] = 0;
-  if (vc_net_add(ctx, &vc_net) == -1)
-    return -1;
-
 process:
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
