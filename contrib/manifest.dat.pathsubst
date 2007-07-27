@@ -108,7 +108,7 @@ core   @SBINDIR@/vdlimit
 base   @SBINDIR@/vdu
 build  @SBINDIR@/vemerge
 build  @SBINDIR@/vesync
-@ENSC_HAVE_LIBNL@core   @SBINDIR@/vip6-autod
+@ENSC_HAVE_LIBNL_TRUE@core   @SBINDIR@/vip6-autod
 core   @SBINDIR@/vkill
 core   @SBINDIR@/vlimit
 core   @SBINDIR@/vnamespace
