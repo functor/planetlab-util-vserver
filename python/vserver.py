@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.62 2007/07/20 19:45:35 dhozac Exp $
+#$Id: vserver.py,v 1.63 2007/07/24 17:22:37 dhozac Exp $
 
 import errno
 import fcntl
@@ -180,6 +180,33 @@ class VServer:
  
     def get_capabilities_config(self):
         return self.config.get('bcapabilities', '')
+
+    def set_ipaddresses(self, addresses):
+        vserverimpl.netremove(self.ctx, "all")
+        for a in addresses.split(","):
+            vserverimpl.netadd(self.ctx, a)
+
+    def set_ipaddresses_config(self, addresses):
+        i = 0
+        for a in addresses.split(","):
+            self.config.set("interfaces/%d/ip" % i, a)
+            i += 1
+        self.set_ipaddresses(addresses)
+
+    def get_ipaddresses_config(self):
+        i = 0
+        ret = []
+        while True:
+            r = self.config.get("interfaces/%d/ip" % i, '')
+            if r == '':
+                break
+            ret += [r]
+            i += 1
+        return ",".join(ret)
+
+    def get_ipaddresses(self):
+        # No clean way to do this right now.
+        return None
 
     def __do_chroot(self):
 

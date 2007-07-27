@@ -39,6 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "config.h"
 #include "pathconfig.h"
@@ -368,6 +370,79 @@ vserver_bcaps2text(PyObject *self, PyObject *args)
   return list;
 }
 
+static inline int
+convertAddress(const char *str, vc_net_nx_type *type, void *dst)
+{
+  int   ret;
+  if (type) *type = vcNET_IPV4;
+  ret = inet_pton(AF_INET, str, dst);
+  if (ret==0) {
+    if (type) *type = vcNET_IPV6;
+    ret = inet_pton(AF_INET6, str, dst);
+  }
+  return ret > 0 ? 0 : -1;
+}
+
+/* XXX These two functions are really similar */
+static PyObject *
+vserver_net_add(PyObject *self, PyObject *args)
+{
+  struct vc_net_nx addr;
+  nid_t nid;
+  const char *ip;
+
+  if (!PyArg_ParseTuple(args, "Is", &nid, &ip))
+    return NULL;
+
+  if (convertAddress(ip, &addr.type, &addr.ip) == -1)
+    return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
+
+  switch (addr.type) {
+  case vcNET_IPV4:	addr.mask[0] = htonl(0xffffff00); break;
+  case vcNET_IPV6:	addr.mask[0] = 64; break;
+  default:		addr.mask[0] = 0; break;
+  }
+  addr.count = 1;
+
+  if (vc_net_add(nid, &addr) == -1 && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return NONE;
+}
+
+static PyObject *
+vserver_net_remove(PyObject *self, PyObject *args)
+{
+  struct vc_net_nx addr;
+  nid_t nid;
+  const char *ip;
+
+  if (!PyArg_ParseTuple(args, "Is", &nid, &ip))
+    return NULL;
+
+  if (strcmp(ip, "all") == 0)
+    addr.type = vcNET_ANY;
+  else if (strcmp(ip, "all4") == 0)
+    addr.type = vcNET_IPV4A;
+  else if (strcmp(ip, "all6") == 0)
+    addr.type = vcNET_IPV6A;
+  else
+    if (convertAddress(ip, &addr.type, &addr.ip) == -1)
+      return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
+
+  switch (addr.type) {
+  case vcNET_IPV4:	addr.mask[0] = htonl(0xffffff00); break;
+  case vcNET_IPV6:	addr.mask[0] = 64; break;
+  default:		addr.mask[0] = 0; break;
+  }
+  addr.count = 1;
+
+  if (vc_net_remove(nid, &addr) == -1 && errno != ESRCH)
+    return PyErr_SetFromErrno(PyExc_OSError);
+
+  return NONE;
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
@@ -397,6 +472,10 @@ static PyMethodDef  methods[] = {
     "Translate a string of capabilities to a bitmap" },
   { "bcaps2text", vserver_bcaps2text, METH_VARARGS,
     "Translate a capability-bitmap into a string" },
+  { "netadd", vserver_net_add, METH_VARARGS,
+    "Assign an IP address to a context" },
+  { "netremove", vserver_net_remove, METH_VARARGS,
+    "Remove IP address(es) from a context" },
   { NULL, NULL, 0, NULL }
 };
 
