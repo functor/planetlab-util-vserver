@@ -432,6 +432,7 @@ get_mask(struct vc_net_nx *addr)
 	    addr->mask[0]++;
 	}
 	break;
+	}
       }
       ret = 1;
       break;
