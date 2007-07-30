@@ -25,7 +25,8 @@ sysv_src_SCRPTS =	sysv/rebootmgr \
 			sysv/vprocunhide \
 			sysv/vservers-default \
 			sysv/vservers-legacy \
-			sysv/util-vserver
+			sysv/util-vserver \
+			sysv/vip6-autod
 sysv_gen_SCRPTS =	sysv/v_gated \
 			sysv/v_httpd \
 			sysv/v_named \

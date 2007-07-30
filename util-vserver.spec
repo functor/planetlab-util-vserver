@@ -275,6 +275,8 @@ fi
 %chkconfig --del util-vserver
 # PlanetLab does not require /proc security
 %chkconfig --del vprocunhide
+# vip6-autod handles IPv6 auto-assignments
+%chkconfig --add vip6-autod
 
 
 %preun sysv
@@ -283,6 +285,7 @@ fi
 #test "$1" != 0 || %chkconfig --del vprocunhide
 #test "$1" != 0 || %chkconfig --del vservers-default
 #test "$1" != 0 || %chkconfig --del util-vserver
+test "$1" != 0 || %chkconfig --del vip6-autod
 
 
 %postun sysv
@@ -477,6 +480,9 @@ fi
 
 
 %changelog
+* Mon Jul 30 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
+- add vip6-autod
+
 * Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
 - add --with legacy and --without doc switches
 - add util-vserver initscript

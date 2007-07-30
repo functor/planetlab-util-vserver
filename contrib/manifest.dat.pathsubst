@@ -147,6 +147,7 @@ legacy @CONFIG@ @INITRDDIR@/v_sendmail
 legacy @CONFIG@ @INITRDDIR@/v_smb
 legacy @CONFIG@ @INITRDDIR@/v_sshd
 legacy @CONFIG@ @INITRDDIR@/v_xinetd
+sysv   @CONFIG@ @INITRDDIR@/vip6-autod
 sysv   @CONFIG@ @INITRDDIR@/vprocunhide
 sysv   @CONFIG@ @INITRDDIR@/vservers-default
 sysv   @CONFIG@ @INITRDDIR@/util-vserver
