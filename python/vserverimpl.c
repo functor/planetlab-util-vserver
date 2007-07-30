@@ -41,6 +41,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <stddef.h>
 
 #include "config.h"
 #include "pathconfig.h"
@@ -370,17 +372,81 @@ vserver_bcaps2text(PyObject *self, PyObject *args)
   return list;
 }
 
+static const struct AF_to_vcNET {
+  int af;
+  vc_net_nx_type vc_net;
+  size_t len;
+  size_t offset;
+} converter[] = {
+  { AF_INET,  vcNET_IPV4, sizeof(struct in_addr),  offsetof(struct sockaddr_in,  sin_addr.s_addr) },
+  { AF_INET6, vcNET_IPV6, sizeof(struct in6_addr), offsetof(struct sockaddr_in6, sin6_addr.s6_addr) },
+  { 0, 0 }
+};
+
 static inline int
-convertAddress(const char *str, vc_net_nx_type *type, void *dst)
+convert_address(const char *str, vc_net_nx_type *type, void *dst)
 {
-  int   ret;
-  if (type) *type = vcNET_IPV4;
-  ret = inet_pton(AF_INET, str, dst);
-  if (ret==0) {
-    if (type) *type = vcNET_IPV6;
-    ret = inet_pton(AF_INET6, str, dst);
+  const struct AF_to_vcNET *i;
+  for (i = converter; i->af; i++) {
+    if (inet_pton(i->af, str, dst)) {
+      *type = i->vc_net;
+      return 0;
+    }
   }
-  return ret > 0 ? 0 : -1;
+  return -1;
+}
+
+static int
+get_mask(struct vc_net_nx *addr)
+{
+  const struct AF_to_vcNET *i;
+  struct ifaddrs *head, *ifa;
+  int ret = 0;
+
+  for (i = converter; i->af; i++) {
+    if (i->vc_net == addr->type)
+      break;
+  }
+  if (!i) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (getifaddrs(&head) == -1)
+    return -1;
+  for (ifa = head; ifa; ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr->sa_family == i->af &&
+        memcmp((char *) ifa->ifa_addr + i->offset, addr->ip, i->len) == 0) {
+      switch (addr->type) {
+      case vcNET_IVP4:
+	memcpy(&addr->mask[0], ifa->ifa_netmask + i->offset, i->len);
+	break;
+      case vcNET_IPV6: {
+	uint32_t *m = ((struct sockaddr_in6 *) ifa->ifa_netmask)->sin6_addr.s6_addr32;
+	/* optimization for the common case */
+	if ((m[1] & 1) == 1 && (m[2] & 0x80000000) == 0)
+	  addr->mask[0] = 64;
+	else {
+	  addr->mask[0] = 0;
+	  while (m[addr->mask[0] / 32] & (addr->mask[0] % 32))
+	    addr->mask[0]++;
+	}
+	break;
+      }
+      ret = 1;
+      break;
+    }
+  }
+  /* no match, use a default */
+  if (!ret) {
+    switch (addr->type) {
+    case vcNET_IPV4:	addr->mask[0] = htonl(0xffffff00); break;
+    case vcNET_IPV6:	addr->mask[0] = 64; break;
+    default:		addr->mask[0] = 0; break;
+    }
+  }
+  freeifaddrs(head);
+  return ret;
 }
 
 /* XXX These two functions are really similar */
@@ -394,13 +460,15 @@ vserver_net_add(PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple(args, "Is", &nid, &ip))
     return NULL;
 
-  if (convertAddress(ip, &addr.type, &addr.ip) == -1)
+  if (convert_address(ip, &addr.type, &addr.ip) == -1)
     return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
 
-  switch (addr.type) {
-  case vcNET_IPV4:	addr.mask[0] = htonl(0xffffff00); break;
-  case vcNET_IPV6:	addr.mask[0] = 64; break;
-  default:		addr.mask[0] = 0; break;
+  switch (get_mask(&addr)) {
+  case -1:
+    return PyErr_SetFromErrno(PyExc_OSError);
+  case 0:
+    /* XXX error here? */
+    break;
   }
   addr.count = 1;
 
@@ -427,13 +495,12 @@ vserver_net_remove(PyObject *self, PyObject *args)
   else if (strcmp(ip, "all6") == 0)
     addr.type = vcNET_IPV6A;
   else
-    if (convertAddress(ip, &addr.type, &addr.ip) == -1)
+    if (convert_address(ip, &addr.type, &addr.ip) == -1)
       return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
 
-  switch (addr.type) {
-  case vcNET_IPV4:	addr.mask[0] = htonl(0xffffff00); break;
-  case vcNET_IPV6:	addr.mask[0] = 64; break;
-  default:		addr.mask[0] = 0; break;
+  switch (get_mask(&addr)) {
+  case -1:
+    return PyErr_SetFromErrno(PyExc_OSError);
   }
   addr.count = 1;
 
