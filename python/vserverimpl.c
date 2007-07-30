@@ -418,7 +418,7 @@ get_mask(struct vc_net_nx *addr)
     if (ifa->ifa_addr->sa_family == i->af &&
         memcmp((char *) ifa->ifa_addr + i->offset, addr->ip, i->len) == 0) {
       switch (addr->type) {
-      case vcNET_IVP4:
+      case vcNET_IPV4:
 	memcpy(&addr->mask[0], ifa->ifa_netmask + i->offset, i->len);
 	break;
       case vcNET_IPV6: {
