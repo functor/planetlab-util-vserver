@@ -342,6 +342,11 @@ dnl {check for libnl
 dnl
 
 ensc_have_libnl=yes
+LIBNL_ROOT=`echo ../libnl*/`
+if test -d "$LIBNL_ROOT"; then
+	CFLAGS="$CFLAGS -isystem $LIBNL_ROOT/include"
+	LDFLAGS="$LDFLAGS -L$LIBNL_ROOT/lib"
+fi
 
 if test x"$ensc_have_libnl" = xyes; then
 	AC_CHECK_HEADERS([netlink/netlink.h netlink/route/addr.h], [ : ],
