@@ -1,11 +1,15 @@
 /*
- * $Id: vip6-autod.c,v 1.2 2007/07/26 19:00:23 dhozac Exp $
+ * $Id: vip6-autod.c,v 1.3 2007/07/26 23:08:00 dhozac Exp $
  * Copyright (c) 2007 The Trustees of Princeton University
  * Author: Daniel Hokka Zakrisson <daniel@hozac.com>
  *
  * Licensed under the terms of the GNU General Public License
  * version 2 or later.
  */
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,6 +25,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <signal.h>
+#include <syslog.h>
 
 #include <asm/types.h>
 /* not defined for gcc -ansi */
@@ -29,9 +34,8 @@ typedef int64_t __s64;
 #include <netlink/netlink.h>
 #include <netlink/route/addr.h>
 
-typedef unsigned int nid_t;
-typedef unsigned int xid_t;
 #include <vserver.h>
+#include "pathconfig.h"
 
 #define HAS_ADDRESS	0x01
 #define HAS_PREFIX	0x02
@@ -157,7 +161,7 @@ static void do_slices_autoconf(struct prefix_list *head)
 		addr.type = vcNET_IPV6A;
 		addr.count = 0;
 		if (vc_net_remove(nid, &addr) == -1) {
-			perror("vc_net_remove");
+			syslog(LOG_ERR, "vc_net_remove: %s", strerror(errno));
 			continue;
 		}
 
@@ -168,7 +172,7 @@ static void do_slices_autoconf(struct prefix_list *head)
 				char buf[64];
 
 				inet_ntop(AF_INET6, &i->address.addr, buf, sizeof(buf));
-				printf("Address %s timed out.\n", buf);
+				syslog(LOG_NOTICE, "Address %s timed out", buf);
 
 				if (i->next)
 					i->next->prev = i->prev;
@@ -191,15 +195,15 @@ static void do_slices_autoconf(struct prefix_list *head)
 			addr.ip[2] = htonl((ntohl(addr.ip[2]) & 0xffffff00) | ((nid & 0x7f00) >> 7));
 			addr.ip[3] = htonl((ntohl(addr.ip[3]) & 0x00ffffff) | ((nid & 0xff) << 25));
 			if (vc_net_add(nid, &addr) == -1) {
-				perror("vc_net_add");
+				syslog(LOG_ERR, "vc_net_add: %s", strerror(errno));
 				exit(1);
 			}
 			if (add_address_to_interface(i->ifindex, (struct in6_addr *) addr.ip, i->prefix.prefix_len) == -1) {
-				perror("add_address_to_interface");
+				syslog(LOG_ERR, "add_address_to_interface: %s", strerror(errno));
 				exit(1);
 			}
 			if (add_nid_to_list(i, nid) == -1) {
-				perror("add_nid_to_list");
+				syslog(LOG_ERR, "add_nid_to_list: %s", strerror(errno));
 				exit(1);
 			}
 next:
@@ -307,7 +311,7 @@ int handle_valid_msg(struct nl_msg *msg, void *arg)
 		struct nlattr *tb[PREFIX_MAX+1];
 
 		if (nlmsg_parse(nlh, sizeof(struct prefixmsg), tb, PREFIX_MAX, prefix_policy) < 0) {
-			printf("Failed to parse prefixmsg.\n");
+			syslog(LOG_ERR, "Failed to parse prefixmsg");
 			return -1;
 		}
 
@@ -325,7 +329,7 @@ int handle_valid_msg(struct nl_msg *msg, void *arg)
 		struct nlattr *tb[IFA_MAX+1];
 
 		if (nlmsg_parse(nlh, sizeof(struct ifaddrmsg), tb, IFA_MAX, addr_policy) < 0) {
-			printf("Failed to parse ifaddrmsg.\n");
+			syslog(LOG_ERR, "Failed to parse ifaddrmsg");
 			return -1;
 		}
 
@@ -345,7 +349,7 @@ int handle_valid_msg(struct nl_msg *msg, void *arg)
 int handle_error_msg(struct sockaddr_nl *source, struct nlmsgerr *err,
 		     void *arg)
 {
-	perror("Got an error");
+	syslog(LOG_ERR, "%s", strerror(err->error));
 	return 0;
 }
 
@@ -365,12 +369,23 @@ void signal_handler(int signal)
 	}
 }
 
+static int write_pidfile(const char *filename)
+{
+	FILE *fp;
+	fp = fopen(filename, "w");
+	if (!fp)
+		return -1;
+	fprintf(fp, "%d\n", getpid());
+	fclose(fp);
+	return 0;
+}
+
 int main(int argc, char *argv[])
 {
 	struct nl_cb *cbs;
-
 	head.prev = head.next = NULL;
-	signal(SIGUSR1, signal_handler);
+
+	openlog("vip6-autod", LOG_PERROR, LOG_DAEMON);
 
 	handle = nl_handle_alloc_nondefault(NL_CB_VERBOSE);
 	cbs = nl_handle_get_cb(handle);
@@ -381,12 +396,21 @@ int main(int argc, char *argv[])
 
 	nl_join_groups(handle, RTMGRP_IPV6_PREFIX|RTMGRP_IPV6_IFADDR);
 	if (nl_connect(handle, NETLINK_ROUTE) == -1) {
-		perror("nl_connect");
+		syslog(LOG_CRIT, "nl_connect: %s", strerror(errno));
 		exit(1);
 	}
+
+	if (daemon(0, 0) == -1)
+		return -1;
+
+	/* XXX .. here is a hack */
+	write_pidfile(DEFAULT_PKGSTATEDIR "/../vip6-autod.pid");
+
+	signal(SIGUSR1, signal_handler);
 
 	while (nl_recvmsgs(handle, cbs) > 0);
 
 	nl_close(handle);
+	closelog();
 	return 0;
 }

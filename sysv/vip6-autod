@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# vip6-autod   assigns auto-discovered IPv6 addresses to guests
+#
+# chkconfig: 2345 99 01
+# description: starts vip6-autod
+
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo $"Can not find util-vserver installation (the file '$UTIL_VSERVER_VARS' would be expected); aborting..." >&2
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+LOCKFILE=vip6-autod
+. "$_LIB_VSERVER_INIT_FUNCTIONS"
+
+prog="vip6-autod"
+
+function start()
+{
+    _beginResult $"Starting $prog"
+    $__SBINDIR/$prog
+    _endResult $?
+    local retval=$?
+    test "$retval" -ne 0 || touch "$lockfile"
+    return $retval
+}
+
+function stop()
+{
+    _beginResult $"Stopping $prog"
+    killall $prog
+    $_RM -f "$lockfile"
+}
+
+function restart()
+{
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)	$1;;
+    reload)		;;
+    condrestart)
+	test -f $lockfile && restart || :
+	;;
+    status)
+	status $prog
+	;;
+    *)
+        echo "Usage: $0 {start|stop|reload|restart|condrestart|status}"
+	exit 2
+	;;
+esac
