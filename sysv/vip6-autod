@@ -30,8 +30,11 @@ function start()
 function stop()
 {
     _beginResult $"Stopping $prog"
-    killall $prog
+    kill `cat $__PKGSTATEDIR/../vip6-autod.pid` &>/dev/null
+    _endResult $?
+    local retval=$?
     $_RM -f "$lockfile"
+    return $retval
 }
 
 function restart()

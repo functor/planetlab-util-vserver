@@ -1,5 +1,5 @@
 /*
- * $Id: vip6-autod.c,v 1.3 2007/07/26 23:08:00 dhozac Exp $
+ * $Id: vip6-autod.c,v 1.4 2007/07/30 14:59:11 dhozac Exp $
  * Copyright (c) 2007 The Trustees of Princeton University
  * Author: Daniel Hokka Zakrisson <daniel@hozac.com>
  *
@@ -105,27 +105,33 @@ static int add_address_to_interface(int ifindex, struct in6_addr *address, int p
 	return err;
 }
 
-static int add_nid_to_list(struct prefix_list *i, nid_t nid)
+static int add_nid_to_list(struct nid_list **l, nid_t nid)
 {
 	struct nid_list *n;
+	for (n = *l; n; n = n->next) {
+		if (n->nid == nid)
+			return 0;
+	}
 	n = calloc(1, sizeof(struct nid_list));
 	if (!n)
 		return -1;
 	n->nid = nid;
-	n->next = i->nids;
-	i->nids = n;
-	return 0;
+	n->next = *l;
+	*l = n;
+	return 1;
 }
 
 static void cleanup_prefix(struct prefix_list *i)
 {
-	struct nid_list *n;
+	struct nid_list *n, *p = NULL;
 
 	for (n = i->nids; n; n = n->next) {
 		struct rtnl_addr *rta;
 		struct nl_addr *nl;
 		struct in6_addr a;
 
+		if (p)
+			free(p);
 		memcpy(&a, &i->address.addr, sizeof(a));
 		rta = rtnl_addr_alloc();
 		nl = nl_addr_build(AF_INET6, &a, sizeof(a));
@@ -140,7 +146,11 @@ static void cleanup_prefix(struct prefix_list *i)
 
 		nl_addr_destroy(nl);
 		rtnl_addr_free(rta);
+
+		p = n;
 	}
+	if (p)
+		free(p);
 }
 
 static void do_slices_autoconf(struct prefix_list *head)
@@ -150,6 +160,7 @@ static void do_slices_autoconf(struct prefix_list *head)
 	nid_t nid;
 	struct vc_net_nx addr;
 	struct prefix_list *i;
+	struct nid_list *current = NULL, *n;
 
 	if ((dp = opendir("/proc/virtnet")) == NULL)
 		return;
@@ -161,9 +172,11 @@ static void do_slices_autoconf(struct prefix_list *head)
 		addr.type = vcNET_IPV6A;
 		addr.count = 0;
 		if (vc_net_remove(nid, &addr) == -1) {
-			syslog(LOG_ERR, "vc_net_remove: %s", strerror(errno));
+			syslog(LOG_ERR, "vc_net_remove(%u): %s", nid, strerror(errno));
 			continue;
 		}
+
+		add_nid_to_list(&current, nid);
 
 		for (i = head->next; i;) {
 			/* expired */
@@ -189,22 +202,23 @@ static void do_slices_autoconf(struct prefix_list *head)
 			if (i->mask != (HAS_ADDRESS|HAS_PREFIX))
 				goto next;
 
+			addr.type = vcNET_IPV6;
 			addr.count = 1;
 			addr.mask[0] = i->prefix.prefix_len;
 			memcpy(addr.ip, &i->address.addr, sizeof(struct in6_addr));
-			addr.ip[2] = htonl((ntohl(addr.ip[2]) & 0xffffff00) | ((nid & 0x7f00) >> 7));
-			addr.ip[3] = htonl((ntohl(addr.ip[3]) & 0x00ffffff) | ((nid & 0xff) << 25));
+			addr.ip[2] = htonl((ntohl(addr.ip[2]) & 0xffffff00) | ((nid & 0x7f80) >> 7));
+			addr.ip[3] = htonl((ntohl(addr.ip[3]) & 0x00ffffff) | ((nid & 0x7f) << 25));
 			if (vc_net_add(nid, &addr) == -1) {
-				syslog(LOG_ERR, "vc_net_add: %s", strerror(errno));
-				exit(1);
+				syslog(LOG_ERR, "vc_net_add(%u): %s", nid, strerror(errno));
+				goto next;
 			}
 			if (add_address_to_interface(i->ifindex, (struct in6_addr *) addr.ip, i->prefix.prefix_len) == -1) {
 				syslog(LOG_ERR, "add_address_to_interface: %s", strerror(errno));
-				exit(1);
+				goto next;
 			}
-			if (add_nid_to_list(i, nid) == -1) {
+			if (add_nid_to_list(&i->nids, nid) == -1) {
 				syslog(LOG_ERR, "add_nid_to_list: %s", strerror(errno));
-				exit(1);
+				goto next;
 			}
 next:
 			i = i->next;
