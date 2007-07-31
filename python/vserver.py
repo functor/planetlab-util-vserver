@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.63 2007/07/24 17:22:37 dhozac Exp $
+#$Id: vserver.py,v 1.64 2007/07/27 18:02:08 dhozac Exp $
 
 import errno
 import fcntl
@@ -89,8 +89,17 @@ class VServerConfig:
                 f.write("%s\n" % value)
             f.close()
             os.umask(old_umask)
-        except KeyError, e:
-            raise KeyError, "Don't know how to handle %s, sorry" % option
+        except:
+            raise
+
+    def unset(self, option):
+        try:
+            filename = os.path.join(self.dir, option)
+            os.unlink(filename)
+            os.removedirs(os.path.dirname(filename))
+            return True
+        except:
+            return False
 
 
 class VServer:
@@ -189,7 +198,9 @@ class VServer:
     def set_ipaddresses_config(self, addresses):
         i = 0
         for a in addresses.split(","):
-            self.config.set("interfaces/%d/ip" % i, a)
+            self.config.update("interfaces/%d/ip" % i, a)
+            i += 1
+        while self.config.unset("interfaces/%d/ip" % i):
             i += 1
         self.set_ipaddresses(addresses)
 
