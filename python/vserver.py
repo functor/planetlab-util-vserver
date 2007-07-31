@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.65 2007/07/31 14:36:19 dhozac Exp $
+#$Id: vserver.py,v 1.66 2007/07/31 16:31:04 dhozac Exp $
 
 import errno
 import fcntl
@@ -405,11 +405,6 @@ class VServer:
                 state_file = open("/var/run/vservers/%s" % self.name, "w")
 
                 # use /dev/null for stdin, /var/log/boot.log for stdout/err
-                try:
-                    os.close(0)
-                    os.close(1)
-                except:
-                    pass
                 fd = os.open("/dev/null", os.O_RDONLY)
                 if fd != 0:
                     os.dup2(fd, 0)
