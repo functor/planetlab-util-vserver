@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.66 2007/07/31 16:31:04 dhozac Exp $
+#$Id: vserver.py,v 1.67 2007/07/31 18:14:02 dhozac Exp $
 
 import errno
 import fcntl
@@ -431,7 +431,7 @@ class VServer:
                          cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
                                                    cmd[1:])
                          print >>log, "executing '%s'" % " ".join(cmd_args)
-                         os.spawnvp(os.P_WAIT,cmd[0],*cmd_args)
+                         os.spawnvp(os.P_WAIT,cmd[0],cmd_args)
                      except:
                          traceback.print_exc()
                          os._exit(1)
