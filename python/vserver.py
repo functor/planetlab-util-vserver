@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.67 2007/07/31 18:14:02 dhozac Exp $
+#$Id: vserver.py,v 1.68 2007/07/31 22:04:24 dhozac Exp $
 
 import errno
 import fcntl
@@ -61,6 +61,9 @@ class VServerConfig:
     def __init__(self, name, directory):
         self.name = name
         self.dir = directory
+        if not (os.path.isdir(self.dir) and
+                os.access(self.dir, os.R_OK | os.W_OK | os.X_OK):
+            raise NoSuchVServer, "%s does not exist" % self.dir
 
     def get(self, option, default = None):
         try:
