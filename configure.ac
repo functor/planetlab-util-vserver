@@ -342,15 +342,42 @@ dnl {check for libnl
 dnl
 
 ensc_have_libnl=yes
-LIBNL_ROOT=`echo ../libnl*/`
+LIBNL_ROOT=`readlink -f ../libnl*/`
 if test -d "$LIBNL_ROOT"; then
-	CFLAGS="$CFLAGS -isystem $LIBNL_ROOT/include"
-	LDFLAGS="$LDFLAGS -L$LIBNL_ROOT/lib"
+	CFLAGS="$CFLAGS -I ${LIBNL_ROOT}/include"
+	LDFLAGS="$LDFLAGS -L${LIBNL_ROOT}/lib"
+fi
+
+if test x"$ensc_have_libnl" = xyes; then
+	AC_CHECK_HEADERS([asm/types.h stdint.h], [ : ],
+			 [ ensc_have_libnl=no ])
+	for b in 8 16 32 64; do
+		for s in s u; do
+			ensc_libnl_stdint_type=
+			if test x"$s" = xu; then
+				ensc_libnl_stdint_type=u
+			fi
+			ensc_libnl_stdint_type="${ensc_libnl_stdint_type}int${b}_t"
+			AC_CHECK_TYPES([__${s}${b}], [ : ],
+				[AC_DEFINE_UNQUOTED([__${s}${b}],
+						[$ensc_libnl_stdint_type],
+						[__${s}${b} type])],
+				[AC_INCLUDES_DEFAULT()
+#ifdef HAVE_ASM_TYPES_H
+#  include <asm/types.h>
+#endif]
+				)
+		done
+	done
 fi
 
 if test x"$ensc_have_libnl" = xyes; then
 	AC_CHECK_HEADERS([netlink/netlink.h netlink/route/addr.h], [ : ],
-			 [ ensc_have_libnl=no ])
+			 [ ensc_have_libnl=no ], [AC_INCLUDES_DEFAULT()
+#ifdef HAVE_ASM_TYPES_H
+#  include <asm/types.h>
+#endif]
+		)
 fi
 
 if test x"$ensc_have_libnl" = xyes; then
