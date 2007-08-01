@@ -21,6 +21,9 @@
 /* Use alternative _syscallX macros */
 #undef ENSC_USE_ALTERNATIVE_SYSCALL_MACROS
 
+/* Define to 1 if you have the <asm/types.h> header file. */
+#undef HAVE_ASM_TYPES_H
+
 /* Define to 1 if you have the declaration of `ADDR_LIMIT_32BIT', and to 0 if
    you don't. */
 #undef HAVE_DECL_ADDR_LIMIT_32BIT
