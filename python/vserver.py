@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.68 2007/07/31 22:04:24 dhozac Exp $
+#$Id: vserver.py,v 1.69 2007/08/01 18:33:28 dhozac Exp $
 
 import errno
 import fcntl
@@ -62,7 +62,7 @@ class VServerConfig:
         self.name = name
         self.dir = directory
         if not (os.path.isdir(self.dir) and
-                os.access(self.dir, os.R_OK | os.W_OK | os.X_OK):
+                os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
             raise NoSuchVServer, "%s does not exist" % self.dir
 
     def get(self, option, default = None):
@@ -427,7 +427,7 @@ class VServer:
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
                 self.__do_chcontext(state_file)
-                for cmd in self.INITSCRIPTS + [None]:
+                for cmd in self.INITSCRIPTS:
                      try:
                          # enter vserver context
                          arg_subst = { 'runlevel': runlevel }
