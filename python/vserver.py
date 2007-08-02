@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.69 2007/08/01 18:33:28 dhozac Exp $
+#$Id: vserver.py,v 1.70 2007/08/01 21:48:42 dhozac Exp $
 
 import errno
 import fcntl
@@ -61,23 +61,30 @@ class VServerConfig:
     def __init__(self, name, directory):
         self.name = name
         self.dir = directory
+        self.cache = None
         if not (os.path.isdir(self.dir) and
                 os.access(self.dir, os.R_OK | os.W_OK | os.X_OK)):
             raise NoSuchVServer, "%s does not exist" % self.dir
 
     def get(self, option, default = None):
         try:
-            f = open(os.path.join(self.dir, option), "r")
-            buf = f.readline().rstrip()
-            f.close()
-            return buf
-        except IOError, e:
+            if self.cache:
+                return self.cache[option]
+            else:
+                f = open(os.path.join(self.dir, option), "r")
+                buf = f.read().rstrip()
+                f.close()
+                return buf
+        except:
             if default is not None:
                 return default
             else:
                 raise KeyError, "Key %s is not set for %s" % (option, self.name)
 
     def update(self, option, value):
+        if self.cache:
+            return
+
         try:
             old_umask = os.umask(0022)
             filename = os.path.join(self.dir, option)
@@ -96,13 +103,34 @@ class VServerConfig:
             raise
 
     def unset(self, option):
+        if self.cache:
+            return
+
         try:
             filename = os.path.join(self.dir, option)
             os.unlink(filename)
-            os.removedirs(os.path.dirname(filename))
+            try:
+                os.removedirs(os.path.dirname(filename))
+            except:
+                pass
             return True
         except:
             return False
+
+    def cache_it(self):
+        self.cache = {}
+        def add_to_cache(cache, dirname, fnames):
+            for file in fnames:
+                full_name = os.path.join(dirname, file)
+                if os.path.islink(full_name):
+                    fnames.remove(file)
+                elif (os.path.isfile(full_name) and
+                      os.access(full_name, os.R_OK)):
+                    f = open(full_name, "r")
+                    cache[full_name.replace(os.path.join(self.dir, ''),
+                                            '')] = f.readline().rstrip()
+                    f.close()
+        os.path.walk(self.dir, add_to_cache, self.cache)
 
 
 class VServer:
@@ -223,7 +251,7 @@ class VServer:
         return None
 
     def __do_chroot(self):
-
+        self.config.cache_it()
         os.chroot(self.dir)
         os.chdir("/")
 
