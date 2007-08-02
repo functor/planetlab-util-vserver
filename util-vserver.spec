@@ -27,12 +27,12 @@
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 3.0
+Distribution: PlanetLab 4.1
 URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.208
+Version:	0.30.209
 Release:	%{release}
 License:	GPL
 Group:		System Environment/Base
