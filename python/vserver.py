@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.70 2007/08/01 21:48:42 dhozac Exp $
+#$Id: vserver.py,v 1.71 2007/08/02 15:26:42 dhozac Exp $
 
 import errno
 import fcntl
@@ -128,7 +128,7 @@ class VServerConfig:
                       os.access(full_name, os.R_OK)):
                     f = open(full_name, "r")
                     cache[full_name.replace(os.path.join(self.dir, ''),
-                                            '')] = f.readline().rstrip()
+                                            '')] = f.read().rstrip()
                     f.close()
         os.path.walk(self.dir, add_to_cache, self.cache)
 
