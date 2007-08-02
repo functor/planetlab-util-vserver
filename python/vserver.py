@@ -1,6 +1,6 @@
 # Copyright 2005 Princeton University
 
-#$Id: vserver.py,v 1.71 2007/08/02 15:26:42 dhozac Exp $
+#$Id: vserver.py,v 1.72 2007/08/02 16:01:59 dhozac Exp $
 
 import errno
 import fcntl
@@ -204,9 +204,6 @@ class VServer:
         soft = int(self.config.get("rlimits/%s.soft"%type.lower(),VC_LIM_KEEP))
         minimum = int(self.config.get("rlimits/%s.min"%type.lower(),VC_LIM_KEEP))
         return (hard,soft,minimum)
-
-    def set_WHITELISTED_config(self,whitelisted):
-        self.config.update('whitelisted', whitelisted)
 
     def set_capabilities(self, capabilities):
         return vserverimpl.setbcaps(self.ctx, vserverimpl.text2bcaps(capabilities))
