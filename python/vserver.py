@@ -63,6 +63,7 @@ class VServer:
 
         self.name = name
         self.rlimits_changed = False
+        self.cache = None
         self.config_file = "/etc/vservers/%s.conf" % name
         self.dir = "%s/%s" % (vserverimpl.VSERVER_BASEDIR, name)
         if not (os.path.isdir(self.dir) and
@@ -184,7 +185,7 @@ class VServer:
         os.rename(newfile, filename)
 
     def __do_chroot(self):
-
+        self.cache = True
         os.chroot(self.dir)
         os.chdir("/")
 
@@ -387,17 +388,18 @@ class VServer:
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
                 self.__do_chcontext(state_file)
-		for cmd in self.INITSCRIPTS + [None]:
-			try:
-			    # enter vserver context
-			    arg_subst = { 'runlevel': runlevel }
-			    cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
-					    cmd[1:])
-			    print >>log, "executing '%s'" % " ".join(cmd_args)
-			    os.spawnvp(os.P_WAIT,cmd[0],*cmd_args)
-			except:
-				traceback.print_exc()
-				os._exit(1)
+                for cmd in self.INITSCRIPTS + [None]:
+                    try:
+                        print >>log, cmd
+                        # enter vserver context
+                        arg_subst = { 'runlevel': runlevel }
+                        cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
+                            cmd[1:])
+                        print >>log, "executing '%s'" % " ".join(cmd_args)
+                        os.spawnvp(os.P_WAIT,cmd[0],cmd_args)
+                    except:
+                        traceback.print_exc()
+                        os._exit(1)
 
             # we get here due to an exception in the top-level child process
             except Exception, ex:
@@ -415,11 +417,10 @@ class VServer:
         pass
 
     def update_resources(self, resources):
-
         self.config.update(resources)
-
-        # write new values to configuration file
-        self.__update_config_file(self.config_file, resources)
+        if not self.cache:
+            # write new values to configuration file
+            self.__update_config_file(self.config_file, resources)
 
     def init_disk_info(self):
 
