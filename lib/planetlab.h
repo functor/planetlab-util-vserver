@@ -43,7 +43,6 @@ struct sliver_resources {
   struct vc_rlimit vs_as;
   struct vc_rlimit vs_nproc;
   struct vc_rlimit vs_openfd;
-  unsigned long long vs_whitelisted;
   struct vc_ctx_caps vs_capabilities;
 };
 

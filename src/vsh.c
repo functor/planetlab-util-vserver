@@ -48,6 +48,7 @@
 
 #undef CONFIG_VSERVER_LEGACY
 
+#if 0
 /* Base for all vserver roots for chroot */
 #define VSERVER_ROOT_BASE       "/vservers"
 
@@ -206,13 +207,6 @@ static int sandbox_processes(xid_t ctx, char *context)
 	  {
 	    PERROR("gethostname(...)");
 	    exit(1);
-	  }
-
-	/* check whether the slice has been taken off of the whitelist */
-	if (slr.vs_whitelisted==0)
-	  {
-	    fprintf(stderr, "*** %s: %s has not been allocated resources on this node ***\n", hostname, context);
-	    exit(0);
 	  }
 
 	/* check whether the slice has been suspended */
@@ -479,3 +473,10 @@ int main(int argc, char **argv)
 
     return 0; /* shutup compiler */
 }
+#else
+int main(int argc, char *argv[])
+{
+	
+	return 0;
+}
+#endif

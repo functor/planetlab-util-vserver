@@ -249,8 +249,6 @@ pl_get_limits(char *context, struct sliver_resources *slr)
     {"rlimits/openfd.soft", &slr->vs_openfd.soft},
     {"rlimits/openfd.min", &slr->vs_openfd.min},
 
-    {"whitelisted", &slr->vs_whitelisted},
-
     {"bcapabilities", NULL},
     {0,0}
   };
@@ -276,8 +274,6 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   slr->vs_openfd.hard = VC_LIM_KEEP;
   slr->vs_openfd.soft = VC_LIM_KEEP;
   slr->vs_openfd.min = VC_LIM_KEEP;
-
-  slr->vs_whitelisted = 1;
 
   slr->vs_capabilities.bcaps = 0;
   slr->vs_capabilities.bmask = 0;
