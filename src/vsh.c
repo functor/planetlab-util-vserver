@@ -65,15 +65,9 @@ static int setuidgid_root()
 	return 0;
 }
 
-static void compute_new_root(char *base, char **root, uid_t uid)
+static void compute_new_root(char *base, char **root, struct passwd *pwd)
 {
 	int             root_len;
-	struct passwd   *pwd;
-
-	if ((pwd = getpwuid(uid)) == NULL) {
-		PERROR("getpwuid(%d)", uid);
-		exit(1);
-	}
 
 	root_len = 
 		strlen(base) + strlen("/") +
@@ -88,86 +82,11 @@ static void compute_new_root(char *base, char **root, uid_t uid)
 	(*root)[root_len - 1] = '\0';
 }
 
-/* Example: sandbox_root = /vservers/bnc, relpath = /proc/1 */
-static int sandbox_file_exists(char *sandbox_root, char *relpath)
-{
-	struct stat stat_buf;
-	char   *file;
-	int    len, exists = 0;
-
-	len = strlen(sandbox_root) + strlen(relpath) + NULLBYTE_SIZE;
-	if ((file = (char *)malloc(len)) == NULL) {
-		PERROR("malloc(%d)", len);
-		exit(1);
-	}
-	sprintf(file, "%s%s", sandbox_root, relpath);
-	file[len - 1] = '\0';
-	if (stat(file, &stat_buf) == 0) {
-		exists = 1;
-	}
-
-
-	free(file);
-	return exists;
-}
-
-static int proc_mounted(char *sandbox_root)
-{
-	return sandbox_file_exists(sandbox_root, "/proc/1");
-}
-
-static int devpts_mounted(char *sandbox_root)
-{
-	return sandbox_file_exists(sandbox_root, "/dev/pts/0");
-}
-
-static void mount_proc(char *sandbox_root)
-{
-	char        *source = "/proc";
-	char        *target;
-	int         len;
-
-	len = strlen(sandbox_root) + strlen("/") + strlen("proc") + NULLBYTE_SIZE;
-	if ((target = (char *)malloc(len)) == NULL) {
-		PERROR("malloc(%d)", len);
-		exit(1);
-	}
-
-	sprintf(target, "%s/proc", sandbox_root);
-	target[len - 1] = '\0';
-	if (!proc_mounted(sandbox_root))
-		mount(source, target, "proc", MS_BIND | MS_RDONLY, NULL);
-
-	free(target);
-}
-
-static void mount_devpts(char *sandbox_root)
-{
-	char        *source = "/dev/pts";
-	char        *target;
-	int         len;
-    
-	len = strlen(sandbox_root) + strlen("/") + strlen("dev/pts") + NULLBYTE_SIZE;
-	if ((target = (char *)malloc(len)) == NULL) {
-		PERROR("malloc(%d)", len);
-		exit(1);
-	}
-
-	sprintf(target, "%s/dev/pts", sandbox_root);
-	target[len - 1] = '\0';
-	if (!devpts_mounted(sandbox_root))
-		mount(source, target, "devpts", 0, NULL);
-
-	free(target);
-}
-
-static int sandbox_chroot(uid_t uid)
+static int sandbox_chroot(struct passwd *pwd)
 {
 	char *sandbox_root = NULL;
 
-	compute_new_root(VSERVER_ROOT_BASE,&sandbox_root, uid);
-	mount_proc(sandbox_root);
-	mount_devpts(sandbox_root);
+	compute_new_root(VSERVER_ROOT_BASE,&sandbox_root, pwd);
 	if (chroot(sandbox_root) < 0) {
 		PERROR("chroot(%s)", sandbox_root);
 		exit(1);
@@ -179,7 +98,7 @@ static int sandbox_chroot(uid_t uid)
 	return 0;
 }
 
-static int sandbox_processes(xid_t ctx, char *context)
+static int sandbox_processes(xid_t ctx, const char *context, const struct passwd *pwd)
 {
 #ifdef CONFIG_VSERVER_LEGACY
 	int	flags;
@@ -192,7 +111,7 @@ static int sandbox_processes(xid_t ctx, char *context)
 
 	/* use legacy dirty hack for capremove */
 	if (vc_new_s_context(VC_SAMECTX, vc_get_insecurebcaps(), flags) == VC_NOCTX) {
-		PERROR("vc_new_s_context(%u, 0x%16ullx, 0x%08x)",
+		PERROR("vc_new_s_context(%u, 0x%16llx, 0x%08x)",
 		       VC_SAMECTX, vc_get_insecurebcaps(), flags);
 		exit(1);
 	}
@@ -215,7 +134,7 @@ static int sandbox_processes(xid_t ctx, char *context)
 	    exit(0);
 	  }
 
-	(void) (sandbox_chroot(ctx));
+	(void) (sandbox_chroot(pwd));
 
         if ((ctx_is_new = pl_chcontext(ctx, ~vc_get_insecurebcaps(),&slr)) < 0)
           {
@@ -224,41 +143,20 @@ static int sandbox_processes(xid_t ctx, char *context)
           }
 	if (ctx_is_new)
 	  {
-	    pl_set_limits(ctx,&slr);
-	    pl_setup_done(ctx);
+	    fprintf(stderr, " *** %s: %s has not been started yet, please check back later ***\n", hostname, context);
+	    exit(1);
 	  }
 #endif
 	return 0;
 }
 
 
-void runas_slice_user(char *username)
+void runas_slice_user(struct passwd *pwd)
 {
-	struct passwd pwdd, *pwd = &pwdd, *result;
-	char          *pwdBuffer;
+	char          *username = pwd->pw_name;
 	char          *home_env, *logname_env, *mail_env, *shell_env, *user_env;
 	int           home_len, logname_len, mail_len, shell_len, user_len;
-	long          pwdBuffer_len;
 	static char   *envp[10];
-
-
-	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
-	if (pwdBuffer_len == -1) {
-		PERROR("sysconf(_SC_GETPW_R_SIZE_MAX)");
-		exit(1);
-	}
-
-	pwdBuffer = (char*)malloc(pwdBuffer_len);
-	if (pwdBuffer == NULL) {
-		PERROR("malloc(%d)", pwdBuffer_len);
-		exit(1);
-	}
-
-	errno = 0;
-	if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
-		PERROR("getpwnam_r(%s)", username);
-		exit(1);
-	}
 
 	if (setgid(pwd->pw_gid) < 0) {
 		PERROR("setgid(%d)", pwd->pw_gid);
@@ -326,43 +224,19 @@ void runas_slice_user(char *username)
 	}
 }
 
-void slice_enter(char *context)
+void slice_enter(struct passwd *pwd)
 {
-	struct passwd pwdd, *pwd = &pwdd, *result;
-	char          *pwdBuffer;
-	long          pwdBuffer_len;
-	uid_t uid;
-
-	pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
-	if (pwdBuffer_len == -1) {
-		PERROR("sysconf(_SC_GETPW_R_SIZE_MAX)");
-		exit(1);
-	}
-
-	pwdBuffer = (char*)malloc(pwdBuffer_len);
-	if (pwdBuffer == NULL) {
-		PERROR("malloc(%d)", pwdBuffer_len);
-		exit(1);
-	}
-
-	errno = 0;
-	if ((getpwnam_r(context,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
-		PERROR("getpwnam_r(%s)", context);
-		exit(2);
-	}
-	uid = pwd->pw_uid;
-
 	if (setuidgid_root() < 0) { /* For chroot, new_s_context */
 		fprintf(stderr, "vsh: Could not become root, check that SUID flag is set on binary\n");
 		exit(2);
 	}
 
 #ifdef CONFIG_VSERVER_LEGACY
-	(void) (sandbox_chroot(uid));
+	(void) (sandbox_chroot(pwd));
 #endif
 
-	if (sandbox_processes((xid_t) uid, context) < 0) {
-		fprintf(stderr, "vsh: Could not change context to %d\n", uid);
+	if (sandbox_processes((xid_t) pwd->pw_uid, pwd->pw_name, pwd) < 0) {
+		fprintf(stderr, "vsh: Could not change context to %d\n", pwd->pw_uid);
 		exit(2);
 	}
 }
@@ -381,7 +255,7 @@ enum
 
 int main(int argc, char **argv)
 {
-    struct passwd   pwdd, *pwd = &pwdd, *result;
+    struct passwd   pwdd, *result, *prechroot, *postchroot = &pwdd;
     char            *context, *username, *shell, *pwdBuffer;
     long            pwdBuffer_len;
     uid_t           uid;
@@ -393,30 +267,24 @@ int main(int argc, char **argv)
       index = 0;
 
     uid = getuid();
-    if ((pwd = getpwuid(uid)) == NULL) {
+    if ((prechroot = getpwuid(uid)) == NULL) {
       PERROR("getpwuid(%d)", uid);
       exit(1);
     }
 
-    context = (char*)strdup(pwd->pw_name);
+    context = (char*)strdup(prechroot->pw_name);
     if (!context) {
       PERROR("strdup");
       exit(2);
     }
 
     /* enter vserver "context" */
-    slice_enter(context);
+    slice_enter(prechroot);
 
-    /* Now run as username in this context. Note that for PlanetLab's
-       vserver configuration the context name also happens to be the
-       "default" username within the vserver context.
-    */
-    username = context;
-    runas_slice_user(username);
-
-    /* With the uid/gid appropriately set. Let's figure out what the
-     * shell in the vserver's /etc/passwd is for the given username.
+    /* Get the /etc/passwd entry for this user, this time inside
+     * the chroot.
      */
+    username = context;
 
     pwdBuffer_len = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (pwdBuffer_len == -1) {
@@ -430,17 +298,24 @@ int main(int argc, char **argv)
     }
 
     errno = 0;
-    if ((getpwnam_r(username,pwd,pwdBuffer,pwdBuffer_len, &result) != 0) || (errno != 0)) {
+    if ((getpwnam_r(username,postchroot,pwdBuffer,pwdBuffer_len, &result) != 0) ||
+        (errno != 0) || result != postchroot) {
         PERROR("getpwnam_r(%s)", username);
         exit(1);
     }
 
+    /* Now run as username in this context. Note that for PlanetLab's
+       vserver configuration the context name also happens to be the
+       "default" username within the vserver context.
+    */
+    runas_slice_user(postchroot);
+
     /* Make sure pw->pw_shell is non-NULL.*/
-    if (pwd->pw_shell == NULL || pwd->pw_shell[0] == '\0') {
-      pwd->pw_shell = (char *) DEFAULT_SHELL;
+    if (postchroot->pw_shell == NULL || postchroot->pw_shell[0] == '\0') {
+      postchroot->pw_shell = (char *) DEFAULT_SHELL;
     }
 
-    shell = (char *)strdup(pwd->pw_shell);
+    shell = (char *)strdup(postchroot->pw_shell);
     if (!shell) {
       PERROR("strdup");
       exit(2);
