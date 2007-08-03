@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 17%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 18%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
@@ -32,7 +32,7 @@ URL: http://cvs.planet-lab.org/cvs/util-vserver
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.208
+Version:    %{version}	
 Release:	%{release}
 License:	GPL
 Group:		System Environment/Base
