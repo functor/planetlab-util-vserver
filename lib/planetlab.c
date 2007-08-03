@@ -94,6 +94,7 @@ pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 {
   int  retry_count = 0;
 
+  pl_set_ulimits(slr);
   for (;;)
     {
       struct vc_ctx_flags  vc_flags;
@@ -341,65 +342,64 @@ adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
   return adjusted;
 }
 
+static inline void
+set_one_ulimit(int resource, struct vc_rlimit *limit)
+{
+  struct rlimit lim;
+  getrlimit(resource, &lim);
+  adjust_lim(limit, &lim);
+  setrlimit(resource, &lim);
+}
+
+void
+pl_set_ulimits(struct sliver_resources *slr)
+{
+  if (!slr)
+    return;
+
+  set_one_ulimit(RLIMIT_RSS, &slr->vs_rss);
+  set_one_ulimit(RLIMIT_AS, &slr->vs_as);
+  set_one_ulimit(RLIMIT_NPROC, &slr->vs_nproc);
+  set_one_ulimit(RLIMIT_NOFILE, &slr->vs_openfd);
+}
 
 void
 pl_set_limits(xid_t ctx, struct sliver_resources *slr)
 {
-  struct rlimit lim; /* getrlimit values */
   unsigned long long vs_cpu;
   uint32_t cpu_sched_flags;
 
   if (slr != 0) {
     /* set memory limits */
-    getrlimit(RLIMIT_RSS,&lim);
-    if (adjust_lim(&slr->vs_rss, &lim)) {
-      setrlimit(RLIMIT_RSS, &lim);
-      if (vc_set_rlimit(ctx, RLIMIT_RSS, &slr->vs_rss))
-	{
-	  PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
-	  exit(1);
-	}
+    if (vc_set_rlimit(ctx, RLIMIT_RSS, &slr->vs_rss)) {
+      PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
+      exit(1);
     }
 
     /* set address space limits */
-    getrlimit(RLIMIT_AS,&lim);
-    if (adjust_lim(&slr->vs_as, &lim)) {
-      setrlimit(RLIMIT_AS, &lim);
-      if (vc_set_rlimit(ctx, RLIMIT_AS, &slr->vs_as))
-	{
-	  PERROR("pl_setrlimit(%u, RLIMIT_AS)", ctx);
-	  exit(1);
-	}
+    if (vc_set_rlimit(ctx, RLIMIT_AS, &slr->vs_as)) {
+      PERROR("pl_setrlimit(%u, RLIMIT_AS)", ctx);
+      exit(1);
     }
+
     /* set nrpoc limit */
-    getrlimit(RLIMIT_NPROC,&lim);
-    if (adjust_lim(&slr->vs_nproc, &lim)) {
-      setrlimit(RLIMIT_NPROC, &lim);
-      if (vc_set_rlimit(ctx, RLIMIT_NPROC, &slr->vs_nproc))
-	{
-	  PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
-	  exit(1);
-	}
+    if (vc_set_rlimit(ctx, RLIMIT_NPROC, &slr->vs_nproc)) {
+      PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
+      exit(1);
     }
 
     /* set openfd limit */
-    getrlimit(RLIMIT_NOFILE,&lim);
-    if (adjust_lim(&slr->vs_openfd, &lim)) {
-      setrlimit(RLIMIT_NOFILE, &lim);
-      if (vc_set_rlimit(ctx, RLIMIT_NOFILE, &slr->vs_openfd))
-	{
-	  PERROR("pl_setrlimit(%u, RLIMIT_NOFILE)", ctx);
-	  exit(1);
-	}
+    if (vc_set_rlimit(ctx, RLIMIT_NOFILE, &slr->vs_openfd)) {
+      PERROR("pl_setrlimit(%u, RLIMIT_NOFILE)", ctx);
+      exit(1);
+    }
 #ifndef VLIMIT_OPENFD
 #warning VLIMIT_OPENFD should be defined from standard header
 #define VLIMIT_OPENFD	17
 #endif
-      if (vc_set_rlimit(ctx, VLIMIT_OPENFD, &slr->vs_openfd))
-	{
-	  PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
-	  exit(1);
-	}
+    if (vc_set_rlimit(ctx, VLIMIT_OPENFD, &slr->vs_openfd)) {
+      PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
+      exit(1);
     }
     vs_cpu = slr->vs_cpu;    
     cpu_sched_flags = slr->vs_cpuguaranteed & VS_SCHED_CPU_GUARANTEED;

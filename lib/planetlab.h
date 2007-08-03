@@ -65,6 +65,7 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags);
 
 void pl_get_limits(char *, struct sliver_resources *);
 void pl_set_limits(xid_t, struct sliver_resources *);
+void pl_set_ulimits(struct sliver_resources *);
 
 static int
 _PERROR(const char *format, char *file, int line, int _errno, ...)
