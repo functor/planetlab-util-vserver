@@ -48,7 +48,6 @@
 
 #undef CONFIG_VSERVER_LEGACY
 
-#if 0
 /* Base for all vserver roots for chroot */
 #define VSERVER_ROOT_BASE       "/vservers"
 
@@ -473,10 +472,3 @@ int main(int argc, char **argv)
 
     return 0; /* shutup compiler */
 }
-#else
-int main(int argc, char *argv[])
-{
-	
-	return 0;
-}
-#endif
