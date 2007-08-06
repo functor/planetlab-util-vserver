@@ -65,7 +65,7 @@ static int setuidgid_root()
 	return 0;
 }
 
-static void compute_new_root(char *base, char **root, struct passwd *pwd)
+static void compute_new_root(char *base, char **root, const struct passwd *pwd)
 {
 	int             root_len;
 
@@ -82,7 +82,7 @@ static void compute_new_root(char *base, char **root, struct passwd *pwd)
 	(*root)[root_len - 1] = '\0';
 }
 
-static int sandbox_chroot(struct passwd *pwd)
+static int sandbox_chroot(const struct passwd *pwd)
 {
 	char *sandbox_root = NULL;
 

@@ -49,7 +49,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "planetlab.h"
 
 static int
-create_context(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
+create_context(xid_t ctx, uint64_t bcaps)
 {
   struct vc_ctx_caps  vc_caps;
   struct vc_net_flags  vc_nf;
@@ -81,7 +81,10 @@ process:
   if (vc_set_ccaps(ctx, &vc_caps))
     return -1;
 
-  pl_set_limits(ctx, slr);
+  if (pl_setsched(ctx, 1, 0) < 0) {
+    PERROR("pl_setsched(%u)", ctx);
+    exit(1);
+  }
 
   return 0;
 }
@@ -105,7 +108,7 @@ pl_setup_done(xid_t ctx)
 #define RETRY_LIMIT  10
 
 int
-pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
+pl_chcontext(xid_t ctx, uint64_t bcaps, const struct sliver_resources *slr)
 {
   int  retry_count = 0;
   int  net_migrated = 0;
@@ -122,7 +125,7 @@ pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr)
 	    return -1;
 
 	  /* context doesn't exist - create it */
-	  if (create_context(ctx, bcaps, slr))
+	  if (create_context(ctx, bcaps))
 	    {
 	      if (errno == EEXIST)
 		/* another process beat us in a race */
@@ -223,7 +226,7 @@ struct pl_resources {
 
 #define VSERVERCONF "/etc/vservers/"
 void
-pl_get_limits(char *context, struct sliver_resources *slr)
+pl_get_limits(const char *context, struct sliver_resources *slr)
 {
   FILE *fb;
   int cwd;
@@ -232,8 +235,7 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   struct pl_resources *r;
   struct pl_resources sliver_list[] = {
     {"sched/fill-rate2", &slr->vs_cpu},
-    {"sched/fill-rate", &slr->vs_cpuguaranteed},
-  
+
     {"rlimits/nproc.hard", &slr->vs_nproc.hard},
     {"rlimits/nproc.soft", &slr->vs_nproc.soft},
     {"rlimits/nproc.min", &slr->vs_nproc.min},
@@ -250,14 +252,10 @@ pl_get_limits(char *context, struct sliver_resources *slr)
     {"rlimits/openfd.soft", &slr->vs_openfd.soft},
     {"rlimits/openfd.min", &slr->vs_openfd.min},
 
-    {"bcapabilities", NULL},
     {0,0}
   };
 
   sprintf(conf, "%s%s", VSERVERCONF, context);
-
-  slr->vs_cpu = VC_LIM_KEEP;
-  slr->vs_cpuguaranteed = 0;
 
   slr->vs_rss.hard = VC_LIM_KEEP;
   slr->vs_rss.soft = VC_LIM_KEEP;
@@ -267,7 +265,6 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   slr->vs_as.soft = VC_LIM_KEEP;
   slr->vs_as.min = VC_LIM_KEEP;
 
-
   slr->vs_nproc.hard = VC_LIM_KEEP;
   slr->vs_nproc.soft = VC_LIM_KEEP;
   slr->vs_nproc.min = VC_LIM_KEEP;
@@ -275,11 +272,6 @@ pl_get_limits(char *context, struct sliver_resources *slr)
   slr->vs_openfd.hard = VC_LIM_KEEP;
   slr->vs_openfd.soft = VC_LIM_KEEP;
   slr->vs_openfd.min = VC_LIM_KEEP;
-
-  slr->vs_capabilities.bcaps = 0;
-  slr->vs_capabilities.bmask = 0;
-  slr->vs_capabilities.ccaps = 0;
-  slr->vs_capabilities.cmask = 0;
 
   cwd = open(".", O_RDONLY);
   if (cwd == -1) {
@@ -297,21 +289,8 @@ pl_get_limits(char *context, struct sliver_resources *slr)
     fb = fopen(r->name, "r");
     if (fb == NULL)
       continue;
-    /* XXX: UGLY. */
-    if (strcmp(r->name, "bcapabilities") == 0) {
-      size_t len, i;
-      struct vc_err_listparser err;
-
-      len = fread(buf, 1, sizeof(buf), fb);
-      for (i = 0; i < len; i++) {
-	if (buf[i] == '\n')
-	  buf[i] = ',';
-      }
-      vc_list2bcap(buf, len, &err, &slr->vs_capabilities);
-    }
-    else
-      if (fgets(buf, sizeof(buf), fb) != NULL && isdigit(*buf))
-        *r->limit = atoi(buf);
+    if (fgets(buf, sizeof(buf), fb) != NULL && isdigit(*buf))
+      *r->limit = atoi(buf);
     fclose(fb);
   }
 
@@ -323,7 +302,7 @@ out:
 }
 
 int
-adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
+adjust_lim(const struct vc_rlimit *vcr, struct rlimit *lim)
 {
   int adjusted = 0;
   if (vcr->min != VC_LIM_KEEP) {
@@ -362,7 +341,7 @@ adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim)
 }
 
 static inline void
-set_one_ulimit(int resource, struct vc_rlimit *limit)
+set_one_ulimit(int resource, const struct vc_rlimit *limit)
 {
   struct rlimit lim;
   getrlimit(resource, &lim);
@@ -371,7 +350,7 @@ set_one_ulimit(int resource, struct vc_rlimit *limit)
 }
 
 void
-pl_set_ulimits(struct sliver_resources *slr)
+pl_set_ulimits(const struct sliver_resources *slr)
 {
   if (!slr)
     return;
@@ -380,58 +359,4 @@ pl_set_ulimits(struct sliver_resources *slr)
   set_one_ulimit(RLIMIT_AS, &slr->vs_as);
   set_one_ulimit(RLIMIT_NPROC, &slr->vs_nproc);
   set_one_ulimit(RLIMIT_NOFILE, &slr->vs_openfd);
-}
-
-void
-pl_set_limits(xid_t ctx, struct sliver_resources *slr)
-{
-  unsigned long long vs_cpu;
-  uint32_t cpu_sched_flags;
-
-  if (slr != 0) {
-    /* set memory limits */
-    if (vc_set_rlimit(ctx, RLIMIT_RSS, &slr->vs_rss)) {
-      PERROR("pl_setrlimit(%u, RLIMIT_RSS)", ctx);
-      exit(1);
-    }
-
-    /* set address space limits */
-    if (vc_set_rlimit(ctx, RLIMIT_AS, &slr->vs_as)) {
-      PERROR("pl_setrlimit(%u, RLIMIT_AS)", ctx);
-      exit(1);
-    }
-
-    /* set nrpoc limit */
-    if (vc_set_rlimit(ctx, RLIMIT_NPROC, &slr->vs_nproc)) {
-      PERROR("pl_setrlimit(%u, RLIMIT_NPROC)", ctx);
-      exit(1);
-    }
-
-    /* set openfd limit */
-    if (vc_set_rlimit(ctx, RLIMIT_NOFILE, &slr->vs_openfd)) {
-      PERROR("pl_setrlimit(%u, RLIMIT_NOFILE)", ctx);
-      exit(1);
-    }
-    if (vc_set_rlimit(ctx, VC_VLIMIT_OPENFD, &slr->vs_openfd)) {
-      PERROR("pl_setrlimit(%u, VLIMIT_OPENFD)", ctx);
-      exit(1);
-    }
-
-    vs_cpu = slr->vs_cpu;    
-    cpu_sched_flags = slr->vs_cpuguaranteed & VS_SCHED_CPU_GUARANTEED;
-
-    slr->vs_capabilities.bmask = vc_get_insecurebcaps();
-    if (vc_set_ccaps(ctx, &slr->vs_capabilities) < 0) {
-      PERROR("pl_setcaps(%u)", ctx);
-      exit(1);
-    }
-  } else {
-    vs_cpu = 1;
-    cpu_sched_flags = 0;
-  }
-  
-  if (pl_setsched(ctx, vs_cpu, cpu_sched_flags) < 0) {
-    PERROR("pl_setsched(%u)", ctx);
-    exit(1);
-  }
 }

@@ -38,18 +38,16 @@ POSSIBILITY OF SUCH DAMAGE.
 
 struct sliver_resources {
   unsigned long long vs_cpu;
-  unsigned long long vs_cpuguaranteed;
   struct vc_rlimit vs_rss;
   struct vc_rlimit vs_as;
   struct vc_rlimit vs_nproc;
   struct vc_rlimit vs_openfd;
-  struct vc_ctx_caps vs_capabilities;
 };
 
-int adjust_lim(struct vc_rlimit *vcr, struct rlimit *lim);
+int adjust_lim(const struct vc_rlimit *vcr, struct rlimit *lim);
 
 int
-pl_chcontext(xid_t ctx, uint64_t bcaps, struct sliver_resources *slr);
+pl_chcontext(xid_t ctx, uint64_t bcaps, const struct sliver_resources *slr);
 
 int
 pl_setup_done(xid_t ctx);
@@ -63,9 +61,8 @@ pl_setsched(xid_t ctx, uint32_t cpu_share, uint32_t cpu_sched_flags);
 /* Null byte made explicit */
 #define NULLBYTE_SIZE                    1
 
-void pl_get_limits(char *, struct sliver_resources *);
-void pl_set_limits(xid_t, struct sliver_resources *);
-void pl_set_ulimits(struct sliver_resources *);
+void pl_get_limits(const char *, struct sliver_resources *);
+void pl_set_ulimits(const struct sliver_resources *);
 
 static int
 _PERROR(const char *format, char *file, int line, int _errno, ...)
