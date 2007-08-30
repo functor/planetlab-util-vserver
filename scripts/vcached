@@ -16,7 +16,7 @@
 # Mark Huang <mlhuang@cs.princeton.edu>
 # Copyright (c) 2004-2005 The Trustees of Princeton University
 #
-# $Id: vcached,v 1.12 2005/09/03 21:47:11 mlhuang Exp $
+# $Id: vcached,v 1.13 2006/11/13 18:57:21 mlhuang Exp $
 #
 
 PATH=/sbin:/usr/sbin:$PATH
@@ -79,7 +79,7 @@ test -e "$UTIL_VSERVER_VARS" || {
 setattr --barrier $__DEFAULT_VSERVERDIR
 
 # take out the trash
-rm -rf "$__DEFAULT_VSERVERDIR/.vtmp"
+#rm -rf "$__DEFAULT_VSERVERDIR/.vtmp"
 
 mkdir -p "$__DEFAULT_VSERVERDIR/.vcache"
 mkdir -p "$__DEFAULT_VSERVERDIR/.vtmp"
