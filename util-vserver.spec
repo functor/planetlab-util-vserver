@@ -17,7 +17,7 @@
 
 %define name util-vserver
 %define version 0.30.208
-%define release 21%{?pldistro:.%{pldistro}}%{?date:.%{date}}
+%define release 22%{?pldistro:.%{pldistro}}%{?date:.%{date}}
 
 %define _without_dietlibc 1
 %define _without_xalan 1
