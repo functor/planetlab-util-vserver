@@ -190,7 +190,6 @@ class VServer:
         os.chdir("/")
 
     def chroot_call(self, fn, *args):
-
         cwd_fd = os.open(".", os.O_RDONLY)
         try:
             root_fd = os.open("/", os.O_RDONLY)
@@ -296,7 +295,6 @@ class VServer:
         return result
 
     def open(self, filename, mode = "r", bufsize = -1):
-
         return self.chroot_call(open, filename, mode, bufsize)
 
     def __do_chcontext(self, state_file):
@@ -352,7 +350,6 @@ class VServer:
             raise ex
 
     def enter(self):
-
         state_file = open("/var/run/vservers/%s.ctx" % self.name, "w")
         self.__do_chroot()
         self.__do_chcontext(state_file)
@@ -396,7 +393,7 @@ class VServer:
                         cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
                             cmd[1:])
                         print >>log, "executing '%s'" % " ".join(cmd_args)
-                        os.spawnvp(os.P_WAIT,cmd[0],cmd_args)
+                        os.spawnvp(os.P_NOWAIT,cmd[0],cmd_args)
                     except:
                         traceback.print_exc()
                         os._exit(1)
@@ -423,16 +420,13 @@ class VServer:
             self.__update_config_file(self.config_file, resources)
 
     def init_disk_info(self):
-
         (self.disk_inodes, self.disk_blocks, size) = vduimpl.vdu(self.dir)
-
         return size
 
     def stop(self, signal = signal.SIGKILL):
         vserverimpl.killall(self.ctx, signal)
         self.vm_running = False
         self.rlimits_changed = False
-
 
 
 def create(vm_name, static = False, ctor = VServer):
