@@ -385,7 +385,7 @@ class VServer:
                 # execute each init script in turn
                 # XXX - we don't support all scripts that vserver script does
                 self.__do_chcontext(state_file)
-                for cmd in self.INITSCRIPTS + [None]:
+                for cmd in self.INITSCRIPTS:
                     try:
                         print >>log, cmd
                         # enter vserver context
