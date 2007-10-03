@@ -18,7 +18,7 @@
 #  
 
 ACLOCAL_AMFLAGS		=  -I m4
-SUBDIRS			=  . distrib
+SUBDIRS			=  . distrib python
 
 SVN2CL_AMFLAGS		=  $(SVN2CL_TAG) --authors=svnusers.map
 SVN2CL_ALLFLAGS        :=  $(SVN2CL_AMFLAGS) $(SVN2CL_FLAGS)

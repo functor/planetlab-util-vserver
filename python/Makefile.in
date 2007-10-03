@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 VPATH = @srcdir@
@@ -37,9 +38,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(top_srcdir)/m4/install-notify.am
-subdir = distrib
+subdir = python
+DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ensc_cflags.m4 \
 	$(top_srcdir)/m4/ensc_changelog.m4 \
@@ -66,17 +66,32 @@ am__vpath_adj = case $$p in \
     *) f=$$p;; \
   esac;
 am__strip_dir = `echo $$p | sed -e 's|^.*/||'`;
-am__installdirs = "$(DESTDIR)$(distribdir)" "$(DESTDIR)$(defaultsdir)" \
-	"$(DESTDIR)$(confdistribdir)" "$(DESTDIR)$(distribdir)"
-nobase_distribSCRIPT_INSTALL = $(install_sh_SCRIPT)
-SCRIPTS = $(nobase_distrib_SCRIPTS)
-SOURCES =
-DIST_SOURCES =
-defaultsDATA_INSTALL = $(INSTALL_DATA)
-nobase_confdistribDATA_INSTALL = $(install_sh_DATA)
-nobase_distribDATA_INSTALL = $(install_sh_DATA)
-DATA = $(defaults_DATA) $(nobase_confdistrib_DATA) \
-	$(nobase_distrib_DATA)
+am__installdirs = "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(sbindir)" \
+	"$(DESTDIR)$(pyexecdir)"
+pyexecLTLIBRARIES_INSTALL = $(INSTALL)
+LTLIBRARIES = $(pyexec_LTLIBRARIES)
+vserverimpl_la_DEPENDENCIES = $(top_builddir)/lib/libvserver.la
+am_vserverimpl_la_OBJECTS = vserverimpl_la-vserverimpl.lo
+vserverimpl_la_OBJECTS = $(am_vserverimpl_la_OBJECTS)
+sbinSCRIPT_INSTALL = $(INSTALL_SCRIPT)
+SCRIPTS = $(sbin_SCRIPTS)
+DEFAULT_INCLUDES = -I. -I$(srcdir) -I$(top_builddir)
+depcomp = $(SHELL) $(top_srcdir)/depcomp
+am__depfiles_maybe = depfiles
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+SOURCES = $(vserverimpl_la_SOURCES)
+DIST_SOURCES = $(vserverimpl_la_SOURCES)
+pyexecDATA_INSTALL = $(INSTALL_DATA)
+DATA = $(pyexec_DATA)
+ETAGS = etags
+CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMDEP_FALSE = @AMDEP_FALSE@
@@ -269,77 +284,18 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 vserverdir = @vserverdir@
-confdir = $(sysconfdir)/vservers
-defaultsdir = $(pkglibdir)/defaults
-distribdir = $(pkglibdir)/distributions
-confdistribdir = $(confdir)/.distributions
-confdefaultsdir = $(confdir)/.defaults
-defaults_DATA = misc/debootstrap.mirror \
-			misc/debootstrap.uri \
-			misc/fstab \
-			misc/mtab \
-			misc/vprocunhide-files \
-			misc/vunify-exclude \
-			misc/environment \
-			misc/context.start \
-			sample.conf
-
-nobase_distrib_SCRIPTS = redhat/initpost \
-			   redhat/initpre \
-			   redhat/rc.sysinit \
-			   gentoo/initpost \
-			   gentoo/initpre \
-			   etch/initpost
-
-nobase_distrib_DATA = defaults/devs \
-			   defaults/apt.conf \
-			   defaults/rpm/macros \
-			   defaults/apt/apt.conf \
-			   template/initpost template/initpre \
-			   rh9/apt/rpmpriorities    rh9/pkgs/01    rh9/pkgs/02 \
-			   fc1/apt/rpmpriorities    fc1/pkgs/01    fc1/pkgs/02 \
-			   fc2/apt/rpmpriorities    fc2/pkgs/01    fc2/pkgs/02 \
-			   fc3/apt/rpmpriorities    fc3/pkgs/01    fc3/pkgs/02    fc3/pkgs/03 \
-			   fc3/yum/yum.conf $(wildcard fc3/yum.repos.d/*.repo) \
-			   $(wildcard fc3/rpmlist.d/*.lst) $(wildcard fc3/rpmlist.d/*.opt) \
-			   fc4/apt/rpmpriorities    fc4/pkgs/01    fc4/pkgs/02    fc4/pkgs/03 \
-			   fc4/yum/yum.conf $(wildcard fc4/yum.repos.d/*.repo) \
-			   $(wildcard fc4/rpmlist.d/*.lst) $(wildcard fc4/rpmlist.d/*.opt) \
-			   fc5/apt/rpmpriorities    fc5/pkgs/01    fc5/pkgs/02    fc5/pkgs/03 \
-			   fc5/yum/yum.conf $(wildcard fc5/yum.repos.d/*.repo) \
-			   $(wildcard fc5/rpmlist.d/*.lst) $(wildcard fc5/rpmlist.d/*.opt) \
-			   fc6/apt/rpmpriorities    fc6/pkgs/01    fc6/pkgs/02    fc6/pkgs/03 \
-			   fc6/yum/yum.conf $(wildcard fc6/yum.repos.d/*.repo) \
-			   $(wildcard fc6/rpmlist.d/*.lst) $(wildcard fc6/rpmlist.d/*.opt) \
-			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
-			   centos4/yum/yum.conf $(wildcard centos4/yum.repos.d/*.repo) \
-			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
-			   centos5/yum/yum.conf $(wildcard centos5/yum.repos.d/*.repo) \
-			   suse91/apt/rpmpriorities suse91/pkgs/01 suse91/pkgs/02 \
-			   suse91/rpm/macros \
-			   gentoo/init-vserver.sh gentoo/net.vserver \
-			   gentoo/reboot.sh gentoo/shutdown.sh \
-			   etch/vserver-config.sh
-
-nobase_confdistrib_DATA = rh9/apt/sources.list \
-			   fc1/apt/sources.list \
-			   fc2/apt/sources.list \
-			   fc3/apt/sources.list \
-			   fc4/apt/sources.list \
-			   fc5/apt/sources.list \
-			   fc6/apt/sources.list \
-			   suse91/apt/sources.list
-
-EXTRA_DIST = $(nobase_distrib_DATA) \
-			   $(nobase_distrib_SCRIPTS) \
-			   $(nobase_confdistrib_DATA) \
-			   $(defaults_DATA)
-
-redhat_style = rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4 centos5
+vserverimpl_la_SOURCES = vserverimpl.c
+vserverimpl_la_LIBADD = $(top_builddir)/lib/libvserver.la
+vserverimpl_la_CFLAGS = -Wno-redundant-decls -I$(top_srcdir)/lib $(PYTHON_INCLUDES)
+vserverimpl_la_LDFLAGS = -module -avoid-version
+pyexec_LTLIBRARIES = vserverimpl.la
+pyexec_DATA = vserver.py bwlimit.py cpulimit.py
+sbin_SCRIPTS = bwlimit disklimit
 all: all-am
 
 .SUFFIXES:
-$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir)/m4/install-notify.am $(am__configure_deps)
+.SUFFIXES: .c .lo .o .obj
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -348,9 +304,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits  distrib/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnits  python/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnits  distrib/Makefile
+	  $(AUTOMAKE) --gnits  python/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -368,47 +324,108 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-install-nobase_distribSCRIPTS: $(nobase_distrib_SCRIPTS)
+install-pyexecLTLIBRARIES: $(pyexec_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	test -z "$(distribdir)" || $(mkdir_p) "$(DESTDIR)$(distribdir)"
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_distrib_SCRIPTS)'; for p in $$list; do \
-	  $(am__vpath_adj) p=$$f; \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  if test -f $$d$$p; then \
-	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
-	    f=`echo "$$p" | sed 's|[^/]*$$||'`"$$f"; \
-	    echo " $(nobase_distribSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(distribdir)/$$f'"; \
-	    $(nobase_distribSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(distribdir)/$$f"; \
+	test -z "$(pyexecdir)" || $(mkdir_p) "$(DESTDIR)$(pyexecdir)"
+	@list='$(pyexec_LTLIBRARIES)'; for p in $$list; do \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(LIBTOOL) --mode=install $(pyexecLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(pyexecdir)/$$f'"; \
+	    $(LIBTOOL) --mode=install $(pyexecLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(pyexecdir)/$$f"; \
 	  else :; fi; \
 	done
 
-uninstall-nobase_distribSCRIPTS:
+uninstall-pyexecLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_distrib_SCRIPTS)'; for p in $$list; do \
-	  $(am__vpath_adj) p=$$f; \
-	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
-	  f=`echo "$$p" | sed 's|[^/]*$$||'`"$$f"; \
-	  echo " rm -f '$(DESTDIR)$(distribdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(distribdir)/$$f"; \
+	@set -x; list='$(pyexec_LTLIBRARIES)'; for p in $$list; do \
+	  p=$(am__strip_dir) \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f '$(DESTDIR)$(pyexecdir)/$$p'"; \
+	  $(LIBTOOL) --mode=uninstall rm -f "$(DESTDIR)$(pyexecdir)/$$p"; \
 	done
 
-installcheck-nobase_distribSCRIPTS: $(nobase_distrib_SCRIPTS)
-	bad=0; pid=$$$$; list="$(nobase_distrib_SCRIPTS)"; for p in $$list; do \
+clean-pyexecLTLIBRARIES:
+	-test -z "$(pyexec_LTLIBRARIES)" || rm -f $(pyexec_LTLIBRARIES)
+	@list='$(pyexec_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test "$$dir" != "$$p" || dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+vserverimpl.la: $(vserverimpl_la_OBJECTS) $(vserverimpl_la_DEPENDENCIES) 
+	$(LINK) -rpath $(pyexecdir) $(vserverimpl_la_LDFLAGS) $(vserverimpl_la_OBJECTS) $(vserverimpl_la_LIBADD) $(LIBS)
+install-sbinSCRIPTS: $(sbin_SCRIPTS)
+	@$(NORMAL_INSTALL)
+	test -z "$(sbindir)" || $(mkdir_p) "$(DESTDIR)$(sbindir)"
+	@list='$(sbin_SCRIPTS)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  if test -f $$d$$p; then \
+	    f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	    echo " $(sbinSCRIPT_INSTALL) '$$d$$p' '$(DESTDIR)$(sbindir)/$$f'"; \
+	    $(sbinSCRIPT_INSTALL) "$$d$$p" "$(DESTDIR)$(sbindir)/$$f"; \
+	  else :; fi; \
+	done
+
+uninstall-sbinSCRIPTS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(sbin_SCRIPTS)'; for p in $$list; do \
+	  f=`echo "$$p" | sed 's|^.*/||;$(transform)'`; \
+	  echo " rm -f '$(DESTDIR)$(sbindir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(sbindir)/$$f"; \
+	done
+
+installcheck-sbinSCRIPTS: $(sbin_SCRIPTS)
+	bad=0; pid=$$$$; list="$(sbin_SCRIPTS)"; for p in $$list; do \
 	  case ' $(AM_INSTALLCHECK_STD_OPTIONS_EXEMPT) ' in \
 	   *" $$p "* | *" $(srcdir)/$$p "*) continue;; \
 	  esac; \
 	  f=`echo "$$p" | sed 's,^.*/,,;$(transform)'`; \
-	  f=`echo "$$p" | sed 's|[^/]*$$||'`"$$f"; \
 	  for opt in --help --version; do \
-	    if "$(DESTDIR)$(distribdir)/$$f" $$opt >c$${pid}_.out \
+	    if "$(DESTDIR)$(sbindir)/$$f" $$opt >c$${pid}_.out \
 	         2>c$${pid}_.err </dev/null \
 		 && test -n "`cat c$${pid}_.out`" \
 		 && test -z "`cat c$${pid}_.err`"; then :; \
 	    else echo "$$f does not support $$opt" 1>&2; bad=1; fi; \
 	  done; \
 	done; rm -f c$${pid}_.???; exit $$bad
+
+mostlyclean-compile:
+	-rm -f *.$(OBJEXT)
+
+distclean-compile:
+	-rm -f *.tab.c
+
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vserverimpl_la-vserverimpl.Plo@am__quote@
+
+.c.o:
+@am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`; \
+@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$$depbase.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$$depbase.Tpo" "$$depbase.Po"; else rm -f "$$depbase.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ $<
+
+.c.obj:
+@am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`; \
+@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$$depbase.Tpo" -c -o $@ `$(CYGPATH_W) '$<'`; \
+@am__fastdepCC_TRUE@	then mv -f "$$depbase.Tpo" "$$depbase.Po"; else rm -f "$$depbase.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.c.lo:
+@am__fastdepCC_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`; \
+@am__fastdepCC_TRUE@	if $(LTCOMPILE) -MT $@ -MD -MP -MF "$$depbase.Tpo" -c -o $@ $<; \
+@am__fastdepCC_TRUE@	then mv -f "$$depbase.Tpo" "$$depbase.Plo"; else rm -f "$$depbase.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+vserverimpl_la-vserverimpl.lo: vserverimpl.c
+@am__fastdepCC_TRUE@	if $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vserverimpl_la_CFLAGS) $(CFLAGS) -MT vserverimpl_la-vserverimpl.lo -MD -MP -MF "$(DEPDIR)/vserverimpl_la-vserverimpl.Tpo" -c -o vserverimpl_la-vserverimpl.lo `test -f 'vserverimpl.c' || echo '$(srcdir)/'`vserverimpl.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/vserverimpl_la-vserverimpl.Tpo" "$(DEPDIR)/vserverimpl_la-vserverimpl.Plo"; else rm -f "$(DEPDIR)/vserverimpl_la-vserverimpl.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='vserverimpl.c' object='vserverimpl_la-vserverimpl.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vserverimpl_la_CFLAGS) $(CFLAGS) -c -o vserverimpl_la-vserverimpl.lo `test -f 'vserverimpl.c' || echo '$(srcdir)/'`vserverimpl.c
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -419,70 +436,73 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-install-defaultsDATA: $(defaults_DATA)
+install-pyexecDATA: $(pyexec_DATA)
 	@$(NORMAL_INSTALL)
-	test -z "$(defaultsdir)" || $(mkdir_p) "$(DESTDIR)$(defaultsdir)"
-	@list='$(defaults_DATA)'; for p in $$list; do \
+	test -z "$(pyexecdir)" || $(mkdir_p) "$(DESTDIR)$(pyexecdir)"
+	@list='$(pyexec_DATA)'; for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  f=$(am__strip_dir) \
-	  echo " $(defaultsDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(defaultsdir)/$$f'"; \
-	  $(defaultsDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(defaultsdir)/$$f"; \
+	  echo " $(pyexecDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(pyexecdir)/$$f'"; \
+	  $(pyexecDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(pyexecdir)/$$f"; \
 	done
 
-uninstall-defaultsDATA:
+uninstall-pyexecDATA:
 	@$(NORMAL_UNINSTALL)
-	@list='$(defaults_DATA)'; for p in $$list; do \
+	@list='$(pyexec_DATA)'; for p in $$list; do \
 	  f=$(am__strip_dir) \
-	  echo " rm -f '$(DESTDIR)$(defaultsdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(defaultsdir)/$$f"; \
-	done
-install-nobase_confdistribDATA: $(nobase_confdistrib_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(confdistribdir)" || $(mkdir_p) "$(DESTDIR)$(confdistribdir)"
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_confdistrib_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  $(am__vpath_adj) \
-	  echo " $(nobase_confdistribDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(confdistribdir)/$$f'"; \
-	  $(nobase_confdistribDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(confdistribdir)/$$f"; \
+	  echo " rm -f '$(DESTDIR)$(pyexecdir)/$$f'"; \
+	  rm -f "$(DESTDIR)$(pyexecdir)/$$f"; \
 	done
 
-uninstall-nobase_confdistribDATA:
-	@$(NORMAL_UNINSTALL)
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_confdistrib_DATA)'; for p in $$list; do \
-	  $(am__vpath_adj) \
-	  echo " rm -f '$(DESTDIR)$(confdistribdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(confdistribdir)/$$f"; \
-	done
-install-nobase_distribDATA: $(nobase_distrib_DATA)
-	@$(NORMAL_INSTALL)
-	test -z "$(distribdir)" || $(mkdir_p) "$(DESTDIR)$(distribdir)"
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_distrib_DATA)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  $(am__vpath_adj) \
-	  echo " $(nobase_distribDATA_INSTALL) '$$d$$p' '$(DESTDIR)$(distribdir)/$$f'"; \
-	  $(nobase_distribDATA_INSTALL) "$$d$$p" "$(DESTDIR)$(distribdir)/$$f"; \
-	done
-
-uninstall-nobase_distribDATA:
-	@$(NORMAL_UNINSTALL)
-	@$(am__vpath_adj_setup) \
-	list='$(nobase_distrib_DATA)'; for p in $$list; do \
-	  $(am__vpath_adj) \
-	  echo " rm -f '$(DESTDIR)$(distribdir)/$$f'"; \
-	  rm -f "$(DESTDIR)$(distribdir)/$$f"; \
-	done
+ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
+	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	mkid -fID $$unique
 tags: TAGS
-TAGS:
 
+TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	if test -z "$(ETAGS_ARGS)$$tags$$unique"; then :; else \
+	  test -n "$$unique" || unique=$$empty_fix; \
+	  $(ETAGS) $(ETAGSFLAGS) $(AM_ETAGSFLAGS) $(ETAGS_ARGS) \
+	    $$tags $$unique; \
+	fi
 ctags: CTAGS
-CTAGS:
+CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+		$(TAGS_FILES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
+	unique=`for i in $$list; do \
+	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
+	  done | \
+	  $(AWK) '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(CTAGS_ARGS)$$tags$$unique" \
+	  || $(CTAGS) $(CTAGSFLAGS) $(AM_CTAGSFLAGS) $(CTAGS_ARGS) \
+	     $$tags $$unique
 
+GTAGS:
+	here=`$(am__cd) $(top_builddir) && pwd` \
+	  && cd $(top_srcdir) \
+	  && gtags -i $(GTAGS_ARGS) $$here
+
+distclean-tags:
+	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
 
 distdir: $(DISTFILES)
-	$(mkdir_p) $(distdir)/../m4 $(distdir)/centos4/pkgs $(distdir)/centos4/yum $(distdir)/centos4/yum.repos.d $(distdir)/centos5/pkgs $(distdir)/centos5/yum $(distdir)/centos5/yum.repos.d $(distdir)/defaults $(distdir)/defaults/apt $(distdir)/defaults/rpm $(distdir)/etch $(distdir)/fc1/apt $(distdir)/fc1/pkgs $(distdir)/fc2/apt $(distdir)/fc2/pkgs $(distdir)/fc3/apt $(distdir)/fc3/pkgs $(distdir)/fc3/rpmlist.d $(distdir)/fc3/yum $(distdir)/fc3/yum.repos.d $(distdir)/fc4/apt $(distdir)/fc4/pkgs $(distdir)/fc4/rpmlist.d $(distdir)/fc4/yum $(distdir)/fc4/yum.repos.d $(distdir)/fc5/apt $(distdir)/fc5/pkgs $(distdir)/fc5/rpmlist.d $(distdir)/fc5/yum $(distdir)/fc5/yum.repos.d $(distdir)/fc6/apt $(distdir)/fc6/pkgs $(distdir)/fc6/rpmlist.d $(distdir)/fc6/yum $(distdir)/fc6/yum.repos.d $(distdir)/gentoo $(distdir)/misc $(distdir)/redhat $(distdir)/rh9/apt $(distdir)/rh9/pkgs $(distdir)/suse91/apt $(distdir)/suse91/pkgs $(distdir)/suse91/rpm $(distdir)/template
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -511,9 +531,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS) $(DATA)
+all-am: Makefile $(LTLIBRARIES) $(SCRIPTS) $(DATA)
 installdirs:
-	for dir in "$(DESTDIR)$(distribdir)" "$(DESTDIR)$(defaultsdir)" "$(DESTDIR)$(confdistribdir)" "$(DESTDIR)$(distribdir)"; do \
+	for dir in "$(DESTDIR)$(pyexecdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(pyexecdir)"; do \
 	  test -z "$$dir" || $(mkdir_p) "$$dir"; \
 	done
 install: install-am
@@ -542,11 +562,14 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-pyexecLTLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-generic distclean-libtool
+distclean-am: clean-am distclean-compile distclean-generic \
+	distclean-libtool distclean-tags
 
 dvi: dvi-am
 
@@ -558,28 +581,26 @@ info: info-am
 
 info-am:
 
-install-data-am: install-defaultsDATA install-nobase_confdistribDATA \
-	install-nobase_distribDATA install-nobase_distribSCRIPTS
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
+install-data-am:
 
-install-exec-am:
-	@$(NORMAL_INSTALL)
-	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
+install-exec-am: install-pyexecDATA install-pyexecLTLIBRARIES \
+	install-sbinSCRIPTS
 
 install-info: install-info-am
 
 install-man:
 
-installcheck-am: installcheck-nobase_distribSCRIPTS
+installcheck-am: installcheck-sbinSCRIPTS
 
 maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-generic mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool
 
 pdf: pdf-am
 
@@ -589,60 +610,24 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-defaultsDATA uninstall-info-am \
-	uninstall-nobase_confdistribDATA uninstall-nobase_distribDATA \
-	uninstall-nobase_distribSCRIPTS
+uninstall-am: uninstall-info-am uninstall-pyexecDATA \
+	uninstall-pyexecLTLIBRARIES uninstall-sbinSCRIPTS
 
-.PHONY: all all-am check check-am clean clean-generic clean-libtool \
-	distclean distclean-generic distclean-libtool distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-data-hook \
-	install-defaultsDATA install-exec install-exec-am \
-	install-exec-hook install-info install-info-am install-man \
-	install-nobase_confdistribDATA install-nobase_distribDATA \
-	install-nobase_distribSCRIPTS install-strip installcheck \
-	installcheck-am installcheck-nobase_distribSCRIPTS installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
+.PHONY: CTAGS GTAGS all all-am check check-am clean clean-generic \
+	clean-libtool clean-pyexecLTLIBRARIES ctags distclean \
+	distclean-compile distclean-generic distclean-libtool \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-exec \
+	install-exec-am install-info install-info-am install-man \
+	install-pyexecDATA install-pyexecLTLIBRARIES \
+	install-sbinSCRIPTS install-strip installcheck installcheck-am \
+	installcheck-sbinSCRIPTS installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-defaultsDATA \
-	uninstall-info-am uninstall-nobase_confdistribDATA \
-	uninstall-nobase_distribDATA uninstall-nobase_distribSCRIPTS
+	tags uninstall uninstall-am uninstall-info-am \
+	uninstall-pyexecDATA uninstall-pyexecLTLIBRARIES \
+	uninstall-sbinSCRIPTS
 
-
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT \
-			=  $(nobase_distrib_SCRIPTS)
-
-install-exec-hook:	install-notify-xtra
-install-data-hook:	install-data-xtras
-
-install-data-xtras:
-			l="$(redhat_style)"; for i in $$l; do \
-				ln -sf ../redhat/initpost $(DESTDIR)$(distribdir)/$$i/ && \
-				ln -sf ../redhat/initpre  $(DESTDIR)$(distribdir)/$$i/; \
-			done
-			$(mkinstalldirs) $(DESTDIR)$(confdir) \
-				$(DESTDIR)$(confdistribdir)/.common/pubkeys \
-				$(DESTDIR)$(confdefaultsdir) \
-				$(DESTDIR)$(confdefaultsdir)/apps/vunify/hash \
-				$(DESTDIR)$(confdefaultsdir)/files
-
-install-exec-hook install-data-hook:	install-notify-xtra
-
-install-notify-xtra:
-		@echo
-		@echo
-		@echo '***************************'
-		@echo '*'
-		@echo '* NOTE: a plain "make install" installs only the files under $$(prefix)'
-		@echo '*       which might be insufficient. To complete the installation,'
-		@echo '*       "make install-distribution" should be executed. See README,'
-		@echo '*       "Notes for distributors" for details.'
-		@echo '*'
-		@echo '***************************'
-		@echo
-		@echo
-
-.PHONY:			install-notify-xtra
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

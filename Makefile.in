@@ -1427,6 +1427,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PS = @PS@
 PYTHON = @PYTHON@
 PYTHON_EXEC_PREFIX = @PYTHON_EXEC_PREFIX@
+PYTHON_INCLUDES = @PYTHON_INCLUDES@
 PYTHON_PLATFORM = @PYTHON_PLATFORM@
 PYTHON_PREFIX = @PYTHON_PREFIX@
 PYTHON_VERSION = @PYTHON_VERSION@
@@ -1508,7 +1509,7 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 vserverdir = @vserverdir@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = . distrib
+SUBDIRS = . distrib python
 SVN2CL_AMFLAGS = $(SVN2CL_TAG) --authors=svnusers.map
 SVN2CL_ALLFLAGS := $(SVN2CL_AMFLAGS) $(SVN2CL_FLAGS)
 confdir = $(sysconfdir)/vservers

@@ -400,6 +400,25 @@ dnl libnl stuff ends here}
 dnl
 dnl #######################
 
+dnl
+dnl Get python includes
+dnl
+
+AC_MSG_CHECKING([for python includes])
+PYTHON_INCLUDES=`python-config --includes 2>/dev/null`
+if test x"$PYTHON_INCLUDES" = x; then
+	python_inc_plat=`$PYTHON -c "from distutils.sysconfig import get_python_inc; print get_python_inc(1)"`
+	python_inc=`$PYTHON -c "from distutils.sysconfig import get_python_inc; print get_python_inc()"`
+	if test x"$python_inc_plat" != x; then
+		PYTHON_INCLUDES="$PYTHON_INCLUDES -I$python_inc_plat"
+	fi
+	if test x"$python_inc" != x; then
+		PYTHON_INCLUDES="$PYTHON_INCLUDES -I$python_inc"
+	fi
+fi
+AC_MSG_RESULT([$PYTHON_INCLUDES])
+AC_SUBST(PYTHON_INCLUDES)
+
 
 dnl Check what distro this is, use Gentoo initscripts if appropriate
 AC_MSG_CHECKING([for host initscripts])
@@ -479,7 +498,7 @@ dnl final info-page ends here}
 dnl
 dnl ########################
 
-AC_CONFIG_FILES([util-vserver.spec Makefile distrib/Makefile lib/apidoc/Doxyfile])
+AC_CONFIG_FILES([util-vserver.spec Makefile distrib/Makefile lib/apidoc/Doxyfile python/Makefile])
 AC_OUTPUT
 
 AC_MSG_NOTICE([
