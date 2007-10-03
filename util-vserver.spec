@@ -109,7 +109,7 @@ Requires:		%name-lib = %version-%release
 %package python
 Summary:		Python modules for manipulating vservers
 Group:			Applications/System
-Requires:		python util-python
+Requires:		python
 Obsoletes:		util-vserver-py23 resman
 
 
@@ -203,7 +203,7 @@ automake --add-missing
 %configure --with-initrddir=%_initrddir --enable-release \
            %{?_without_dietlibc:--disable-dietlibc} \
            %{!?_without_legacy:--enable-apis=NOLEGACY} \
-           --with-initscripts=sysv --disable-static=vserverimpl
+           --with-initscripts=sysv
 
 %__make %{?_smp_mflags} all
 %{!?_without_doc:%__make %{?_smp_mflags} doc}
@@ -212,7 +212,7 @@ automake --add-missing
 rm -rf $RPM_BUILD_ROOT
 %__make DESTDIR="$RPM_BUILD_ROOT" install install-distribution
 
-rm -f $RPM_BUILD_ROOT/%_libdir/*.la $RPM_BUILD_ROOT%{python_sitearch}/*.la
+rm -f $RPM_BUILD_ROOT/%_libdir/*.la $RPM_BUILD_ROOT%{python_sitearch}/*.{la,a}
 
 MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
@@ -417,6 +417,9 @@ done
 
 
 %changelog
+* Wed Oct 03 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
+- build python code as part of the regular build process
+
 * Mon Jul 30 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
 - add vip6-autod
 

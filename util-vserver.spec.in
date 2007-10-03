@@ -109,7 +109,7 @@ Requires:		%name-lib = %version-%release
 %package python
 Summary:		Python modules for manipulating vservers
 Group:			Applications/System
-Requires:		python util-python
+Requires:		python
 Obsoletes:		util-vserver-py23 resman
 
 
@@ -417,6 +417,9 @@ done
 
 
 %changelog
+* Wed Oct 03 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
+- build python code as part of the regular build process
+
 * Mon Jul 30 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
 - add vip6-autod
 
