@@ -29,8 +29,8 @@
 
 #include <asm/types.h>
 /* not defined for gcc -ansi */
-typedef uint64_t __u64;
-typedef int64_t __s64;
+typedef unsigned long long __u64;
+typedef signed long long __s64;
 #include <netlink/netlink.h>
 #include <netlink/route/addr.h>
 
@@ -153,6 +153,18 @@ static void cleanup_prefix(struct prefix_list *i)
 		free(p);
 }
 
+static inline void free_nid_list(struct nid_list *head)
+{
+	struct nid_list *p;
+	for (p = NULL; head; head = head->next) {
+		if (p)
+			free(p);
+		p = head;
+	}
+	if (p)
+		free(p);
+}
+
 static void do_slices_autoconf(struct prefix_list *head)
 {
 	DIR *dp;
@@ -161,6 +173,7 @@ static void do_slices_autoconf(struct prefix_list *head)
 	struct vc_net_nx addr;
 	struct prefix_list *i;
 	struct nid_list *current = NULL, *n;
+	static struct nid_list *previous = NULL;
 
 	if ((dp = opendir("/proc/virtnet")) == NULL)
 		return;
@@ -225,6 +238,9 @@ next:
 		}
 	}
 	closedir(dp);
+
+	free_nid_list(previous);
+	previous = current;
 }
 
 static int add_prefix(struct prefix_list *head, struct prefixmsg *msg,
