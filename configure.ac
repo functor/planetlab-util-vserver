@@ -381,7 +381,7 @@ if test x"$ensc_have_libnl" = xyes; then
 fi
 
 if test x"$ensc_have_libnl" = xyes; then
-	AC_CHECK_LIB(nl, rtnl_addr_alloc, [ : ],
+	AC_CHECK_LIB(nl, nlmsg_get_src, [ : ],
 		     [ ensc_have_libnl=no ])
 fi
 

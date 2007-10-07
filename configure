@@ -27980,9 +27980,9 @@ done
 fi
 
 if test x"$ensc_have_libnl" = xyes; then
-	echo "$as_me:$LINENO: checking for rtnl_addr_alloc in -lnl" >&5
-echo $ECHO_N "checking for rtnl_addr_alloc in -lnl... $ECHO_C" >&6
-if test "${ac_cv_lib_nl_rtnl_addr_alloc+set}" = set; then
+	echo "$as_me:$LINENO: checking for nlmsg_get_src in -lnl" >&5
+echo $ECHO_N "checking for nlmsg_get_src in -lnl... $ECHO_C" >&6
+if test "${ac_cv_lib_nl_nlmsg_get_src+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -28000,11 +28000,11 @@ extern "C"
 #endif
 /* We use char because int might match the return type of a gcc2
    builtin and then its argument prototype would still apply.  */
-char rtnl_addr_alloc ();
+char nlmsg_get_src ();
 int
 main ()
 {
-rtnl_addr_alloc ();
+nlmsg_get_src ();
   ;
   return 0;
 }
@@ -28031,20 +28031,20 @@ if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
   ac_status=$?
   echo "$as_me:$LINENO: \$? = $ac_status" >&5
   (exit $ac_status); }; }; then
-  ac_cv_lib_nl_rtnl_addr_alloc=yes
+  ac_cv_lib_nl_nlmsg_get_src=yes
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
-ac_cv_lib_nl_rtnl_addr_alloc=no
+ac_cv_lib_nl_nlmsg_get_src=no
 fi
 rm -f conftest.err conftest.$ac_objext \
       conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-echo "$as_me:$LINENO: result: $ac_cv_lib_nl_rtnl_addr_alloc" >&5
-echo "${ECHO_T}$ac_cv_lib_nl_rtnl_addr_alloc" >&6
-if test $ac_cv_lib_nl_rtnl_addr_alloc = yes; then
+echo "$as_me:$LINENO: result: $ac_cv_lib_nl_nlmsg_get_src" >&5
+echo "${ECHO_T}$ac_cv_lib_nl_nlmsg_get_src" >&6
+if test $ac_cv_lib_nl_nlmsg_get_src = yes; then
    :
 else
    ensc_have_libnl=no
