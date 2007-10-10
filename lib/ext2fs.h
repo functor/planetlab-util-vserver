@@ -19,6 +19,8 @@
 #ifndef H_UTIL_VSERVER_SRC_EXT2FS_H
 #define H_UTIL_VSERVER_SRC_EXT2FS_H
 
+#include <stdint.h>
+#include <linux/types.h>
 #ifdef ENSC_HAVE_EXT2FS_EXT2_FS_H
 #  include <ext2fs/ext2_fs.h>
 #elif defined(ENSC_HAVE_LINUX_EXT2_FS_H)
