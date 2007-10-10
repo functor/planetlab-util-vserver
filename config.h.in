@@ -190,6 +190,12 @@
 /* Define to 1 if the system has the type `xid_t'. */
 #undef HAVE_XID_T
 
+/* Define to 1 if the system has the type `__s64'. */
+#undef HAVE___S64
+
+/* Define to 1 if the system has the type `__u64'. */
+#undef HAVE___U64
+
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 #undef NO_MINUS_C_MINUS_O
 
@@ -252,6 +258,12 @@
 
 /* Use 64bit interface for filesystem operations */
 #undef _FILE_OFFSET_BITS
+
+/* Define this to a signed 64-bit integer type */
+#undef __s64
+
+/* Define this to an unsigned 64-bit integer type */
+#undef __u64
 
 
 #if defined(__pic__) && defined(__i386) && !defined(ENSC_SYSCALL_TRADITIONAL) && !defined(ENSC_USE_ALTERNATIVE_SYSCALL_MACROS)
