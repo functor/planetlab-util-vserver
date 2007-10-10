@@ -351,24 +351,18 @@ fi
 if test x"$ensc_have_libnl" = xyes; then
 	AC_CHECK_HEADERS([asm/types.h stdint.h], [ : ],
 			 [ ensc_have_libnl=no ])
-	for b in 8 16 32 64; do
-		for s in s u; do
-			ensc_libnl_stdint_type=
-			if test x"$s" = xu; then
-				ensc_libnl_stdint_type=u
-			fi
-			ensc_libnl_stdint_type="${ensc_libnl_stdint_type}int${b}_t"
-			AC_CHECK_TYPES([__${s}${b}], [ : ],
-				[AC_DEFINE_UNQUOTED([__${s}${b}],
-						[$ensc_libnl_stdint_type],
-						[__${s}${b} type])],
-				[AC_INCLUDES_DEFAULT()
+	AC_CHECK_TYPES([__s64], [ : ], [AC_DEFINE_UNQUOTED([__s64], [int64_t],
+		[Define this to a signed 64-bit integer type])],
+		[AC_INCLUDES_DEFAULT()
 #ifdef HAVE_ASM_TYPES_H
 #  include <asm/types.h>
-#endif]
-				)
-		done
-	done
+#endif])
+	AC_CHECK_TYPES([__u64], [ : ], [AC_DEFINE_UNQUOTED([__u64], [uint64_t],
+		[Define this to an unsigned 64-bit integer type])],
+		[AC_INCLUDES_DEFAULT()
+#ifdef HAVE_ASM_TYPES_H
+#  include <asm/types.h>
+#endif])
 fi
 
 if test x"$ensc_have_libnl" = xyes; then
