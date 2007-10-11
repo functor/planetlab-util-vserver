@@ -43,6 +43,9 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <stddef.h>
+#include <fcntl.h>
+#include <sys/mount.h>
+#include <utmp.h>
 
 #include "config.h"
 #include "pathconfig.h"
@@ -380,7 +383,7 @@ static const struct AF_to_vcNET {
 } converter[] = {
   { AF_INET,  vcNET_IPV4, sizeof(struct in_addr),  offsetof(struct sockaddr_in,  sin_addr.s_addr) },
   { AF_INET6, vcNET_IPV6, sizeof(struct in6_addr), offsetof(struct sockaddr_in6, sin6_addr.s6_addr) },
-  { 0, 0 }
+  { 0, 0, 0, 0 }
 };
 
 static inline int
@@ -511,6 +514,150 @@ vserver_net_remove(PyObject *self, PyObject *args)
   return NONE;
 }
 
+struct secure_dirs {
+  int host_fd;
+  int cwd_fd;
+  int guest_fd;
+  int target_fd;
+};
+
+static inline int
+fchroot(int fd)
+{
+  if (fchdir(fd) == -1 || chroot(".") == -1)
+    return -1;
+  return 0;
+}
+
+static inline int
+restore_dirs(struct secure_dirs *dirs)
+{
+  if (dirs->host_fd != -1) {
+    if (fchroot(dirs->host_fd) == -1)
+      return -1;
+    if (close(dirs->host_fd) == -1)
+      return -1;
+  }
+  if (dirs->guest_fd != -1) {
+    if (close(dirs->guest_fd) == -1)
+      return -1;
+  }
+  if (dirs->target_fd != -1) {
+    if (close(dirs->target_fd) == -1)
+      return -1;
+  }
+  if (dirs->cwd_fd != -1) {
+    if (fchdir(dirs->cwd_fd) == -1)
+      return -1;
+    if (close(dirs->cwd_fd) == -1)
+      return -1;
+  }
+  return 0;
+}
+
+static inline int
+secure_chdir(struct secure_dirs *dirs, const char *guest, const char *target)
+{
+  dirs->host_fd = dirs->cwd_fd = dirs->guest_fd = dirs->target_fd = -1;
+
+  dirs->host_fd = open("/", O_RDONLY|O_DIRECTORY);
+  if (dirs->host_fd == -1)
+    return -1;
+
+  dirs->cwd_fd = open(".", O_RDONLY|O_DIRECTORY);
+  if (dirs->cwd_fd == -1)
+    return -1;
+
+  dirs->guest_fd = open(guest, O_RDONLY|O_DIRECTORY);
+  if (dirs->guest_fd == -1)
+    return -1;
+  if (fchroot(dirs->guest_fd) == -1)
+    return -1;
+
+  dirs->target_fd = open(target, O_RDONLY|O_DIRECTORY);
+  if (dirs->target_fd == -1)
+    return -1;
+
+  if (fchroot(dirs->host_fd) == -1 || close(dirs->host_fd) == -1)
+    return -1;
+  dirs->host_fd = -1;
+  if (close(dirs->guest_fd) == -1)
+    return -1;
+  dirs->guest_fd = -1;
+
+  if (fchdir(dirs->target_fd) == -1 || close(dirs->target_fd) == -1)
+    return -1;
+
+  return 0;
+}
+
+static PyObject *
+vserver_mount(PyObject *self, PyObject *args)
+{
+  const char *guest, *target, *source, *type, *data = NULL;
+  unsigned long flags = 0;
+  struct secure_dirs dirs;
+
+  if (!PyArg_ParseTuple(args, "ssss|ks", &source, &guest, &target, &type,
+			&flags, &data))
+    return NULL;
+
+  if (secure_chdir(&dirs, guest, target) == -1)
+    goto out;
+  if (mount(source, ".", type, flags, data) == -1)
+    goto out;
+  restore_dirs(&dirs);
+
+  return NONE;
+
+out:
+  restore_dirs(&dirs);
+  return PyErr_SetFromErrno(PyExc_OSError);
+}
+
+static PyObject *
+vserver_umount(PyObject *self, PyObject *args)
+{
+  const char *guest, *target;
+  int flags = 0;
+  char *path;
+  PyObject *ret;
+
+  if (!PyArg_ParseTuple(args, "ss|i", &guest, &target, &flags))
+    return NULL;
+
+  path = calloc(strlen(guest) + strlen(target) + 2, sizeof(char));
+  sprintf(path, "%s/%s", guest, target);
+  if (umount2(path, flags) == -1)
+    ret = PyErr_SetFromErrno(PyExc_OSError);
+  else
+    ret = NONE;
+  free(path);
+
+  return ret;
+}
+
+static PyObject *
+vserver_set_runlevel(PyObject *self, PyObject *args)
+{
+  const char *file;
+  int runlevel;
+  struct utmp ut;
+
+  if (!PyArg_ParseTuple(args, "si", &file, &runlevel))
+    return NULL;
+
+  utmpname(file);
+  setutent();
+  memset(&ut, 0, sizeof(ut));
+  ut.ut_type = RUN_LVL;
+  ut.ut_pid = ('#' << 8) + runlevel + '0';
+  pututline(&ut);
+  endutent();
+
+  return NONE;
+}
+
 static PyMethodDef  methods[] = {
   { "chcontext", vserver_chcontext, METH_VARARGS,
     "chcontext to vserver with provided flags" },
@@ -544,6 +691,12 @@ static PyMethodDef  methods[] = {
     "Assign an IP address to a context" },
   { "netremove", vserver_net_remove, METH_VARARGS,
     "Remove IP address(es) from a context" },
+  { "mount", vserver_mount, METH_VARARGS,
+    "Perform the mount() system call" },
+  { "umount", vserver_umount, METH_VARARGS,
+    "Perform the umount2() system call" },
+  { "setrunlevel", vserver_set_runlevel, METH_VARARGS,
+    "Set the runlevel in utmp" },
   { NULL, NULL, 0, NULL }
 };
 

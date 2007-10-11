@@ -14,9 +14,6 @@ import traceback
 import subprocess
 import resource
 
-import mountimpl
-import runcmd
-import utmp
 import vserverimpl
 import cpulimit, bwlimit
 
@@ -396,18 +393,18 @@ class VServer:
 
         # set the initial runlevel
         f = open(RUNDIR + "/utmp", "w")
-        utmp.set_runlevel(f, runlevel)
+        vserverimpl.setrunlevel(f, runlevel)
         f.close()
 
         # mount /proc and /dev/pts
-        self.__do_mount("none", "/proc", "proc")
+        self.__do_mount("none", self.dir, "/proc", "proc")
         # XXX - magic mount options
-        self.__do_mount("none", "/dev/pts", "devpts", 0, "gid=5,mode=0620")
+        self.__do_mount("none", self.dir, "/dev/pts", "devpts", 0, "gid=5,mode=0620")
 
     def __do_mount(self, *mount_args):
 
         try:
-            mountimpl.mount(*mount_args)
+            vserverimpl.mount(*mount_args)
         except OSError, ex:
             if ex.errno == errno.EBUSY:
                 # assume already mounted
@@ -508,10 +505,17 @@ class VServer:
 
 def create(vm_name, static = False, ctor = VServer):
 
-    options = []
+    options = ['vuseradd']
     if static:
         options += ['--static']
-    runcmd.run('vuseradd', options + [vm_name])
+    ret = os.spawnvp(os.P_WAIT, 'vuseradd', options + [vm_name])
+    if !os.WIFEXITED(ret) || os.WEXITSTATUS(ret) != 0:
+        out = "system command ('%s') " % options
+        if os.WIFEXITED(ret):
+            out += "failed, rc = %d" % os.WEXITSTATUS(ret)
+        else:
+            out += "killed by signal %d" % os.WTERMSIG(ret)
+        raise SystemError, out
     vm_id = pwd.getpwnam(vm_name)[2]
 
     return ctor(vm_name, vm_id)
