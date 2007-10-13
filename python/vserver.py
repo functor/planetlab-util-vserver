@@ -456,7 +456,7 @@ class VServer:
                          cmd_args = [cmd[0]] + map(lambda x: x % arg_subst,
                                                    cmd[1:])
                          print >>log, "executing '%s'" % " ".join(cmd_args)
-                         os.spawnvp(os.P_WAIT,cmd[0],cmd_args)
+                         os.spawnvp(os.P_NOWAIT,cmd[0],cmd_args)
                      except:
                          traceback.print_exc()
                          os._exit(1)
