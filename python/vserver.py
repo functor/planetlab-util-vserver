@@ -509,7 +509,7 @@ def create(vm_name, static = False, ctor = VServer):
     if static:
         options += ['--static']
     ret = os.spawnvp(os.P_WAIT, 'vuseradd', options + [vm_name])
-    if !os.WIFEXITED(ret) || os.WEXITSTATUS(ret) != 0:
+    if not os.WIFEXITED(ret) or os.WEXITSTATUS(ret) != 0:
         out = "system command ('%s') " % options
         if os.WIFEXITED(ret):
             out += "failed, rc = %d" % os.WEXITSTATUS(ret)
