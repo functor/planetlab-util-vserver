@@ -222,6 +222,9 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 find "%{buildroot}" -name '*.py' | { while read FILE; do
 	f="${FILE#%{buildroot}}"
 	echo "${f}"
+	# need to touch these files, as they are not produced on FC4 or below
+	touch ${FILE}c
+	touch ${FILE}o
 	echo %%ghost "${f}c"
 	echo %%ghost "${f}o"
 done } > %name-python.list
