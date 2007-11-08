@@ -51,6 +51,7 @@ pkgconf_SUBST =		s!@'PACKAGE'@!$(PACKAGE)!g;					\
 				$(BAD_INC_PATHS))	incflags=;;				\
 				*)			incflags='-I$${includedir} ';;		\
 			esac;									\
+			echo sed -e '$(pkgconf_SUBST)'  "$< >$@";				\
 			sed -e '$(pkgconf_SUBST)' $< >$@
 			test -z "$(CHMOD_REFERENCE)" || $(CHMOD_REFERENCE) '$<' '$@'
 			chmod a-w $@
