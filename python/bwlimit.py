@@ -348,11 +348,11 @@ def init(dev = dev, bwcap = bwmax):
     # Set up the root class (and tell VNET what it is). Packets sent
     # by root end up here and are capped at the node bandwidth
     # cap.
-    on(root_xid, dev, share = root_share)
-    try:
-        file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
-    except:
-        pass
+    #on(root_xid, dev, share = root_share)
+    #try:
+    #    file("/proc/sys/vnet/root_class", "w").write("%d" % ((1 << 16) | default_minor | root_xid))
+    #except:
+    #    pass
 
     # Set up the default class. Packets that fail classification end
     # up here.
@@ -574,7 +574,7 @@ def exempt_init(group_name, node_ips):
     """
 
     # Clean up
-    iptables = "/sbin/iptables -t vnet %s POSTROUTING" 
+    iptables = "/sbin/iptables -t MANGLE %s POSTROUTING" 
     run(iptables % "-F")
     run("/sbin/ipset -X " + group_name)
 
