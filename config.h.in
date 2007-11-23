@@ -172,6 +172,9 @@
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
 
+/* Define to 1 if the system has the type `tag_t'. */
+#undef HAVE_TAG_T
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
@@ -220,6 +223,9 @@
 /* Enable support for network context API */
 #undef VC_ENABLE_API_NET
 
+/* Enable support for new networking API */
+#undef VC_ENABLE_API_NETV2
+
 /* Enable API for a backward compatible /proc parsing */
 #undef VC_ENABLE_API_OLDPROC
 
@@ -237,6 +243,12 @@
 
 /* Enable support for API of vserver 2.1.x */
 #undef VC_ENABLE_API_V21
+
+/* Enable support for API of vserver 2.2.x */
+#undef VC_ENABLE_API_V22
+
+/* Enable support for API of vserver 2.3.x */
+#undef VC_ENABLE_API_V23
 
 /* Version number of package */
 #undef VERSION

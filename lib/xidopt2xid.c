@@ -1,4 +1,4 @@
-// $Id: xidopt2xid.c 1656 2004-08-19 13:58:40Z ensc $    --*- c -*--
+// $Id: xidopt2xid.c 2589 2007-08-16 03:06:50Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -28,7 +28,7 @@ static xid_t
 getVserverXid(char const *id, bool honor_static, char const **err)
 {
   *err = "vc_getVserverCtx";
-  return vc_getVserverCtx(id, vcCFG_AUTO, honor_static, 0);
+  return vc_getVserverCtx(id, vcCFG_AUTO, honor_static, 0, vcCTX_XID);
 }
 
 xid_t

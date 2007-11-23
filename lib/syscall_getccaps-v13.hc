@@ -1,4 +1,4 @@
-// $Id: syscall_getccaps-v13.hc 1323 2004-03-24 01:07:11Z ensc $    --*- c -*--
+// $Id: syscall_getccaps-v13.hc 2603 2007-09-02 19:51:14Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -26,7 +26,7 @@ vc_get_ccaps_v13(xid_t xid, struct vc_ctx_caps *caps)
   struct vcmd_ctx_caps_v0	k_caps;
   int				res;
   
-  res = vserver(VCMD_get_ccaps, CTX_USER2KERNEL(xid), &k_caps);
+  res = vserver(VCMD_get_ccaps_v0, CTX_USER2KERNEL(xid), &k_caps);
   caps->bcaps = k_caps.bcaps;
   caps->bmask = ~0ull;
   caps->ccaps = k_caps.ccaps;

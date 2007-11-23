@@ -1,4 +1,4 @@
-// $Id: nflags-net.c 2404 2006-11-25 00:38:30Z dhozac $    --*- c -*--
+// $Id: nflags-net.c 2597 2007-08-26 17:48:26Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  
@@ -35,8 +35,11 @@ static struct Mapping_uint64 const VALUES[] = {
   DECL("private",	VC_NXF_INFO_PRIVATE),
 
   DECL("single_ip",	VC_NXF_SINGLE_IP),
+  DECL("lback_remap",	VC_NXF_LBACK_REMAP),
+  DECL("remap_lback",	VC_NXF_LBACK_REMAP),
 
   DECL("hide_netif",	VC_NXF_HIDE_NETIF),
+  DECL("hide_lback",	VC_NXF_HIDE_LBACK),
 
   DECL("state_setup",	VC_NXF_STATE_SETUP),
   DECL("state_admin",	VC_NXF_STATE_ADMIN),

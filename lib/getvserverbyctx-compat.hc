@@ -1,4 +1,4 @@
-// $Id: getvserverbyctx-compat.hc 2182 2005-10-25 16:20:07Z ensc $    --*- c -*--
+// $Id: getvserverbyctx-compat.hc 2596 2007-08-25 16:56:12Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -48,7 +48,7 @@ handleLegacy(xid_t xid)
 
     if (l<=4 || strcmp(name+l-4, ".ctx")!=0) continue;
     name[l-4]   = '\0';
-    cur_xid = vc_getVserverCtx(name, vcCFG_LEGACY, false, 0);
+    cur_xid = vc_getVserverCtx(name, vcCFG_LEGACY, false, 0, vcCTX_XID);
     if (cur_xid!=xid) continue;
 
     result      = strdup(name);
@@ -96,7 +96,7 @@ vc_getVserverByCtx_compat(xid_t ctx, vcCfgStyle *style, char const *revdir,
 	// check if expected ctx == actual ctx (but only when this check is
 	// request)
       if (validate_result &&
-	  vc_getVserverCtx(path, vcCFG_RECENT_FULL, false, 0)!=ctx) return 0;
+	  vc_getVserverCtx(path, vcCFG_RECENT_FULL, false, 0, vcCTX_XID)!=ctx) return 0;
 
       if (style) *style = vcCFG_RECENT_FULL;
       return strdup(path);

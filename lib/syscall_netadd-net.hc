@@ -1,4 +1,4 @@
-// $Id: syscall_netadd-net.hc 2249 2006-01-18 23:40:15Z ensc $    --*- c -*--
+// $Id: syscall_netadd-net.hc 2584 2007-08-10 15:28:42Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,17 +21,31 @@
 #endif
 
 static inline ALWAYSINLINE int
-vc_net_add_net(nid_t nid, struct vc_net_nx const *info)
+vc_net_add_net(nid_t nid, struct vc_net_addr const *info)
 {
   struct vcmd_net_addr_v0		k_info;
   size_t				i;
 
-  k_info.type      = NETTYPE_USER2KERNEL(info->type);
-  k_info.count     = info->count;
-  for (i = 0; i < sizeof(k_info.ip) / sizeof(*k_info.ip); i++)
-    k_info.ip[i]   = info->ip[i];
-  for (i = 0; i < sizeof(k_info.mask) / sizeof(*k_info.mask); i++)
-    k_info.mask[i] = info->mask[i];
-  
-  return vserver(VCMD_net_add, NID_USER2KERNEL(nid), &k_info);
+  k_info.type             = info->vna_type & (VC_NXA_TYPE_IPV4|VC_NXA_TYPE_IPV6|VC_NXA_MOD_BCAST);
+  k_info.count            = 1;
+
+  if ((k_info.type | VC_NXA_TYPE_ADDR) != info->vna_type) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  switch (k_info.type) {
+    case VC_NXA_TYPE_IPV4:
+    case VC_NXA_TYPE_IPV4 | VC_NXA_MOD_BCAST:
+      k_info.ip[0].s_addr   = info->vna_v4_ip.s_addr;
+      k_info.mask[0].s_addr = info->vna_v4_mask.s_addr;
+      break;
+    case VC_NXA_TYPE_IPV6:
+      for (i = 0; i < 4; i++)
+	k_info.ip[i].s_addr = info->vna_v6_ip.s6_addr32[i];
+      k_info.mask[0].s_addr = info->vna_prefix;
+      break;
+  }
+
+  return vserver(VCMD_net_add_v0, NID_USER2KERNEL(nid), &k_info);
 }

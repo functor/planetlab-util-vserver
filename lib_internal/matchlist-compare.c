@@ -1,4 +1,4 @@
-// $Id: matchlist-compare.c 1423 2004-04-06 08:43:20Z ensc $    --*- c -*--
+// $Id: matchlist-compare.c 2569 2007-07-22 17:24:29Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -37,5 +37,5 @@ MatchList_compare(struct MatchList const *list, char const *path)
       return ptr->type;
   }
 
-  return stINCLUDE;
+  return list->skip_depth > 0 ? stEXCLUDE : stINCLUDE;
 }

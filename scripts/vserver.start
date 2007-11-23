@@ -1,4 +1,4 @@
-# $Id: vserver.start 2466 2007-01-21 08:02:44Z dhozac $  --*- sh -*--
+# $Id: vserver.start 2599 2007-08-26 21:30:50Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -130,9 +130,11 @@ pushd "$VSERVER_DIR"/vdir/ >/dev/null
 is_configured=1
 if $_VSERVER_INFO - FEATURE migrate; then
     ${NICE_CMD[@]} \
-    $_CHBIND      "${CHBIND_OPTS[@]}" -- \
+    "${CHBIND_CMD[@]}" \
     $_EXEC_ULIMIT "$VSERVER_DIR"/ulimits \
+    $_VTAG       --create "${OPTS_VTAG_CREATE[@]}" --silent -- \
     $_VCONTEXT   --create "${OPTS_VCONTEXT_CREATE[@]}" -- \
+    ${OPTION_STRACE:+$_STRACE -fF -o /tmp/vserver-start.$$} \
     ${USE_VNAMESPACE:+$_VNAMESPACE --set -- } \
     $_VLIMIT     --dir "$VSERVER_DIR"/rlimits --missingok -- \
     $_VSCHED     --xid self --force "${OPTS_VSCHED[@]}" -- \
@@ -154,7 +156,7 @@ else
     fi
     
     ${NICE_CMD[@]} \
-    $_CHBIND           "${CHBIND_OPTS[@]}" \
+    "${CHBIND_CMD[@]}" \
     $_EXEC_ULIMIT      "$VSERVER_DIR/ulimits" \
     $_CHCONTEXT_COMPAT "${CHCONTEXT_OPTS[@]}" "${CHCONTEXT_INIT_OPTS[@]}" \
     $_SAVE_CTXINFO     "$VSERVER_DIR" \

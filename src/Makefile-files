@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2491 2007-02-05 20:59:03Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2589 2007-08-16 03:06:50Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -80,7 +80,9 @@ DIETPROGS +=		src/chcontext-compat \
 			src/naddress \
 			src/vdevmap \
 			src/vsysctl \
-			src/vclone
+			src/vclone \
+			src/h2ext \
+			src/vtag
 
 if ENSC_CAN_BEECRYPT_WITH_DIETLIBC
 DIETPROGS +=		src/vhashify
@@ -118,6 +120,7 @@ pkglib_PROGRAMS +=	src/capchroot \
 			src/sigexec \
 			src/chbind-compat \
 			src/vsysctl \
+			src/h2ext \
 			$(src_pkglib_C99_X_PROGS) \
 			$(src_pkglib_CXX_X_PROGS)
 
@@ -159,6 +162,7 @@ sbin_PROGRAMS +=	src/exec-cd \
 			src/nattribute \
 			src/naddress \
 			src/vdevmap \
+			src/vtag \
 			$(src_sbin_CXX_X_PROGS)
 
 if ENSC_HAVE_C99_COMPILER
@@ -335,6 +339,14 @@ src_vsysctl_LDFLAGS		= $(VSERVER_LDFLGS)
 src_vclone_SOURCES		= src/vclone.c
 src_vclone_LDADD		= $(LIBINTERNAL) $(VSERVER_LDADDS)
 src_vclone_LDFLAGS		= $(VSERVER_LDLFGS)
+
+src_h2ext_SOURCES		= src/h2ext.c
+src_h2ext_LDADD			= $(LIBINTERNAL) $(VSERVER_LDADDS)
+src_h2ext_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vtag_SOURCES		= src/vtag.c
+src_vtag_LDADD			= $(VSERVER_LDADDS)
+src_vtag_LDFLAGS		= $(VSERVER_LDADDS)
 
 EXTRA_PROGRAMS +=		$(src_sbin_CXX_PROGS) $(src_pkglib_CXX_PROGS)
 

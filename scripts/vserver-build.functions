@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions 2515 2007-03-18 15:32:22Z dhozac $	--*- sh -*--
+# $Id: vserver-build.functions 2571 2007-07-29 16:55:06Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -183,6 +183,8 @@ ERROR: Can not determine distribution; please specify it manually with
 ERROR: Can not find configuration for the distribution '$DISTRIBUTION';
   please read http://linux-vserver.org/HowToRegisterNewDistributions
   for information how to add support for your own distribution."
+
+    export DISTRIBUTION
 }
 
 function base._addGeneratedFile

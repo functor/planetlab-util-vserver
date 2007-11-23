@@ -1,4 +1,4 @@
-# $Id: vserver.functions 2538 2007-04-27 09:08:43Z hollow $  --*- sh -*--
+# $Id: vserver.functions 2599 2007-08-26 21:30:50Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -20,7 +20,7 @@
 #  $VSERVER_NAME  ... name of vserver
 
 declare -a NICE_CMD=()
-declare -a CHBIND_OPTS=()
+declare -a CHBIND_CMD=()
 declare -a CAP_OPTS=()
 declare -a CHCONTEXT_INIT_OPTS=()
 declare -a CHCONTEXT_FLAG_OPTS=()
@@ -43,6 +43,8 @@ declare -a OPTS_VCONTEXT_ENTER=()
 declare -a OPTS_VATTRIBUTE=( --flag fakeinit )
 declare -a OPTS_VSCHED=()
 declare -a OPTS_ENV=()
+declare -a OPTS_VTAG_CREATE=()
+declare -a OPTS_VTAG_ENTER=()
 
 declare -a STOPCMD_PREPARE=()
 
@@ -94,23 +96,28 @@ function _generateChbindOptions
     local vdir="$1"
     local i
     local bcast=
+    local lback=
     local nid=
 
     test -n "$_HAVE_INTERFACE_OPTIONS" || _generateInterfaceOptions "$vdir"
 
-    local f=$vdir/interfaces/bcast
+    local f="$vdir"/interfaces/bcast
     getFileValue bcast "$f"
+    f="$vdir"/interfaces/lback
+    getFileValue lback "$f"
 
     getFileValue nid "$vdir/ncontext" "$vdir/context"
     
-    CHBIND_OPTS=( $SILENT_OPT --secure ${nid:+--nid "$nid"} ${bcast:+--bcast "$bcast"} )
+    CHBIND_CMD=( $_CHBIND $SILENT_OPT --secure ${nid:+--nid "$nid"}
+		 ${bcast:+--bcast "$bcast"} ${lback:+--lback "$lback"}
+		)
 
     for i in "${INTERFACES[@]}"; do
-	CHBIND_OPTS=( "${CHBIND_OPTS[@]}" --ip "$i" )
+	CHBIND_CMD=( "${CHBIND_CMD[@]}" --ip "$i" )
     done
 
-    _readFileToArray "$vdir"/nflags        CHBIND_OPTS --flag
-    _readFileToArray "$vdir"/ncapabilities CHBIND_OPTS --ncap
+    _readFileToArray "$vdir"/nflags        CHBIND_CMD --flag
+    _readFileToArray "$vdir"/ncapabilities CHBIND_CMD --ncap
 
     _HAVE_CHBIND_OPTIONS=1
 }
@@ -278,6 +285,11 @@ function _generateInitOptions
 		INITCMD_STOP=(  "$i" "$RUNLEVEL_STOP"  )
 	    done
 	    INITCMD_PREPARE=( $_FAKE_RUNLEVEL "$RUNLEVEL_START" /var/run/utmp )
+	    OPTS_ENV=( "${OPTS_ENV[@]}" PREVLEVEL=N RUNLEVEL="$RUNLEVEL_START" )
+	    if test -n "$OPTION_DEBUG_SYSV"; then
+		INITCMD_START=( /bin/bash -x "${INITCMD_START[@]}" )
+		INITCMD_STOP=( /bin/bash -x "${INITCMD_STOP[@]}" )
+	    fi
 	    ;;
 	    
 	(xplain)
@@ -303,8 +315,8 @@ function _generateInitOptions
 	(xgentoo)
 	    test -n "$RUNLEVEL_START" || RUNLEVEL_START="default"
 
-	    INITCMD_START=( /lib/rcscripts/sh/init-vserver.sh "$RUNLEVEL_START" )
-	    INITCMD_STOP=( env -i RUNLEVEL=0 /sbin/rc shutdown )
+	    INITCMD_START=( env TERM=$TERM /lib/rcscripts/sh/init-vserver.sh "$RUNLEVEL_START" )
+	    INITCMD_STOP=( env -i TERM=$TERM RUNLEVEL=0 /sbin/rc shutdown )
 	    INITCMD_PREPARE=( $_FAKE_RUNLEVEL 3 /var/run/utmp )
 	    ;;
 
@@ -594,6 +606,17 @@ function _generateInterfaceOptions
     _HAVE_INTERFACE_OPTIONS=1
 }
 
+function _generateTagOptions
+{
+    local vdir="$1"
+    local tag
+
+    getFileValue tag "$vdir/tag" "$vdir/context" || return 0
+
+    OPTS_VTAG_CREATE=( --tag "$tag" )
+    OPTS_VTAG_ENTER=( --tag "$tag" )
+}
+
 function enableInterfaces
 {
     local i=0
@@ -690,7 +713,7 @@ function prepareStop
     pushd "$1/vdir" >/dev/null
     case "$INITSTYLE" in
 	(sysv)
-	    export PREVLEVEL=$RUNLEVEL_START # required by Debian's initscripts
+	    export PREVLEVEL=$RUNLEVEL_START RUNLEVEL=$RUNLEVEL_STOP # required by Debian's initscripts
 	    ;;
     esac
     "${STOPCMD_PREPARE[@]}"
@@ -707,6 +730,7 @@ function generateOptions
     _generateChcontextOptions   "$1"
     _generateScheduleOptions    "$1"
     _generatePersonalityOptions "$1"
+    _generateTagOptions         "$1"
 
     if test -n "$_IS_FAKEINIT"; then
 	CHCONTEXT_INIT_OPTS=( --disconnect --flag fakeinit )
@@ -817,7 +841,7 @@ function mountVserver
 
     _mountVserverInternal "$cfgdir"/fstab
     _mountVserverInternal "$cfgdir"/fstab.local
-    _mountVserverInternal "$cfgdir"/fstab.remote $_CHBIND "${CHBIND_OPTS[@]}"
+    _mountVserverInternal "$cfgdir"/fstab.remote "${CHBIND_CMD[@]}"
 
     isNamespaceCleanup "$cfgdir" && \
         _namespaceCleanup "$cfgdir"
@@ -860,9 +884,9 @@ function umountVserver
     test -n "$_HAVE_CHBIND_OPTIONS"  || _generateChbindOptions "$cfgdir"
     
     pushd "$vdir/" >/dev/null || return 1
-	_umountVserverInternal  "$cfgdir"/fstab.remote $_CHBIND "${CHBIND_OPTS[@]}" || is_ok=
-	_umountVserverInternal  "$cfgdir"/fstab.local                               || is_ok=
-	_umountVserverInternal  "$cfgdir"/fstab                                     || is_ok=
+	_umountVserverInternal  "$cfgdir"/fstab.remote "${CHBIND_CMD[@]}" || is_ok=
+	_umountVserverInternal  "$cfgdir"/fstab.local                     || is_ok=
+	_umountVserverInternal  "$cfgdir"/fstab                           || is_ok=
     popd >/dev/null           || return 1
 
     test -n "$is_ok"
@@ -1061,6 +1085,15 @@ WARNING: There is no cachedirectory configured for this vserver;
 /proc/uptime can not be accessed. Usually, this is caused by
 procfs-security. Please read the FAQ for more details
 http://linux-vserver.org/Proc-Security"
+
+    test -e "$cfgdir"/context || {
+	TYPE=$( $_VSERVER_INFO 49152 XIDTYPE )
+	test "$TYPE" != "static" || panic $"\
+The kernel does not have dynamic contexts enabled. Please configure
+a static one by executing
+
+  echo [number between 2 and 49151] > $cfgdir/context"
+    }
 }
 
 

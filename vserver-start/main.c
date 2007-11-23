@@ -1,4 +1,4 @@
-// $Id: main.c 1939 2005-03-19 02:07:40Z ensc $    --*- c -*--
+// $Id: main.c 2589 2007-08-16 03:06:50Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -115,7 +115,7 @@ checkConstraints()
   struct vc_vx_info	info;
 
   xid = vc_getVserverCtx(opts.VSERVER_DIR, vcCFG_RECENT_FULL,
-			 true, &is_running);
+			 true, &is_running, vcCTX_XID);
 
   if (xid!=VC_NOCTX && vc_get_vx_info(xid, &info)!=-1) {
     WRITE_MSG(2, "vserver.start: vserver '");
@@ -166,7 +166,7 @@ int main(int UNUSED argc, char UNUSED *argv[])
       execScriptlets(&cfgdir, opts.VSERVER_NAME, "prepre-start");
       activateInterfaces(&cfg.interfaces);
       
-      xid = Evc_ctx_create(cfg.xid);
+      xid = Evc_ctx_create(cfg.xid, NULL);
       setCFlag(xid, VC_VXF_INFO_NAMESPACE);
       
       mountVserver(&cfg);

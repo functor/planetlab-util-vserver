@@ -1,4 +1,4 @@
-// $Id: getvserverctx.c 2210 2005-10-29 12:06:19Z ensc $    --*- c -*--
+// $Id: getvserverctx.c 2596 2007-08-25 16:56:12Z dhozac $    --*- c -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -120,10 +120,11 @@ getCtxFromFile(char const *pathname)
 }
 
 xid_t
-vc_getVserverCtx(char const *id, vcCfgStyle style, bool honor_static, bool *is_running)
+vc_getVserverCtx(char const *id, vcCfgStyle style, bool honor_static, bool *is_running,
+		 vcCtxType type)
 {
   size_t		l1 = strlen(id);
-  char			buf[sizeof(CONFDIR "//") + l1 + sizeof("/context")];
+  char			buf[sizeof(CONFDIR "//") + l1 + sizeof("/ncontext")];
 			    
   if (style==vcCFG_NONE || style==vcCFG_AUTO)
     style = vc_getVserverCfgStyle(id);
@@ -151,7 +152,7 @@ vc_getVserverCtx(char const *id, vcCfgStyle style, bool honor_static, bool *is_r
 	// when context information could be read, we have to verify that
 	// it belongs to a running vserver and the both vservers are
 	// identically
-      if (res!=VC_NOCTX) {
+      if (res!=VC_NOCTX && type == vcCTX_XID) {
 	char			*cur_name;
 	struct vc_vx_info	info;
 
@@ -174,15 +175,32 @@ vc_getVserverCtx(char const *id, vcCfgStyle style, bool honor_static, bool *is_r
 		    : VC_NOCTX);	// correct the value of 'res'
 	  
 	free(cur_name);
+
+	if (is_running)			// fill 'is_running' information...
+	  *is_running = res!=VC_NOCTX;
       }
-      
-      if (is_running)			// fill 'is_running' information...
-	*is_running = res!=VC_NOCTX;
-      
+      else if (is_running)
+	*is_running = false;
+
       if (res==VC_NOCTX && honor_static) {
-	memcpy(buf+idx, "/context", 9);	// appends '\0' too
+check_static:
+	switch (type) {
+	  case vcCTX_XID:
+	    memcpy(buf+idx, "/context", 9);	// appends '\0' too
+	    break;
+	  case vcCTX_NID:
+	    memcpy(buf+idx, "/ncontext", 10);
+	    break;
+	  case vcCTX_TAG:
+	    memcpy(buf+idx, "/tag", 5);
+	    break;
+	}
 
 	res = getCtxFromFile(buf);
+	if (res==VC_NOCTX && type!=vcCTX_XID) {
+	  type = vcCTX_XID;
+	  goto check_static;
+	}
       }
 
       return res;

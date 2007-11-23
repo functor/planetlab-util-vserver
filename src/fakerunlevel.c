@@ -1,4 +1,4 @@
-// $Id: fakerunlevel.c 1022 2004-02-27 04:42:10Z ensc $
+// $Id: fakerunlevel.c 2562 2007-07-12 21:59:06Z dhozac $
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // based on fakerunlevel.cc by Jacques Gelinas
@@ -83,7 +83,7 @@ int main (int argc, char *argv[])
     gid_t		gid;
     char		*gid_str = getenv("UTMP_GID");
     
-    if (runlevel<0 || runlevel>6) showHelp(2,1);
+    if (runlevel<0 || runlevel>9) showHelp(2,1);
 
     Echroot(".");
     Echdir("/");

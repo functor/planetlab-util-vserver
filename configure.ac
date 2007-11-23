@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 2539 2007-05-02 20:11:40Z dhozac $
+dnl $Id: configure.ac 2604 2007-09-02 20:03:17Z dhozac $
 
 dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -24,7 +24,7 @@ dnl distribution terms that you use for the rest of that program.
 dnl  
 
 AC_PREREQ(2.57)
-AC_INIT(util-vserver, 0.30.213, vserver@list.linux-vserver.org)
+AC_INIT(util-vserver, 0.30.214, vserver@list.linux-vserver.org)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -62,6 +62,7 @@ ENSC_PATHPROG(BZIP2,     bzip2,   [bzip2])
 ENSC_PATHPROG(CPIO,      cpio,    [cpio])
 ENSC_PATHPROG(RESTORE,   restore, [restore])
 ENSC_PATHPROG(RSYNC,     rsync,   [rsync])
+ENSC_PATHPROG(STRACE,    strace,  [strace])
 
 ENSC_PATHPROG(DOXYGEN,   doxygen,  [:])
 ENSC_PATHPROG(XSLTP,     xsltp,    [:])
@@ -225,18 +226,21 @@ AH_TEMPLATE(VC_ENABLE_API_V13OBS,   [Enable support for some obsoleted API of vs
 AH_TEMPLATE(VC_ENABLE_API_V13,      [Enable support for API of vserver 1.3.x])
 AH_TEMPLATE(VC_ENABLE_API_NET,      [Enable support for network context API])
 AH_TEMPLATE(VC_ENABLE_API_V21,      [Enable support for API of vserver 2.1.x])
+AH_TEMPLATE(VC_ENABLE_API_V22,      [Enable support for API of vserver 2.2.x])
+AH_TEMPLATE(VC_ENABLE_API_V23,      [Enable support for API of vserver 2.3.x])
+AH_TEMPLATE(VC_ENABLE_API_NETV2,    [Enable support for new networking API])
 AH_TEMPLATE(VC_ENABLE_API_OLDPROC,  [Enable API for a backward compatible /proc parsing])
 AH_TEMPLATE(VC_ENABLE_API_OLDUTS,   [Enable API for a backward compatible uts handling])
 
 AC_MSG_CHECKING([for supported APIs])
 AC_ARG_ENABLE([apis],
 	      [AC_HELP_STRING([--enable-apis=APIS],
-			      [enable support for the given apis; possible values are: legacy,compat,v11,fscompat,v13obs,v13,net, ALL,NOLEGACY (default: v13,net,v21)])],
+			      [enable support for the given apis; possible values are: legacy,compat,v11,fscompat,v13obs,v13,net,v21,v22,v23,netv2 ALL,NOLEGACY (default: v13,net,v21,v22,v23,netv2)])],
               [],
-	      [enable_apis=v13,net,v21])
+	      [enable_apis=v13,net,v21,v22,v23,netv2])
 
-test x"$enable_apis" != xALL      || enable_apis='legacy,compat,v11,fscompat,v13obs,v13,net,v21'
-test x"$enable_apis" != xNOLEGACY || enable_apis='compat,v11,fscompat,v13,net,v21'
+test x"$enable_apis" != xALL      || enable_apis='legacy,compat,v11,fscompat,v13obs,v13,net,v21,v22,v23,netv2'
+test x"$enable_apis" != xNOLEGACY || enable_apis='compat,v11,fscompat,v13,net,v21,v22,v23,netv2'
 enable_api_oldproc=
 enable_api_olduts=
 old_IFS=$IFS
@@ -262,6 +266,9 @@ for i in $enable_apis; do
 		(v13)    	AC_DEFINE(VC_ENABLE_API_V13,      1);;
 		(net)		AC_DEFINE(VC_ENABLE_API_NET,      1);;
 		(v21)		AC_DEFINE(VC_ENABLE_API_V21,      1);;
+		(v22)		AC_DEFINE(VC_ENABLE_API_V22,      1);;
+		(v23)		AC_DEFINE(VC_ENABLE_API_V23,      1);;
+		(netv2)		AC_DEFINE(VC_ENABLE_API_NETV2,    1);;
 		(oldproc)	enable_api_oldproc=2;;
 		(olduts)	enable_api_olduts=2;;
 		(*)		AC_MSG_ERROR(['$i' is not a supported API]);;
@@ -288,6 +295,7 @@ AC_CHECK_FUNCS([vserver])
 AC_CHECK_DECLS(MS_MOVE,,,[#include <linux/fs.h>])
 AC_CHECK_TYPES(xid_t,,,[#include <sys/types.h>])
 AC_CHECK_TYPES(nid_t,,,[#include <sys/types.h>])
+AC_CHECK_TYPES(tag_t,,,[#include <sys/types.h>])
 
 AC_CHECK_HEADERS([sys/capability.h])
 

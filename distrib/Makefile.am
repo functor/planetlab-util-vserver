@@ -1,4 +1,4 @@
-## $Id: Makefile.am 2530 2007-04-21 14:03:09Z dhozac $
+## $Id: Makefile.am 2601 2007-08-27 10:19:24Z dhozac $
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -28,14 +28,15 @@ defaults_DATA =		misc/debootstrap.mirror \
 			misc/vprocunhide-files \
 			misc/vunify-exclude \
 			misc/environment \
-			misc/context.start
+			misc/context.start \
+			misc/h2ext.desc
 
 nobase_distrib_SCRIPTS	=  redhat/initpost \
 			   redhat/initpre \
 			   redhat/rc.sysinit \
 			   gentoo/initpost \
 			   gentoo/initpre \
-			   etch/initpost
+			   debian/initpost
 
 nobase_distrib_DATA	=  defaults/devs \
 			   defaults/apt.conf \
@@ -57,6 +58,9 @@ nobase_distrib_DATA	=  defaults/devs \
 			   fc6/apt/rpmpriorities    fc6/pkgs/01    fc6/pkgs/02    fc6/pkgs/03 \
 			   fc6/yum/yum.conf $(wildcard fc6/yum.repos.d/*.repo) \
 			   $(wildcard fc6/rpmlist.d/*.lst) $(wildcard fc6/rpmlist.d/*.opt) \
+			   f7/apt/rpmpriorities    f7/pkgs/01    f7/pkgs/02    f7/pkgs/03 \
+			   f7/yum/yum.conf $(wildcard f7/yum.repos.d/*.repo) \
+			   $(wildcard f7/rpmlist.d/*.lst) $(wildcard f7/rpmlist.d/*.opt) \
 			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
 			   centos4/yum/yum.conf $(wildcard centos4/yum.repos.d/*.repo) \
 			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
@@ -65,7 +69,11 @@ nobase_distrib_DATA	=  defaults/devs \
 			   suse91/rpm/macros \
 			   gentoo/init-vserver.sh gentoo/net.vserver \
 			   gentoo/reboot.sh gentoo/shutdown.sh \
-			   etch/vserver-config.sh
+			   debian/debootstrap.script \
+			   breezy/debootstrap.script dapper/debootstrap.script \
+			   edgy/debootstrap.script   feisty/debootstrap.script \
+			   gutsy/debootstrap.script  hoary/debootstrap.script \
+			   warty/debootstrap.script
 
 nobase_confdistrib_DATA	=  rh9/apt/sources.list \
 			   fc1/apt/sources.list \
@@ -74,6 +82,7 @@ nobase_confdistrib_DATA	=  rh9/apt/sources.list \
 			   fc4/apt/sources.list \
 			   fc5/apt/sources.list \
 			   fc6/apt/sources.list \
+			   f7/apt/sources.list \
 			   suse91/apt/sources.list
 
 AM_INSTALLCHECK_STD_OPTIONS_EXEMPT \
@@ -84,7 +93,8 @@ EXTRA_DIST		=  $(nobase_distrib_DATA) \
 			   $(nobase_confdistrib_DATA) \
 			   $(defaults_DATA)
 
-redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 centos4 centos5
+redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 f7 centos4 centos5
+sid_style		=  etch lenny sid
 
 install-exec-hook:	install-notify-xtra
 install-data-hook:	install-data-xtras
@@ -93,6 +103,9 @@ install-data-xtras:
 			l="$(redhat_style)"; for i in $$l; do \
 				ln -sf ../redhat/initpost $(DESTDIR)$(distribdir)/$$i/ && \
 				ln -sf ../redhat/initpre  $(DESTDIR)$(distribdir)/$$i/; \
+			done
+			l="$(sid_style)"; for i in $$l; do \
+				ln -sf debian $(DESTDIR)$(distribdir)/$$i; \
 			done
 			$(mkinstalldirs) $(DESTDIR)$(confdir) \
 				$(DESTDIR)$(confdistribdir)/.common/pubkeys \

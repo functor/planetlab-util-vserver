@@ -1,4 +1,4 @@
-// $Id: syscall_getccaps.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
+// $Id: syscall_getccaps.c 2564 2007-07-16 15:10:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,14 +21,22 @@
 #endif
 
 #include "vserver.h"
-#include "vserver-internal.h"
 #include "virtual.h"
+
+#if defined(VC_ENABLE_API_V13) && defined(VC_ENABLE_API_V21)
+#  define VC_MULTIVERSION_SYSCALL 1
+#endif
+#include "vserver-internal.h"
 
 #if defined(VC_ENABLE_API_V13)
 #  include "syscall_getccaps-v13.hc"
 #endif
 
-#if defined(VC_ENABLE_API_V13)
+#if defined(VC_ENABLE_API_V21)
+#  include "syscall_getccaps-v21.hc"
+#endif
+
+#if defined(VC_ENABLE_API_V13) || defined(VC_ENABLE_API_V21)
 int
 vc_get_ccaps(xid_t xid, struct vc_ctx_caps *caps)
 {
@@ -37,6 +45,7 @@ vc_get_ccaps(xid_t xid, struct vc_ctx_caps *caps)
     return -1;
   }
 
-  CALL_VC(CALL_VC_V13A(vc_get_ccaps, xid, caps));
+  CALL_VC(CALL_VC_V21(vc_get_ccaps, xid, caps),
+	  CALL_VC_V13A(vc_get_ccaps, xid, caps));
 }
 #endif

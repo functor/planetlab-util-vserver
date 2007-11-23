@@ -1,4 +1,4 @@
-// $Id: vcontext.c 2501 2007-02-20 17:33:35Z dhozac $    --*- c -*--
+// $Id: vcontext.c 2578 2007-08-08 20:05:26Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -254,7 +254,7 @@ doit(struct Arguments const *args, int argc, char *argv[])
     doSyncStage0(p, args->do_disconnect);  
     
     if (args->do_create) {
-      xid = vc_ctx_create(args->xid);
+      xid = vc_ctx_create(args->xid, NULL);
       if (xid==VC_NOCTX) {
 	switch (errno) {
 	  case EEXIST	:

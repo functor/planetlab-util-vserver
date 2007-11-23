@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2470 2007-01-21 20:17:14Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2558 2007-07-10 20:34:48Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -38,7 +38,6 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += \
 
 
 scripts_pkglib_src_DTA =	scripts/functions \
-				scripts/magic.mime \
 				scripts/vserver-build.apt-rpm \
 				scripts/vserver-build.skeleton \
 				scripts/vserver-build.debootstrap \
@@ -75,7 +74,8 @@ scripts_pkglib_src_SCRPTS =	scripts/pkgmgmt \
 				scripts/vservers.grabinfo.sh \
 				scripts/vshelper \
 				scripts/vsysvwrapper \
-				scripts/vyum-worker
+				scripts/vyum-worker \
+				scripts/h2ext-worker
 
 scripts_legacy_src_SCRPTS =	scripts/legacy/save_s_context \
 				scripts/legacy/vserver \

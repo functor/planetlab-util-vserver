@@ -1,4 +1,4 @@
-// $Id: nidopt2nid.c 2384 2006-11-19 17:25:11Z dhozac $    --*- c -*--
+// $Id: nidopt2nid.c 2589 2007-08-16 03:06:50Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -24,6 +24,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+static nid_t
+getVserverNid(char const *id, bool honor_static, char const **err)
+{
+  *err = "vc_getVserverCtx";
+  return vc_getVserverCtx(id, vcCFG_AUTO, honor_static, 0, vcCTX_NID);
+}
+
 nid_t
 vc_nidopt2nid(char const *str, bool honor_static, char const **err_info)
 {
@@ -32,7 +39,16 @@ vc_nidopt2nid(char const *str, bool honor_static, char const **err_info)
 
   err = "vc_get_task_nid()";
   if (strcmp(str,"self")==0) res = vc_get_task_nid(0);
-  else                       res = vc_xidopt2xid(str, honor_static, &err);
+  else if (str[0]==':')      res = getVserverNid(str+1, honor_static, &err);
+  else {
+    char *	endptr;
+    nid_t	nid = strtol(str, &endptr, 10);
+
+    if (endptr!=str && (*endptr=='\0' || *endptr=='\n'))
+      res = nid;
+    else
+      res = getVserverNid(str, honor_static, &err);
+  }
 
   if (res==VC_NOCTX && err_info) *err_info = err;
 

@@ -1,4 +1,4 @@
-// $Id: compat.h 2283 2006-09-10 17:07:57Z hollow $    --*- c++ -*--
+// $Id: compat.h 2589 2007-08-16 03:06:50Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -85,6 +85,11 @@ typedef uint32_t		xid_t;
 #ifndef HAVE_NID_T
 #include <stdint.h>
 typedef uint32_t		nid_t;
+#endif
+
+#ifndef HAVE_TAG_T
+#include <stdint.h>
+typedef uint32_t		tag_t;
 #endif
 
 

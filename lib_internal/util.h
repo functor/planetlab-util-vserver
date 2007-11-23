@@ -1,4 +1,4 @@
-// $Id: util.h 2255 2006-01-22 11:23:47Z ensc $    --*- c -*--
+// $Id: util.h 2569 2007-07-22 17:24:29Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -37,5 +37,6 @@ bool		switchToWatchXid(char const **);
 size_t		canonifyVserverName(char *);
 bool		isNumber(char const *, signed long *result, bool is_strict);
 bool		isNumberUnsigned(char const *, unsigned long *result, bool is_strict);
+bool		mkdirRecursive(char const *);
 
 #endif	//  H_UTILVSERVER_LIB_INTERNAL_UTIL_H

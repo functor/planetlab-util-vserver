@@ -1,4 +1,4 @@
-# $Id: util-vserver.spec.in 2482 2007-01-29 23:37:07Z dhozac $
+# $Id: util-vserver.spec.in 2575 2007-08-05 18:35:40Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -13,9 +13,9 @@
 
 %global _localstatedir	%_var
 
-%global ver		%( echo 0.30.213 | sed 's/-.*//' )
-%global subver		%( s=`echo 0.30.213 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
-%global fullver		0.30.213
+%global ver		%( echo 0.30.214 | sed 's/-.*//' )
+%global subver		%( s=`echo 0.30.214 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global fullver		0.30.214
 
 
 %{!?release_func:%global release_func() %1%{?dist}}
@@ -27,8 +27,8 @@ Release:	%release_func 0%subver
 License:	GPL
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%fullver.tar.bz2
-#Source1:	http://www.13thfloor.at/~ensc/util-vserver/files/alpha/%name-%fullver.tar.bz2.asc
+Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
+#Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -58,7 +58,7 @@ Requires:		util-linux
 %package build
 Summary:		Tools which can be used to build vservers
 Group:			Applications/System
-Requires:		rpm wget binutils tar e2fsprogs
+Requires:		rpm wget binutils tar
 Requires:		%name = %version-%release
 Requires(pre):		%confdir
 Requires(postun):	%confdir
@@ -354,6 +354,10 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
+- updated URLs
+- get rid of e2fsprogs requirement
+
 * Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
 - add --with legacy and --without doc switches
 - add util-vserver initscript

@@ -440,6 +440,13 @@ interface will be executed.
         <br />
         <ul>
           <li>
+            <span class="symlink" title="/etc/vservers/.distributions/template">template</span>
+            <br />
+            <div class="description">
+Symlink to the default template for this distribution.
+      </div>
+          </li>
+          <li>
             <span class="directory">/etc/vservers/<span class="">.distributions</span>/<span class="symbolic">dist</span></span>
             <br />
             <ul>
@@ -595,7 +602,7 @@ for possible values.
             <span class="file" title="/etc/vservers/$vserver-name/context">context</span>
             <br />
             <div class="description">
-Contains the context which shall be used for the vserver.
+Contains the context id which shall be used for the vserver. Valid range is 2 through 49151.
         </div>
           </li>
           <li>
@@ -622,7 +629,7 @@ the 'fstab' file should be used.
             <br />
             <div class="description">
 The fstab file for the vserver. Entries in this file will be mounted
-within the network context of the host; this means that mount will be
+within the network context of the guest; this means that mount will be
 called as <code class="command">chbind &lt;options&gt; mount ...</code>. See
 <a class="optionref" href="#fstab">fstab</a> also.
       </div>
@@ -666,6 +673,13 @@ file.
             <div class="description">
 Contains the network capabilities. See <a href="http://svn.linux-vserver.org/svn/util-vserver/trunk/lib/ncaps-net.c">lib/ncaps-net.c</a>
 for possible values.
+      </div>
+          </li>
+          <li>
+            <span class="file" title="/etc/vservers/$vserver-name/ncontext">ncontext</span>
+            <br />
+            <div class="description">
+Contains the network context id which shall be used for the vserver. Valid range is 2 through 49151.
       </div>
           </li>
           <li>
@@ -737,6 +751,13 @@ VServer Wiki</a> for more information about this file.
             <div class="description">
 Contains the pathname of the shell which will be used by the "vserver
 ... enter" command.
+      </div>
+          </li>
+          <li>
+            <span class="file" title="/etc/vservers/$vserver-name/tag">tag</span>
+            <br />
+            <div class="description">
+Contains the filesystem tag which shall be used for the vserver. Valid range is 2 through 49151.
       </div>
           </li>
           <li>
@@ -1102,12 +1123,17 @@ filesystem.
               <li>
                 <span class="file" title="/etc/vservers/$vserver-name/interfaces/bcast">bcast</span>
                 <br />
-                <div class="description">The default broadcast address.</div>
+                <div class="description">The guest's broadcast address.</div>
               </li>
               <li>
                 <span class="file" title="/etc/vservers/$vserver-name/interfaces/dev">dev</span>
                 <br />
-                <div class="description">The default network device.</div>
+                <div class="description">The default network device. See <a class="optionref" href="#per-if-dev">iface/dev</a> for more information.</div>
+              </li>
+              <li>
+                <span class="file" title="/etc/vservers/$vserver-name/interfaces/lback">lback</span>
+                <br />
+                <div class="description">The guest's loopback address.</div>
               </li>
               <li>
                 <span class="file" title="/etc/vservers/$vserver-name/interfaces/mask">mask</span>
@@ -1152,15 +1178,10 @@ usage with <code class="tool">chbind</code>. Both happens in alphabetical order 
 numbers like '00' are good names for these directories.
         </div>
                 <ul>
-                  <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/bcast">bcast</span>
-                    <br />
-                    <div class="description">The broadcast address.</div>
-                  </li>
-                  <li>
+                  <li id="per-if-dev">
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/dev">dev</span>
                     <br />
-                    <div class="description">The network device.</div>
+                    <div class="description">The network device. When this is specified, the IP address will be assigned and removed when starting and stopping the guest.</div>
                   </li>
                   <li>
                     <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/disabled">disabled</span>
@@ -1170,7 +1191,7 @@ numbers like '00' are good names for these directories.
                   <li>
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/ip">ip</span>
                     <br />
-                    <div class="description">The ip which will be assigned to this interface.</div>
+                    <div class="description">The IP address which will be assigned to this interface.</div>
                   </li>
                   <li>
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/mask">mask</span>

@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vyum-worker 2527 2007-04-11 18:14:47Z dhozac $
+# $Id: vyum-worker 2551 2007-06-21 12:56:25Z dhozac $
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -60,7 +60,7 @@ case $($yum --version|tail -n 1) in
     (2.[012345]*)
 	check 'import yum,sys; sys.exit(not hasattr(yum.config.yumconf, "getRootedPath"))'
 	;;
-    (2.[6789]*|3.0*)
+    (2.[6789]*|3.[012]*)
 	check 'import yum,sys; sys.exit(not hasattr(yum.config.YumConf, "getRootedPath"))'
 	;;
     (*)
