@@ -1,4 +1,4 @@
-# $Id: util-vserver.spec.in 2482 2007-01-29 23:37:07Z dhozac $
+# $Id: util-vserver.spec.in 2575 2007-08-05 18:35:40Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -425,6 +425,10 @@ done
 
 * Mon Jul 30 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
 - add vip6-autod
+
+* Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
+- updated URLs
+- get rid of e2fsprogs requirement
 
 * Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
 - add --with legacy and --without doc switches

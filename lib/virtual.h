@@ -1,4 +1,4 @@
-// $Id: virtual.h 2427 2006-12-12 01:39:54Z dhozac $    --*- c -*--
+// $Id: virtual.h 2589 2007-08-16 03:06:50Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -31,6 +31,7 @@
 #include <kernel/sched_cmd.h>
 #include <kernel/signal_cmd.h>
 #include <kernel/device_cmd.h>
+#include <kernel/tag_cmd.h>
 
 #include <kernel/legacy.h>
 

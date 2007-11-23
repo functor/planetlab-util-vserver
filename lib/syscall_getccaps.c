@@ -1,4 +1,4 @@
-// $Id: syscall_getccaps.c 2207 2005-10-29 10:31:42Z ensc $    --*- c -*--
+// $Id: syscall_getccaps.c 2564 2007-07-16 15:10:08Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

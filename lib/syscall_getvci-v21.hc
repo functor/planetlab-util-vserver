@@ -1,4 +1,4 @@
-// $Id: syscall_getvci-v21.hc 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
+// $Id: syscall_getvci-v21.hc 2589 2007-08-16 03:06:50Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2006 Daniel Hokka Zakrisson <daniel@hozac.com>
 //  
@@ -20,7 +20,7 @@
 #  include <config.h>
 #endif
 
-static inline ALWAYSINLINE int
+static inline ALWAYSINLINE vc_vci_t
 vc_get_vci_v21(int UNUSED tmp)
 {
   return vserver(VCMD_get_vci, 0, 0);

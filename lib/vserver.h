@@ -1,4 +1,4 @@
-/* $Id: vserver.h 2501 2007-02-20 17:33:35Z dhozac $
+/* $Id: vserver.h 2589 2007-08-16 03:06:50Z dhozac $
 
 *  Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 *   
@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 #include <sched.h>
+#include <netinet/in.h>
 
 #ifndef IS_DOXYGEN
 #if defined(__GNUC__)
@@ -236,14 +237,20 @@
 #define VC_NXF_INFO_PRIVATE		0x00000008ull
 
 #define VC_NXF_SINGLE_IP		0x00000100ull
+#define VC_NXF_LBACK_REMAP		0x00000200ull
 
 #define VC_NXF_HIDE_NETIF		0x02000000ull
+#define VC_NXF_HIDE_LBACK		0x04000000ull
 
 #define VC_NXF_STATE_SETUP		(1ULL<<32)
 #define VC_NXF_STATE_ADMIN		(1ULL<<34)
 
 #define VC_NXF_SC_HELPER		(1ULL<<36)
 #define VC_NXF_PERSISTENT		(1ULL<<38)
+
+
+// the network capabilities
+#define VC_NXC_RAW_ICMP			0x00000100ull
 
 
 // the vserver specific limits
@@ -260,6 +267,8 @@
 // the VCI bit values
 #define VC_VCI_NO_DYNAMIC		(1 << 0)
 #define VC_VCI_SPACES			(1 << 10)
+#define VC_VCI_NETV2			(1 << 11)
+#define VC_VCI_PPTAG			(1 << 28)
 
 
 // the device mapping flags
@@ -272,6 +281,21 @@
 // the process context migration flags
 #define VC_VXM_SET_INIT			0x00000001
 #define VC_VXM_SET_REAPER		0x00000002
+
+
+// the network address flags
+#define VC_NXA_TYPE_IPV4		0x0001
+#define VC_NXA_TYPE_IPV6		0x0002
+
+#define VC_NXA_TYPE_NONE		0x0000
+#define VC_NXA_TYPE_ANY			0x00FF
+
+#define VC_NXA_TYPE_ADDR		0x0010
+#define VC_NXA_TYPE_MASK		0x0020
+#define VC_NXA_TYPE_RANGE		0x0040
+
+#define VC_NXA_MOD_BCAST		0x0100
+#define VC_NXA_MOD_LBACK		0x0200
 
 
 #ifndef CLONE_NEWNS
@@ -301,6 +325,7 @@
 #ifdef IS_DOXYGEN
 typedef an_unsigned_integer_type	xid_t;
 typedef an_unsigned_integer_type	nid_t;
+typedef an_unsigned_integer_type	tag_t;
 #endif
 
 #ifdef __cplusplus
@@ -327,11 +352,12 @@ extern "C" {
      */
   int		vc_get_version();
 
+  typedef	uint64_t vc_vci_t;
     /** \brief   Returns the kernel configuration bits
      *  \ingroup syscalls
      *  \returns The kernel configuration bits
      */
-  int		vc_get_vci();
+  vc_vci_t	vc_get_vci();
 
     /** \brief   Moves current process into a context
      *  \ingroup syscalls
@@ -394,7 +420,7 @@ extern "C" {
      *
      *	\returns the xid of the created context, or VC_NOCTX on errors. \c errno
      *	         will be set appropriately. */
-  xid_t		vc_ctx_create(xid_t xid);
+  xid_t		vc_ctx_create(xid_t xid, struct vc_ctx_flags *flags);
 
     /** \brief   Moves the current process into the specified context.
      *  \ingroup syscalls
@@ -602,16 +628,25 @@ extern "C" {
   nid_t		vc_get_task_nid(pid_t pid);
   int		vc_get_nx_info(nid_t nid, struct vc_nx_info *) VC_ATTR_NONNULL((2));
 
-  typedef enum { vcNET_IPV4=1,      vcNET_IPV6=2,
-		 vcNET_IPV4B=0x101, vcNET_IPV6B=0x102,
-		 vcNET_IPV4A=0x201, vcNET_IPV6A=0x202,
-		 vcNET_ANY=~0 }		vc_net_nx_type;
-
-  struct vc_net_nx {
-      vc_net_nx_type	type;
-      size_t		count;
-      uint32_t		ip[4];
-      uint32_t		mask[4];
+  struct vc_net_addr {
+      uint16_t			vna_type;
+      uint16_t			vna_flags;
+      uint16_t			vna_prefix;
+      uint16_t			vna_parent;
+      union {
+	struct {
+	  struct in_addr	ip;
+	  struct in_addr	mask;
+	} ipv4;
+	struct {
+	  struct in6_addr	ip;
+	  struct in6_addr	mask;
+	} ipv6;
+      } u;
+#define vna_v4_ip	u.ipv4.ip
+#define vna_v4_mask	u.ipv4.mask
+#define vna_v6_ip	u.ipv6.ip
+#define vna_v6_mask	u.ipv6.mask
   };
 
   struct vc_net_flags {
@@ -622,8 +657,8 @@ extern "C" {
   nid_t		vc_net_create(nid_t nid);
   int		vc_net_migrate(nid_t nid);
 
-  int		vc_net_add(nid_t nid, struct vc_net_nx const *info);
-  int		vc_net_remove(nid_t nid, struct vc_net_nx const *info);
+  int		vc_net_add(nid_t nid, struct vc_net_addr const *info);
+  int		vc_net_remove(nid_t nid, struct vc_net_addr const *info);
 
   int		vc_get_nflags(nid_t, struct vc_net_flags *);
   int		vc_set_nflags(nid_t, struct vc_net_flags const *);
@@ -641,6 +676,9 @@ extern "C" {
 
   int		vc_set_iattr(char const *filename, xid_t xid,
 			     uint_least32_t flags, uint_least32_t mask) VC_ATTR_NONNULL((1));
+
+  int		vc_fset_iattr(int fd, xid_t xid,
+			      uint_least32_t flags, uint_least32_t mask);
 
     /** \brief   Returns information about attributes and assigned context of a file.
      *  \ingroup syscalls
@@ -671,6 +709,10 @@ extern "C" {
   int		vc_get_iattr(char const *filename, xid_t * /*@null@*/ xid,
 			     uint_least32_t * /*@null@*/ flags,
 			     uint_least32_t * /*@null@*/ mask) VC_ATTR_NONNULL((1));
+
+  int		vc_fget_iattr(int fd, xid_t * /*@null@*/ xid,
+			      uint_least32_t * /*@null@*/ flags,
+			      uint_least32_t * /*@null@*/ mask) VC_ATTR_NONNULL((4));
   
   /** \brief   Returns the context of \c filename
    *  \ingroup syscalls
@@ -731,6 +773,15 @@ extern "C" {
 			      uint_least32_t flags,
 			      struct vc_ctx_dlimit *limits) VC_ATTR_NONNULL((1));
 
+  /** Get the filesystem tag for a process. */
+  tag_t		vc_get_task_tag(pid_t pid);
+
+  /** Create a new filesystem tag space. */
+  int		vc_tag_create(tag_t tag);
+
+  /** Migrate to an existing filesystem tag space. */
+  int		vc_tag_migrate(tag_t tag);
+
     /* scheduler related syscalls */
   struct vc_set_sched {
       uint_least32_t	set_mask;
@@ -747,6 +798,7 @@ extern "C" {
   };
 
   int		vc_set_sched(xid_t xid, struct vc_set_sched const *) VC_ATTR_NONNULL((2));
+  int		vc_get_sched(xid_t xid, struct vc_set_sched *) VC_ATTR_NONNULL((2));
 
   struct vc_sched_info {
       int_least32_t	cpu_id;
@@ -892,7 +944,7 @@ extern "C" {
 		 vcFEATURE_COMPAT, vcFEATURE_MIGRATE, vcFEATURE_NAMESPACE,
 		 vcFEATURE_SCHED,  vcFEATURE_VINFO,   vcFEATURE_VHI,
                  vcFEATURE_VSHELPER0, vcFEATURE_VSHELPER, vcFEATURE_VWAIT,
-		 vcFEATURE_VNET, vcFEATURE_VSTAT }
+		 vcFEATURE_VNET, vcFEATURE_VSTAT,     vcFEATURE_PPTAG, }
     vcFeatureSet;
 
   bool		vc_isSupported(vcFeatureSet) VC_ATTR_CONST;
@@ -923,6 +975,8 @@ extern "C" {
   xid_t		vc_xidopt2xid(char const *, bool honor_static, char const **err_info);
   /** Maps a  nid given at '--nid' options to a  nid_t */
   nid_t		vc_nidopt2nid(char const *, bool honor_static, char const **err_info);
+  /** Maps a  tag given at '--tag' options to a  tag_t */
+  tag_t		vc_tagopt2tag(char const *, bool honor_static, char const **err_info);
 
   vcCfgStyle	vc_getVserverCfgStyle(char const *id);
   
@@ -945,6 +999,11 @@ extern "C" {
    *  allocated and must be freed by the caller. */
   char *	vc_getVserverVdir(char const *id, vcCfgStyle style, bool physical);
 
+  typedef enum { vcCTX_XID = 1,
+		 vcCTX_NID,
+		 vcCTX_TAG,
+	} vcCtxType;
+
   /** Returns the ctx of the given vserver. When vserver is not running and
    *  'honor_static' is false, VC_NOCTX will be returned. Else, when
    *  'honor_static' is true and a static assignment exists, those value will
@@ -953,7 +1012,8 @@ extern "C" {
    *  When 'is_running' is not null, the status of the vserver will be
    *  assigned to this variable. */
   xid_t		vc_getVserverCtx(char const *id, vcCfgStyle style,
-				 bool honor_static, bool /*@null@*/ *is_running);
+				 bool honor_static, bool /*@null@*/ *is_running,
+				 vcCtxType type);
 
   /** Resolves the cfg-path of the vserver owning the given ctx. 'revdir' will
       be used as the directory holding the mapping-links; when NULL, the

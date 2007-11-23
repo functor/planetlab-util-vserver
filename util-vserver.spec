@@ -1,4 +1,4 @@
-# $Id: util-vserver.spec.in 2482 2007-01-29 23:37:07Z dhozac $
+# $Id: util-vserver.spec.in 2575 2007-08-05 18:35:40Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -13,13 +13,13 @@
 
 %global _localstatedir	%_var
 
-%global ver		%( echo 0.30.213 | sed 's/-.*//' )
-%global subver		%( s=`echo 0.30.213 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
-%global fullver		0.30.213
+%global ver		%( echo 0.30.214 | sed 's/-.*//' )
+%global subver		%( s=`echo 0.30.214 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global fullver		0.30.214
 
 
 %define name util-vserver
-%define version 0.30.213
+%define version 0.30.214
 %{!?release_func:%global release_func() 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}}
 
 %global python_sitearch	%( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
@@ -425,6 +425,10 @@ done
 
 * Mon Jul 30 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
 - add vip6-autod
+
+* Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
+- updated URLs
+- get rid of e2fsprogs requirement
 
 * Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
 - add --with legacy and --without doc switches

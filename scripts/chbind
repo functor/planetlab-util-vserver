@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: chbind 2394 2006-11-23 21:12:26Z dhozac $
+# $Id: chbind 2599 2007-08-26 21:30:50Z dhozac $
 
 # Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 # Copyright (C) 2006 Daniel Hokka Zakrisson
@@ -29,7 +29,8 @@ function showHelp()
 {
     echo \
 $"Usage: $1  [--silent] [--nid <nid>] [--ip <ip_num>[/<mask>]]
-             [--bcast <broadcast>] [--] <commands> <args>*
+             [--lback <loopback>] [--bcast <broadcast>]
+             [--] <commands> <args>*
 
 --silent
     Do not print the addresses assigned.
@@ -37,6 +38,8 @@ $"Usage: $1  [--silent] [--nid <nid>] [--ip <ip_num>[/<mask>]]
     Network context id to use.
 --ip <ip_num>[/<mask>]
     IP address to bind to.
+--lback <loopback>
+    Loopback address for the network context.
 --bcast <broadcast>
     Broadcast address for the network context.
 
@@ -57,7 +60,7 @@ the GNU General Public License.  This program has absolutely no warranty."
     exit $1
 }
 
-tmp=$(getopt -o + --long ncap:,nid:,ip:,bcast:,disconnect,flag:,secure,silent,help,version -n "$0" -- "$@") || exit 1
+tmp=$(getopt -o + --long ncap:,nid:,ip:,bcast:,lback:,disconnect,flag:,secure,silent,help,version -n "$0" -- "$@") || exit 1
 eval set -- "$tmp"
 
 OPT_CAPS=()
@@ -67,6 +70,7 @@ OPT_FLAGS=()
 OPT_SECURE=
 OPT_SILENT=
 OPT_BCAST=
+OPT_LBACK=
 OPT_IPS=()
 
 while true; do
@@ -81,6 +85,7 @@ while true; do
 	--silent)	OPT_SILENT=1;;
 	--ip)		OPT_IPS=( "${OPT_IPS[@]}" --ip "$2" ); shift;;
 	--bcast)	OPT_BCAST=$2; shift;;
+	--lback)	OPT_LBACK=$2; shift;;
 	--)		shift; break;;
 	*)		echo $"chbind: internal error; arg=='$1'" >&2; exit 1;;
     esac
@@ -113,6 +118,7 @@ chain_cmd=( "${chain_cmd[@]}"
 		$_NADDRESS --add
 		${OPT_SILENT:+--silent}
 		${OPT_BCAST:+--bcast "$OPT_BCAST"}
+		${OPT_LBACK:+--lback "$OPT_LBACK"}
 		"${OPT_IPS[@]}" )
 
 migrate_cmd=( $_NCONTEXT

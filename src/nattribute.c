@@ -1,4 +1,4 @@
-// $Id: nattribute.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: nattribute.c 2585 2007-08-12 00:13:31Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 // Copyright (C) 2006 Daniel Hokka Zakrisson
@@ -126,8 +126,8 @@ parseSecure(struct vc_net_flags * flags,
 	    struct vc_net_caps  * caps)
 {
     // TODO: generalize this
-  caps->ncaps = 0ull;
-  caps->cmask = 0ull;
+  caps->ncaps = VC_NXC_RAW_ICMP;
+  caps->cmask = VC_NXC_RAW_ICMP;
 
   flags->flagword = VC_NXF_HIDE_NETIF;
   flags->mask     = VC_NXF_HIDE_NETIF;

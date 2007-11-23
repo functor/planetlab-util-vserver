@@ -70,7 +70,7 @@ process:
   /*
    * Create context info - this sets the STATE_SETUP and STATE_INIT flags.
    */
-  if (vc_ctx_create(ctx) == VC_NOCTX)
+  if (vc_ctx_create(ctx, 0) == VC_NOCTX)
     return -1;
 
   /* Set capabilities - these don't take effect until SETUP flag is unset */

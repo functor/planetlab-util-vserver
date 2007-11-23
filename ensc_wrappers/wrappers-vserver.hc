@@ -1,4 +1,4 @@
-// $Id: wrappers-vserver.hc 2501 2007-02-20 17:33:35Z dhozac $    --*- c++ -*--
+// $Id: wrappers-vserver.hc 2589 2007-08-16 03:06:50Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -49,9 +49,9 @@ Evc_get_task_nid(pid_t pid)
 }
 
 inline static WRAPPER_DECL xid_t
-Evc_ctx_create(xid_t xid)
+Evc_ctx_create(xid_t xid, struct vc_ctx_flags *flags)
 {
-  register xid_t	res = vc_ctx_create(xid);
+  register xid_t	res = vc_ctx_create(xid, flags);
   FatalErrnoError(res==VC_NOCTX, "vc_ctx_create()");
   return res;
 }
@@ -61,6 +61,14 @@ Evc_net_create(nid_t nid)
 {
   register nid_t	res = vc_net_create(nid);
   FatalErrnoError(res==VC_NOCTX, "vc_net_create()");
+  return res;
+}
+
+inline static WRAPPER_DECL tag_t
+Evc_tag_create(tag_t tag)
+{
+  register tag_t	res = vc_tag_create(tag);
+  FatalErrnoError(res==VC_NOCTX, "vc_tag_create()");
   return res;
 }
 
@@ -74,6 +82,12 @@ inline static WRAPPER_DECL void
 Evc_net_migrate(nid_t nid)
 {
   FatalErrnoError(vc_net_migrate(nid)==-1, "vc_net_migrate()");
+}
+
+inline static WRAPPER_DECL void
+Evc_tag_migrate(tag_t tag)
+{
+  FatalErrnoError(vc_tag_migrate(tag)==-1, "vc_tag_migrate()");
 }
 
 inline static WRAPPER_DECL void
@@ -176,6 +190,18 @@ Evc_nidopt2nid(char const *id, bool honor_static)
   nid_t		rc = vc_nidopt2nid(id, honor_static, &err);
   if (__builtin_expect(rc==VC_NOCTX,0)) {
     ENSC_DETAIL1(msg, "vc_nidopt2nid", id, 1);
+    FatalErrnoErrorFail(msg);
+  }
+  return rc;
+}
+
+inline static WRAPPER_DECL tag_t
+Evc_tagopt2tag(char const *id, bool honor_static)
+{
+  char const *	err;
+  tag_t		rc = vc_tagopt2tag(id, honor_static, &err);
+  if (__builtin_expect(rc==VC_NOCTX,0)) {
+    ENSC_DETAIL1(msg, "vc_tagopt2tag", id, 1);
     FatalErrnoErrorFail(msg);
   }
   return rc;

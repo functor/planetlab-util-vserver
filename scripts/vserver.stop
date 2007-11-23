@@ -1,4 +1,4 @@
-# $Id: vserver.stop 2508 2007-02-25 14:06:51Z dhozac $  --*- sh -*--
+# $Id: vserver.stop 2602 2007-08-27 10:53:04Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -71,6 +71,8 @@ if test -n "$_IS_FAKEINIT" && \
     fi
 elif $_VSERVER_INFO - FEATURE migrate; then
     "${NICE_CMD[@]}" \
+    "${CHBIND_CMD[@]}" \
+    "$_VTAG" --migrate "${OPTS_VTAG_ENTER[@]}" --silent -- \
     $_VCONTEXT $SILENT_OPT --migrate --chroot --xid "$S_CONTEXT" -- \
     "${INITCMD_STOP[@]}" || fail=1
 else

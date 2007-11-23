@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2255 2006-01-22 11:23:47Z ensc $  -*- makefile -*-
+## $Id: Makefile-files 2579 2007-08-08 20:47:12Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -59,6 +59,7 @@ noinst_HEADERS += \
 				lib_internal/string.h \
 				lib_internal/sys_clone.h \
 				lib_internal/sys_personality.h \
+				lib_internal/sys_unshare.h \
 				lib_internal/unify.h \
 				lib_internal/util.h \
 				lib_internal/util-cast.h \
@@ -101,6 +102,7 @@ lib_internal_libinternal_common_SRCS = \
 				lib_internal/util-isnumberunsigned.c \
 				lib_internal/util-lockfile.c \
 				lib_internal/util-safechdir.c \
+				lib_internal/mkdir.c \
 				$(command_SRCS) \
 				$(filecfg_SRCS)
 

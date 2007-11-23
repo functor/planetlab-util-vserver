@@ -1,3 +1,357 @@
+2007-09-02 20:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* NEWS, configure.ac: Version 0.30.214.
+
+2007-09-02 19:51  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_getccaps-v13.hc: Use the correct syscall.
+
+2007-08-27 10:53  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop: Fix thinko.
+
+2007-08-27 10:19  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am: Remove vserver-config.sh from the Makefile.
+
+2007-08-27 10:16  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/debian/initpost, distrib/debian/vserver-config.sh: Be
+	  more like the redhat initpost script, don't start the guest for
+	  real.
+
+2007-08-26 21:30  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, scripts/chbind, scripts/chcontext,
+	  scripts/pkgmgmt, scripts/vserver-build.fai,
+	  scripts/vserver.functions, scripts/vserver.start,
+	  scripts/vserver.stop, scripts/vserver.suexec, scripts/vsomething,
+	  src/vtag.c: Add support for the lback address in the
+	  configuration.
+	  Add --silent to vtag so it'll complain if run manually on a
+	  kernel without the necessary support.
+
+2007-08-26 17:50  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Document the tag and ncontext files.
+
+2007-08-26 17:48  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/nflags-net.c: Add remap_lback as an alias to lback_remap.
+
+2007-08-25 16:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/getvserverbyctx-compat.hc, lib/getvserverctx.c: Fallback to
+	  context if ncontext/tag don't exist.
+	  Fix remanining vc_getVserverCtx caller.
+
+2007-08-25 16:50  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: debootstrap 1.0.3
+
+2007-08-21 23:00  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Clarify that specifying dev will
+	  add/remove the IP address.
+
+2007-08-21 18:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Add a static context sanity check.
+
+2007-08-16 20:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/setattr.c: Add --immutable.
+
+2007-08-16 19:53  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop: Migrate to the tag on stop too.
+
+2007-08-16 19:36  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/chcontext: Fix for vtag invocations.
+
+2007-08-16 03:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* compat.h, configure.ac, contrib/manifest.dat.pathsubst,
+	  ensc_wrappers/wrappers-vserver.hc, kernel/switch.h,
+	  kernel/tag_cmd.h, lib/Makefile-files,
+	  lib/getvserverbyctx-compat.hc, lib/getvserverbyctx-v13.hc,
+	  lib/getvserverctx.c, lib/issupported.c, lib/issupportedstring.c,
+	  lib/nidopt2nid.c, lib/syscall_getvci-v21.hc,
+	  lib/syscall_getvci.c, lib/syscall_tagcreate.c,
+	  lib/syscall_tagmigrate-v23.hc, lib/syscall_tagmigrate.c,
+	  lib/syscall_tasktag-v23.hc, lib/syscall_tasktag.c,
+	  lib/tagopt2tag.c, lib/virtual.h, lib/vserver-internal.h,
+	  lib/vserver.h, lib/xidopt2xid.c, scripts/chcontext,
+	  scripts/util-vserver-vars.pathsubst, scripts/vserver.functions,
+	  scripts/vserver.start, scripts/vserver.suexec,
+	  src/Makefile-files, src/vserver-info.c, src/vtag.c,
+	  vserver-start/main.c: Add support for a separate filesystem tag,
+	  and in the process improve the support for network contexts.
+
+2007-08-16 02:31  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/chbind.c: The nid isn't used anymore, legacy APIs don't
+	  support it.
+
+2007-08-16 02:00  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/sys_unshare.h: Add fallback syscall numbers, if it's
+	  not defined in the headers.
+
+2007-08-13 18:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/functions: Add some hints for this common problem.
+
+2007-08-12 00:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/ncaps-net.c, lib/vserver.h, src/nattribute.c: Add network
+	  capability RAW_ICMP.
+
+2007-08-10 15:28  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_netadd-net.hc, src/naddress.c: Fix setting the
+	  broadcast address.
+
+2007-08-09 02:39  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/nflags-net.c, lib/vserver.h: Add all the network flags.
+
+2007-08-08 23:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_ctxcreate-v21.hc: Don't hardcode the spaces to
+	  create/unshare.
+
+2007-08-08 21:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_ctxcreate-v21.hc: Set the namespaces we've unshared.
+
+2007-08-08 21:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* gentoo/Makefile-files: Add the bash-wrapper to the Makefile.
+
+2007-08-08 20:47  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/Makefile-files: Add sys_unshare to the Makefile.
+
+2007-08-08 20:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* AUTHORS, configure.ac, ensc_wrappers/wrappers-vserver.hc,
+	  kernel/inode_cmd.h, kernel/network.h, kernel/network_cmd.h,
+	  lib/Makefile-files, lib/syscall_ctxcreate-v13.hc,
+	  lib/syscall_ctxcreate-v21.hc, lib/syscall_ctxcreate.c,
+	  lib/syscall_fgetiattr-v22.hc, lib/syscall_fgetiattr.c,
+	  lib/syscall_fsetiattr-v22.hc, lib/syscall_fsetiattr.c,
+	  lib/syscall_netadd-net.hc, lib/syscall_netadd-netv2.hc,
+	  lib/syscall_netadd.c, lib/syscall_netremove-net.hc,
+	  lib/syscall_netremove-netv2.hc, lib/syscall_netremove.c,
+	  lib/syscall_setsched-v22.hc, lib/syscall_setsched.c,
+	  lib/vserver-internal.h, lib/vserver.h,
+	  lib_internal/sys_unshare.h, src/chbind.c, src/naddress.c,
+	  src/rpm-fake.c, src/vcontext.c, vserver-start/main.c: Add support
+	  for the various new APIs in 2.2 and 2.3, in particular, netv2.
+
+2007-08-05 18:36  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.delete: Remove the cache so disk limit caches
+	  have no chance of being reused if the same guest is recreated at
+	  a later point in time.
+
+2007-08-05 18:36  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.yum: It's just yum, not yum-rpm.
+
+2007-08-05 18:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* util-vserver.spec.in: Remove e2fsprogs requirement, no longer
+	  needed.
+
+2007-07-31 19:43  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.debootstrap: Use findFile consistently.
+	  Don't fail if a file doesn't exist, these are all optional.
+
+2007-07-30 09:36  Benedikt Böhm <hollow@gentoo.org>
+
+	* gentoo/util-vserver, gentoo/vprocunhide: some more POSIX fixes
+
+2007-07-29 17:14  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* gentoo/Makefile-files, gentoo/bash-wrapper, gentoo/util-vserver:
+	  Only POSIX-sh in Gentoo initscripts.
+
+2007-07-29 16:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am, distrib/breezy,
+	  distrib/breezy/debootstrap.script, distrib/dapper,
+	  distrib/dapper/debootstrap.script, distrib/debian,
+	  distrib/debian/debootstrap.script, distrib/debian/initpost,
+	  distrib/edgy, distrib/edgy/debootstrap.script, distrib/etch,
+	  distrib/feisty, distrib/feisty/debootstrap.script, distrib/gutsy,
+	  distrib/gutsy/debootstrap.script, distrib/hoary,
+	  distrib/hoary/debootstrap.script, distrib/warty,
+	  distrib/warty/debootstrap.script,
+	  scripts/vserver-build.debootstrap,
+	  scripts/vserver-build.functions: Various debootstrap
+	  improvements.
+
+2007-07-29 16:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/naddress.c: Prettier output on error.
+
+2007-07-22 17:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/Makefile-files, lib_internal/matchlist-compare.c,
+	  lib_internal/mkdir.c, lib_internal/testsuite,
+	  lib_internal/testsuite/Makefile-files,
+	  lib_internal/testsuite/matchlist.c, lib_internal/util.h,
+	  src/vclone.c, src/vhashify.c: Add exclude list support for
+	  vclone.
+
+2007-07-19 20:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/Makefile-files, lib/syscall_getsched-v21.hc,
+	  lib/syscall_getsched.c, lib/vserver.h: Add vc_get_sched.
+
+2007-07-18 17:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac, scripts/util-vserver-vars.pathsubst: ... and add
+	  _STRACE.
+
+2007-07-18 17:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver, scripts/vserver.functions,
+	  scripts/vserver.start: Add --strace and --debug-sysv options to
+	  further debug problems with starting a guest.
+
+2007-07-16 15:52  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/Makefile-files: Add it to the Makefile.
+
+2007-07-16 15:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_getccaps-v21.hc, lib/syscall_getccaps.c: Make
+	  vc_get_ccaps do the right thing.
+
+2007-07-13 14:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop: Enter the network context to stop the
+	  guest.
+
+2007-07-12 21:59  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/fakerunlevel.c: Support runlevels up to 9, as per init(1).
+
+2007-07-11 14:34  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/h2ext.c: Add some sanity checking.
+
+2007-07-11 14:27  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/f7/yum.repos.d/fedora.repo: Add forgotten file.
+
+2007-07-10 20:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vclone.c: Add an option to specify the xid the non-shared
+	  files should belong to.
+
+2007-07-10 20:34  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst, distrib/Makefile.am,
+	  distrib/misc/h2ext.desc, pathconfig.h.pathsubst,
+	  scripts/Makefile-files, scripts/h2ext-worker, scripts/magic.mime,
+	  scripts/util-vserver-vars.pathsubst,
+	  scripts/vserver-build.template, src/Makefile-files, src/h2ext.c:
+	  Replace file with h2ext for the template build method.
+
+2007-07-08 18:29  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/chbind.c: It's network isolation, not virtualization.
+
+2007-07-07 15:24  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/Makefile-files, contrib/yum-3.2.1-chroot.patch: added
+	  patch for yum-3.2.1; this one should retain API
+	  compatibility by using a dummy argument for the *Lock()
+	  methods
+
+2007-06-25 15:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* util-vserver.spec.in: Update URLs.
+
+2007-06-24 22:04  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, scripts/vserver-build.template: Add a way
+	  to associate a distribution with a default template.
+
+2007-06-24 21:28  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am, distrib/f7,
+	  distrib/f7/yum.repos.d/fedora-core.repo,
+	  distrib/f7/yum.repos.d/fedora-development.repo,
+	  distrib/f7/yum.repos.d/fedora-extras-development.repo,
+	  distrib/f7/yum.repos.d/fedora-extras.repo,
+	  distrib/f7/yum.repos.d/fedora-legacy.repo,
+	  distrib/f7/yum.repos.d/fedora-updates-testing.repo,
+	  distrib/f7/yum.repos.d/fedora-updates.repo: Add Fedora 7.
+
+2007-06-24 00:07  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src: Ignore vsysctl and vclone too.
+
+2007-06-21 12:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vyum-worker: Support 3.1.x and 3.2.x as well.
+
+2007-06-21 12:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/yum-3.2.0-chroot.patch: Use the correct path to the
+	  configuration file.
+
+2007-06-21 12:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* mkrelease: Make it do everything needed.
+
+2007-06-16 20:42  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Define PREVLEVEL and RUNLEVEL so
+	  SuSE's rc script works correctly.
+
+2007-06-11 12:09  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: fstab.remote uses the guest's network
+	  context.
+
+2007-06-01 16:19  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/Makefile-files, contrib/yum-3.0.5-chroot.patch,
+	  contrib/yum-3.2.0-chroot.patch: added updated patches for yum.
+	  The yum-3.2.0 one is untested.
+
+2007-06-01 16:18  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/testsuite/Makefile-files: Fixed problems when
+	  building both a dietlibc and a GNU version of a
+	  testsuite program. Previously, the same object file (which was
+	  generated
+	  by 'diet') was used for both variants and only linking differed
+	  for
+	  them. This caused problems at least in F7 on PPC platforms.
+
+2007-06-01 16:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/unify-copy.c: deallocate resources symmetrically
+
+2007-05-31 17:58  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/init-vserver.sh, scripts/vserver.functions: fix
+	  TERM for colored output
+
+2007-05-26 11:50  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/gentoo/init-vserver.sh: TERM=linux is needed for color
+	  with baselayout-2.
+
 2007-05-03 12:20  Daniel Hokka Zakrisson <daniel@hozac.com>
 
 	* NEWS: Version 0.30.213.
@@ -4562,8 +4916,7 @@
 
 2005-01-21 13:51  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 
-	* branches/SYSCALL_SWITCH/util-vserver/scripts/vserver,
-	  util-vserver/scripts/legacy/vserver: fixed
+	* util-vserver/scripts/legacy/vserver: fixed
 	  http://savannah.nongnu.org/bugs/?func=detailitem&item_id=11570:
 	  
 	  "vserver myvserver start" gives exit code 1 if there is no file
@@ -13003,5 +13356,5 @@
 
 2003-09-29 22:01  
 
-	* branches, tags, .: New repository initialized by cvs2svn.
+	* .: New repository initialized by cvs2svn.
 

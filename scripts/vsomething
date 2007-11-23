@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vsomething 2515 2007-03-18 15:32:22Z dhozac $
+# $Id: vsomething 2599 2007-08-26 21:30:50Z dhozac $
 
 # Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -107,9 +107,10 @@ for i in "${vservers[@]}"; do
 	    $_VSERVER "$i" exec "$cmd" "$@"
 	else
 	    _setVserverDir "$i"
+	    # subshell so we don't have to clean up
 	    ( _generateChbindOptions "$VSERVER_DIR"
-	      $_VSERVER "$i" status &> /dev/null && \
-		CHBIND_CMD=( "$_CHBIND" "${CHBIND_OPTS[@]}" -- )
+	      $_VSERVER "$i" status &> /dev/null || \
+		CHBIND_CMD=()
 	      callInNamespace "$i" \
 		"$_VNAMESPACE" --new -- \
 		"${CHBIND_CMD[@]}" \

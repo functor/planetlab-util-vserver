@@ -1,4 +1,4 @@
-// $Id: setattr.c 2431 2006-12-19 19:18:12Z dhozac $    --*- c -*--
+// $Id: setattr.c 2592 2007-08-16 20:33:45Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -72,7 +72,7 @@ showHelp(int fd, char const *cmd, int res)
   WRITE_MSG(fd, "Usage:  ");
   WRITE_STR(fd, cmd);
   WRITE_MSG(fd,
-	    " [-Rx] [--[~](iunlink|admin|watch|hide|barrier|iunlink-but-not-immutable)]* [--] <file>+\n\n"
+	    " [-Rx] [--[~](iunlink|admin|watch|hide|barrier|iunlink-but-not-immutable|immutable)]* [--] <file>+\n\n"
 	    " Options:\n"
 	    "   -R  ...  recurse through directories\n"
 	    "   -x  ...  do not cross filesystems\n\n"

@@ -54,7 +54,13 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "planetlab.h"
 #include "vserver-internal.h"
 
-#define NONE  ({ Py_INCREF(Py_None); Py_None; })
+static inline PyObject *inc_and_ret_none(void)
+{
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+#define NONE  inc_and_ret_none()
 
 /*
  * context create
@@ -375,78 +381,79 @@ vserver_bcaps2text(PyObject *self, PyObject *args)
   return list;
 }
 
-static const struct AF_to_vcNET {
-  int af;
-  vc_net_nx_type vc_net;
-  size_t len;
-  size_t offset;
-} converter[] = {
-  { AF_INET,  vcNET_IPV4, sizeof(struct in_addr),  offsetof(struct sockaddr_in,  sin_addr.s_addr) },
-  { AF_INET6, vcNET_IPV6, sizeof(struct in6_addr), offsetof(struct sockaddr_in6, sin6_addr.s6_addr) },
-  { 0, 0, 0, 0 }
-};
-
 static inline int
-convert_address(const char *str, vc_net_nx_type *type, void *dst)
+convert_address(const char *str, struct vc_net_addr *addr)
 {
-  const struct AF_to_vcNET *i;
-  for (i = converter; i->af; i++) {
-    if (inet_pton(i->af, str, dst)) {
-      *type = i->vc_net;
-      return 0;
-    }
+  void *dst;
+  if (inet_pton(AF_INET6, str, addr->vna_v6_ip.s6_addr) > 0) {
+    addr->vna_type = VC_NXA_TYPE_IPV6;
+    return 0;
+  }
+  else if (inet_pton(AF_INET, str, &addr->vna_v4_ip.s_addr) > 0) {
+    addr->vna_type = VC_NXA_TYPE_IPV4;
+    return 0;
   }
   return -1;
 }
 
 static int
-get_mask(struct vc_net_nx *addr)
+mask_to_prefix(void *data, int limit)
 {
-  const struct AF_to_vcNET *i;
+  uint8_t *mask = data;
+  int prefix;
+  for (prefix = 0; prefix < limit && mask[prefix >> 3] & (1 << (prefix & 0x07)); prefix++)
+    ;
+  return prefix;
+}
+
+static int
+get_mask(struct vc_net_addr *addr)
+{
   struct ifaddrs *head, *ifa;
   int ret = 0;
+  int family, offset, len;
+  void *ip;
 
-  for (i = converter; i->af; i++) {
-    if (i->vc_net == addr->type)
-      break;
-  }
-  if (!i) {
-    errno = EINVAL;
+  switch (addr->vna_type) {
+  case VC_NXA_TYPE_IPV4:
+    family = AF_INET;
+    offset = offsetof(struct sockaddr_in,  sin_addr.s_addr);
+    ip = &addr->vna_v4_ip.s_addr;
+    len = 4;
+    addr->vna_v4_mask.s_addr = htonl(0xffffff00);
+    addr->vna_prefix = 24;
+    break;
+  case VC_NXA_TYPE_IPV6:
+    family = AF_INET6;
+    offset = offsetof(struct sockaddr_in6, sin6_addr.s6_addr);
+    ip = addr->vna_v6_ip.s6_addr;
+    len = 16;
+    addr->vna_v6_mask.s6_addr32[9] = addr->vna_v6_mask.s6_addr32[1] = 0xffffffff;
+    addr->vna_v6_mask.s6_addr32[2] = addr->vna_v6_mask.s6_addr32[3] = 0x00000000;
+    addr->vna_prefix = 64;
+    break;
+  default:
+    errno = -EINVAL;
     return -1;
   }
 
   if (getifaddrs(&head) == -1)
     return -1;
   for (ifa = head; ifa; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr->sa_family == i->af &&
-        memcmp((char *) ifa->ifa_addr + i->offset, addr->ip, i->len) == 0) {
-      switch (addr->type) {
-      case vcNET_IPV4:
-	memcpy(&addr->mask[0], ifa->ifa_netmask + i->offset, i->len);
+    if (ifa->ifa_addr->sa_family == family &&
+        memcmp((char *) ifa->ifa_addr + offset, ip, len) == 0) {
+      switch (addr->vna_type) {
+      case VC_NXA_TYPE_IPV4:
+	memcpy(&addr->vna_v4_mask.s_addr, ifa->ifa_netmask + offset, len);
+	addr->vna_prefix = mask_to_prefix(&addr->vna_v4_mask.s_addr, 32);
 	break;
-      case vcNET_IPV6: {
-	uint32_t *m = ((struct sockaddr_in6 *) ifa->ifa_netmask)->sin6_addr.s6_addr32;
-	/* optimization for the common case */
-	if ((m[1] & 1) == 1 && (m[2] & 0x80000000) == 0)
-	  addr->mask[0] = 64;
-	else {
-	  addr->mask[0] = 0;
-	  while (m[addr->mask[0] / 32] & (addr->mask[0] % 32))
-	    addr->mask[0]++;
-	}
+      case VC_NXA_TYPE_IPV6:
+	memcpy(addr->vna_v6_mask.s6_addr, ifa->ifa_netmask + offset, len);
+	addr->vna_prefix = mask_to_prefix(addr->vna_v6_mask.s6_addr, 128);
 	break;
-	}
       }
       ret = 1;
       break;
-    }
-  }
-  /* no match, use a default */
-  if (!ret) {
-    switch (addr->type) {
-    case vcNET_IPV4:	addr->mask[0] = htonl(0xffffff00); break;
-    case vcNET_IPV6:	addr->mask[0] = 64; break;
-    default:		addr->mask[0] = 0; break;
     }
   }
   freeifaddrs(head);
@@ -457,14 +464,14 @@ get_mask(struct vc_net_nx *addr)
 static PyObject *
 vserver_net_add(PyObject *self, PyObject *args)
 {
-  struct vc_net_nx addr;
+  struct vc_net_addr addr;
   nid_t nid;
   const char *ip;
 
   if (!PyArg_ParseTuple(args, "Is", &nid, &ip))
     return NULL;
 
-  if (convert_address(ip, &addr.type, &addr.ip) == -1)
+  if (convert_address(ip, &addr) == -1)
     return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
 
   switch (get_mask(&addr)) {
@@ -474,7 +481,7 @@ vserver_net_add(PyObject *self, PyObject *args)
     /* XXX error here? */
     break;
   }
-  addr.count = 1;
+  addr.vna_type |= VC_NXA_TYPE_ADDR;
 
   if (vc_net_add(nid, &addr) == -1 && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);
@@ -485,7 +492,7 @@ vserver_net_add(PyObject *self, PyObject *args)
 static PyObject *
 vserver_net_remove(PyObject *self, PyObject *args)
 {
-  struct vc_net_nx addr;
+  struct vc_net_addr addr;
   nid_t nid;
   const char *ip;
 
@@ -493,20 +500,21 @@ vserver_net_remove(PyObject *self, PyObject *args)
     return NULL;
 
   if (strcmp(ip, "all") == 0)
-    addr.type = vcNET_ANY;
+    addr.vna_type = VC_NXA_TYPE_ANY;
   else if (strcmp(ip, "all4") == 0)
-    addr.type = vcNET_IPV4A;
+    addr.vna_type = VC_NXA_TYPE_IPV6 | VC_NXA_TYPE_ANY;
   else if (strcmp(ip, "all6") == 0)
-    addr.type = vcNET_IPV6A;
-  else
-    if (convert_address(ip, &addr.type, &addr.ip) == -1)
+    addr.vna_type = VC_NXA_TYPE_IPV6 | VC_NXA_TYPE_ANY;
+  else {
+    if (convert_address(ip, &addr) == -1)
       return PyErr_Format(PyExc_ValueError, "%s is not a valid IP address", ip);
+    addr.vna_type |= VC_NXA_TYPE_ADDR;
+  }
 
   switch (get_mask(&addr)) {
   case -1:
     return PyErr_SetFromErrno(PyExc_OSError);
   }
-  addr.count = 1;
 
   if (vc_net_remove(nid, &addr) == -1 && errno != ESRCH)
     return PyErr_SetFromErrno(PyExc_OSError);

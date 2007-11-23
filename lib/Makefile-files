@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2449 2007-01-10 18:53:07Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2589 2007-08-16 03:06:50Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -34,7 +34,8 @@ lib_management_SRCS =		lib/comparevserverbyid.c \
 				lib/getvservername.c \
 				lib/getvservervdir.c \
 				lib/xidopt2xid.c \
-				lib/nidopt2nid.c
+				lib/nidopt2nid.c \
+				lib/tagopt2tag.c
 lib_v11_SRCS =			lib/syscall_rlimit.c \
 				lib/syscall_rlimit-v11.hc \
 				lib/syscall_kill.c  \
@@ -131,7 +132,25 @@ lib_v21_SRCS =			lib/syscall_setccaps-v21.hc \
 				lib/syscall_setmapping-v21.hc \
 				lib/syscall_schedinfo.c \
 				lib/syscall_schedinfo-v21.hc \
-				lib/syscall_getccaps-v21.hc
+				lib/syscall_getccaps-v21.hc \
+				lib/syscall_getsched.c \
+				lib/syscall_getsched-v21.hc \
+				lib/syscall_ctxcreate-v21.hc
+
+lib_v22_SRCS =			lib/syscall_setsched-v22.hc \
+				lib/syscall_fsetiattr.c \
+				lib/syscall_fsetiattr-v22.hc \
+				lib/syscall_fgetiattr.c \
+				lib/syscall_fgetiattr-v22.hc
+
+lib_netv2_SRCS =		lib/syscall_netadd-netv2.hc \
+				lib/syscall_netremove-netv2.hc
+
+lib_v23_SRCS =			lib/syscall_tagmigrate-v23.hc \
+				lib/syscall_tagmigrate.c \
+				lib/syscall_tagcreate.c \
+				lib/syscall_tasktag-v23.hc \
+				lib/syscall_tasktag.c
 
 if ENSC_HAVE_C99_COMPILER
 lib_v13_SRCS +=			lib/syscall_adddlimit-v13.hc \
@@ -179,6 +198,9 @@ lib_SRCS =  			lib/syscall.c \
 				$(lib_v11_SRCS) \
 				$(lib_v13_SRCS) \
 				$(lib_v21_SRCS) \
+				$(lib_v22_SRCS) \
+				$(lib_netv2_SRCS) \
+				$(lib_v23_SRCS) \
 				$(ensc_fmt_SRCS)
 
 include_HEADERS +=		lib/vserver.h

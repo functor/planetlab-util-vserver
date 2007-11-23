@@ -1,4 +1,4 @@
-# $Id: functions 2531 2007-04-21 14:04:35Z dhozac $	--*- sh -*--
+# $Id: functions 2586 2007-08-13 18:10:06Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003,2004,2005,2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -994,7 +994,11 @@ function vshelper.doInit
     
     local xid
     xid=$($_VSERVER_INFO "$1" CONTEXT false) && test -n "$xid" || {
-	warning $"vshelper.init: can not determine xid of vserver '$vserver'; returned value was '$xid'"
+	warning $"vshelper.init: can not determine xid of vserver '$vserver'; returned value was '$xid'
+
+This usually means that you're using an init-less init-style, but the
+guest isn't configured to start any service. Try enabling a service,
+changing the init-style, or making the contexts persistent."
 	return 1
     }
 

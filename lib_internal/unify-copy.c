@@ -1,4 +1,4 @@
-// $Id: unify-copy.c 2485 2007-02-04 17:18:27Z ensc $    --*- c -*--
+// $Id: unify-copy.c 2544 2007-06-01 16:16:33Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -145,16 +145,16 @@ copyMMap(int in_fd, int out_fd)
       TESTSUITE_COPY_CODE;
       copyMem(out_buf, in_buf, buf_size);
 
-      munmap(const_cast(void *)(in_buf),  buf_size);  in_buf = 0;
       munmap(out_buf,                     buf_size); out_buf = 0;
+      munmap(const_cast(void *)(in_buf),  buf_size);  in_buf = 0;
     }
 
     res = true;
   }
 
   out:
-  if (in_buf !=0) munmap(const_cast(void *)(in_buf),  buf_size);
   if (out_buf!=0) munmap(out_buf,                     buf_size);
+  if (in_buf !=0) munmap(const_cast(void *)(in_buf),  buf_size);
 
   return res;
 }

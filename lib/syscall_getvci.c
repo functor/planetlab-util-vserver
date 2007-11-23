@@ -1,4 +1,4 @@
-// $Id: syscall_getvci.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c++ -*--
+// $Id: syscall_getvci.c 2589 2007-08-16 03:06:50Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2006 Daniel Hokka Zakrisson <daniel@hozac.com>
 //  
@@ -30,7 +30,7 @@
 
 #if defined(VC_ENABLE_API_V21)
 
-int
+vc_vci_t
 vc_get_vci()
 {
   CALL_VC(CALL_VC_V21(vc_get_vci, 0));

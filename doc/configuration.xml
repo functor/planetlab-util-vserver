@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE database SYSTEM "configuration.dtd" []>
-<!-- $Id: configuration.xml 2478 2007-01-27 11:10:09Z dhozac $ -->
+<!-- $Id: configuration.xml 2599 2007-08-26 21:30:50Z dhozac $ -->
 
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="file:configuration.xsd">
@@ -412,6 +412,11 @@ this distribution.
         </description>
       </link>
     </collection>
+    <link name="template">
+      <description>
+Symlink to the default template for this distribution.
+      </description>
+    </link>
   </collection>
   
   <!-- Vserver configuration -->
@@ -631,8 +636,18 @@ for possible values.
     </list>
     <scalar name="context">
       <description>
-Contains the context which shall be used for the vserver.
+Contains the context id which shall be used for the vserver. Valid range is 2 through 49151.
         </description>
+    </scalar>
+    <scalar name="ncontext">
+      <description>
+Contains the network context id which shall be used for the vserver. Valid range is 2 through 49151.
+      </description>
+    </scalar>
+    <scalar name="tag">
+      <description>
+Contains the filesystem tag which shall be used for the vserver. Valid range is 2 through 49151.
+      </description>
     </scalar>
     <data id="fstab" name="fstab">
       <description>
@@ -646,7 +661,7 @@ the 'fstab' file should be used.
     <data id="fstab.remote" name="fstab.remote">
       <description>
 The fstab file for the vserver. Entries in this file will be mounted
-within the network context of the host; this means that mount will be
+within the network context of the guest; this means that mount will be
 called as <command>chbind &lt;options&gt; mount ...</command>. See
 <optionref>fstab</optionref> also.
       </description>
@@ -1206,10 +1221,13 @@ The name of the current vserver.
     
     <collection name="interfaces">
       <scalar name="bcast">
-	<description>The default broadcast address.</description>
+	<description>The guest's broadcast address.</description>
+      </scalar>
+      <scalar name="lback">
+        <description>The guest's loopback address.</description>
       </scalar>
       <scalar name="dev">
-	<description>The default network device.</description>
+	<description>The default network device. See <optionref ref="per-if-dev">iface/dev</optionref> for more information.</description>
       </scalar>
       <scalar name="prefix">
 	<description>The default network prefix-length.</description>
@@ -1248,13 +1266,10 @@ numbers like '00' are good names for these directories.
 	</boolean>
 	
 	<scalar name="ip">
-	  <description>The ip which will be assigned to this interface.</description>
+	  <description>The IP address which will be assigned to this interface.</description>
 	</scalar>
-	<scalar name="bcast">
-	  <description>The broadcast address.</description>
-	</scalar>
-	<scalar name="dev">
-	  <description>The network device.</description>
+	<scalar name="dev" id="per-if-dev">
+	  <description>The network device. When this is specified, the IP address will be assigned and removed when starting and stopping the guest.</description>
 	</scalar>
 	<scalar name="prefix">
 	  <description>The network prefix-length.</description>

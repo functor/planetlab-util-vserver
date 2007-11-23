@@ -22,7 +22,8 @@
 # Your vserver will not boot anymore!
 #
 # You have been warned...
-#
+
+# Force TERM=linux for baselayout-2
 
 RUNLEVEL=1 /sbin/rc sysinit || exit 1
 /sbin/rc boot || exit 1
