@@ -167,4 +167,3 @@ core   @SBINDIR@/vdeluser
 core   @SBINDIR@/vcached
 core   @SYSCONFDIR@/cron.d/vcached
 core   @SYSCONFDIR@/logrotate.d/vcached
-legacy  @PKGLIBDIR@/defaults/sample.conf
