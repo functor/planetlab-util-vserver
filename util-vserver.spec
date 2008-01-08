@@ -1,4 +1,5 @@
-# $Id: util-vserver.spec.in 2575 2007-08-05 18:35:40Z dhozac $
+# $Id$
+%define url $URL$
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -13,14 +14,16 @@
 
 %global _localstatedir	%_var
 
-%global ver		%( echo 0.30.214 | sed 's/-.*//' )
-%global subver		%( s=`echo 0.30.214 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
-%global fullver		0.30.214
-
-
 %define name util-vserver
 %define version 0.30.214
-%{!?release_func:%global release_func() 1%{?pldistro:.%{pldistro}}%{?date:.%{date}}}
+%define taglevel 1
+
+%global ver		%( echo %{version} | sed 's/-.*//' )
+%global subver		%( s=`echo %{version} | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global fullver		%{version}
+
+
+%{!?release_func:%global release_func() %{taglevel}%{?pldistro:.%{pldistro}}%{?date:.%{date}}}
 
 %global python_sitearch	%( python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)" )
 
@@ -32,8 +35,8 @@
 
 Vendor: PlanetLab
 Packager: PlanetLab Central <support@planet-lab.org>
-Distribution: PlanetLab 3.0
-URL: http://cvs.planet-lab.org/cvs/util-vserver
+Distribution: PlanetLab %{plrelease}
+URL: %(echo %{url} | cut -d ' ' -f 2)
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
