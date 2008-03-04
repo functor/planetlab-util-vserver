@@ -1,4 +1,4 @@
-## $Id: Makefile.am 2601 2007-08-27 10:19:24Z dhozac $
+## $Id: Makefile.am 2670 2008-01-23 06:14:25Z dhozac $
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -36,7 +36,9 @@ nobase_distrib_SCRIPTS	=  redhat/initpost \
 			   redhat/rc.sysinit \
 			   gentoo/initpost \
 			   gentoo/initpre \
-			   debian/initpost
+			   debian/initpost \
+			   alpine/initpre \
+			   alpine/initpost
 
 nobase_distrib_DATA	=  defaults/devs \
 			   defaults/apt.conf \
@@ -61,6 +63,9 @@ nobase_distrib_DATA	=  defaults/devs \
 			   f7/apt/rpmpriorities    f7/pkgs/01    f7/pkgs/02    f7/pkgs/03 \
 			   f7/yum/yum.conf $(wildcard f7/yum.repos.d/*.repo) \
 			   $(wildcard f7/rpmlist.d/*.lst) $(wildcard f7/rpmlist.d/*.opt) \
+			   f8/apt/rpmpriorities    f8/pkgs/01    f8/pkgs/02    f8/pkgs/03 \
+			   f8/yum/yum.conf $(wildcard f8/yum.repos.d/*.repo) \
+			   $(wildcard f8/rpmlist.d/*.lst) $(wildcard f8/rpmlist.d/*.opt) \
 			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
 			   centos4/yum/yum.conf $(wildcard centos4/yum.repos.d/*.repo) \
 			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
@@ -93,7 +98,7 @@ EXTRA_DIST		=  $(nobase_distrib_DATA) \
 			   $(nobase_confdistrib_DATA) \
 			   $(defaults_DATA)
 
-redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 f7 centos4 centos5
+redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 f7 f8 centos4 centos5
 sid_style		=  etch lenny sid
 
 install-exec-hook:	install-notify-xtra
