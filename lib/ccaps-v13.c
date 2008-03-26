@@ -1,4 +1,4 @@
-// $Id: ccaps-v13.c 2393 2006-11-23 18:30:29Z dhozac $    --*- c -*--
+// $Id: ccaps-v13.c 2643 2007-12-19 02:17:10Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  
@@ -41,6 +41,7 @@ static struct Mapping_uint64 const VALUES[] = {
   DECL("quota_ctl",       VC_VXC_QUOTA_CTL),
   DECL("admin_mapper",    VC_VXC_ADMIN_MAPPER),
   DECL("admin_cloop",     VC_VXC_ADMIN_CLOOP),
+  DECL("kthread",         VC_VXC_KTHREAD),
     // some deprecated values...
   DECL("mount",           VC_VXC_SECURE_MOUNT),
   DECL("remount",         VC_VXC_SECURE_REMOUNT),

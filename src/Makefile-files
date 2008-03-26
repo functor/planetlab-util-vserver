@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2589 2007-08-16 03:06:50Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2697 2008-03-01 01:24:07Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -82,9 +82,12 @@ DIETPROGS +=		src/chcontext-compat \
 			src/vsysctl \
 			src/vclone \
 			src/h2ext \
-			src/vtag
+			src/vtag \
+			src/vspace \
+			src/vmemctrl \
+			src/tunctl
 
-if ENSC_CAN_BEECRYPT_WITH_DIETLIBC
+if ENSC_CAN_CRYPTO_WITH_DIETLIBC
 DIETPROGS +=		src/vhashify
 endif
 
@@ -99,7 +102,8 @@ noinst_HEADERS +=	src/capability-compat.h \
 			src/vhashify.h \
 			src/vhashify-init.hc \
 			src/vserver-visitdir.hc \
-			src/context-sync.hc
+			src/context-sync.hc \
+			src/attribute-util.h
 
 pkglib_PROGRAMS +=	src/capchroot \
 			src/chain-echo \
@@ -121,13 +125,14 @@ pkglib_PROGRAMS +=	src/capchroot \
 			src/chbind-compat \
 			src/vsysctl \
 			src/h2ext \
+			src/tunctl \
 			$(src_pkglib_C99_X_PROGS) \
 			$(src_pkglib_CXX_X_PROGS)
 
 if ENSC_HAVE_C99_COMPILER
-if ENSC_HAVE_BEECRYPT
+if ENSC_HAVE_CRYPTO
 pkglib_PROGRAMS +=	src/vhashify
-endif ENSC_HAVE_BEECRYPT
+endif ENSC_HAVE_CRYPTO
 endif ENSC_HAVE_C99_COMPILER
 
 legacy_PROGRAMS +=	src/ifspec \
@@ -163,6 +168,8 @@ sbin_PROGRAMS +=	src/exec-cd \
 			src/naddress \
 			src/vdevmap \
 			src/vtag \
+			src/vspace \
+			src/vmemctrl \
 			$(src_sbin_CXX_X_PROGS)
 
 if ENSC_HAVE_C99_COMPILER
@@ -291,12 +298,13 @@ src_vunify_LDADD =		$(LIBINTERNAL) $(VSERVER_LDADDS)
 src_vunify_LDFLAGS =		$(VSERVER_LDFLGS)
 
 src_vhashify_SOURCES =		src/vhashify.c
-if ENSC_CAN_BEECRYPT_WITH_DIETLIBC
-src_vhashify_LDADD =		$(LIBINTERNAL) $(LIBENSCVECTOR) -lbeecrypt $(VSERVER_LDADDS)
+src_vhashify_CFLAGS =		$(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+if ENSC_CAN_CRYPTO_WITH_DIETLIBC
+src_vhashify_LDADD =		$(LIBINTERNAL) $(LIBENSCVECTOR) $(ENSC_CRYPTO_LIB) $(VSERVER_LDADDS)
 src_vhashify_LDFLAGS =		$(VSERVER_LDFLGS)
 else
-src_vhashify_LDADD =		$(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) -lbeecrypt
-src_vhashify_LDFLAGS =
+src_vhashify_LDADD =		$(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) $(ENSC_CRYPTO_LIB)
+src_vhashify_LDFLAGS =		 -Wl,--as-needed
 endif
 
 src_vuname_SOURCES =		src/vuname.c
@@ -347,6 +355,18 @@ src_h2ext_LDFLAGS		= $(VSERVER_LDFLGS)
 src_vtag_SOURCES		= src/vtag.c
 src_vtag_LDADD			= $(VSERVER_LDADDS)
 src_vtag_LDFLAGS		= $(VSERVER_LDADDS)
+
+src_vspace_SOURCES		= src/vspace.c
+src_vspace_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vspace_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_vmemctrl_SOURCES		= src/vmemctrl.c
+src_vmemctrl_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vmemctrl_LDFLAGS		= $(VSERVER_LDFLGS)
+
+src_tunctl_SOURCES		= src/tunctl.c
+src_tunctl_LDADD		= $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_tunctl_LDFLAGS		= $(VSERVER_LDFLGS)
 
 EXTRA_PROGRAMS +=		$(src_sbin_CXX_PROGS) $(src_pkglib_CXX_PROGS)
 

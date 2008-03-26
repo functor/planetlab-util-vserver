@@ -1,4 +1,4 @@
-// $Id: secure-mount.c 2480 2007-01-28 11:35:19Z dhozac $    --*- c++ -*--
+// $Id: secure-mount.c 2678 2008-02-16 22:09:30Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -279,8 +279,8 @@ updateMtab(struct MountInfo const *mnt, struct Options const *opt)
     goto err0;
   }
 
-  if (flock(fd, LOCK_EX)==-1) {
-    perror("secure-mount: flock()");
+  if (lockf(fd, F_LOCK, 0)==-1) {
+    perror("secure-mount: lockf()");
     goto err1;
   }
 

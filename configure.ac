@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 2604 2007-09-02 20:03:17Z dhozac $
+dnl $Id: configure.ac 2706 2008-03-17 08:59:37Z dhozac $
 
 dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -24,7 +24,7 @@ dnl distribution terms that you use for the rest of that program.
 dnl  
 
 AC_PREREQ(2.57)
-AC_INIT(util-vserver, 0.30.214, vserver@list.linux-vserver.org)
+AC_INIT(util-vserver, 0.30.215, vserver@list.linux-vserver.org)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
@@ -42,6 +42,7 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AM_PROG_CC_C_O
+PKG_PROG_PKG_CONFIG
 ENSC_CXXCOMPILER
 ENSC_C99COMPILER
 
@@ -63,6 +64,7 @@ ENSC_PATHPROG(CPIO,      cpio,    [cpio])
 ENSC_PATHPROG(RESTORE,   restore, [restore])
 ENSC_PATHPROG(RSYNC,     rsync,   [rsync])
 ENSC_PATHPROG(STRACE,    strace,  [strace])
+ENSC_PATHPROG(FSCK,      fsck)
 
 ENSC_PATHPROG(DOXYGEN,   doxygen,  [:])
 ENSC_PATHPROG(XSLTP,     xsltp,    [:])
@@ -310,8 +312,28 @@ fi
 
 dnl ########################
 dnl
+dnl {crypto stuff
+dnl
+AC_MSG_CHECKING([for used crypto API])
+AC_ARG_WITH(crypto-api,
+            AC_HELP_STRING([--with-crypto-api=API],
+                           [select crypto api to be used; possible values are `none', `nss', `beecrypt', `auto' (default:auto)]),
+	    [case $withval in
+		(none|nss|beecrypt|auto)	ensc_crypto_api=$withval;;
+		(*)	AC_MSG_ERROR([invalid initscripts value, only gentoo and sysv are supported]);;
+	     esac],[ensc_crypto_api=auto])
+AC_MSG_RESULT($ensc_crypto_api)
+
+
+dnl Now, check for matching crypto api. When selected 'auto', the
+dnl first matching one wins
+
+dnl ########################
+dnl
 dnl {check for beecrypt
 dnl
+case $ensc_crypto_api in
+(auto|beecrypt)
 if test x"$ensc_cv_c99_c99compiler" = xyes; then
 	ensc_have_beecrypt=yes
 
@@ -324,22 +346,85 @@ if test x"$ensc_cv_c99_c99compiler" = xyes; then
 		AC_CHECK_LIB(beecrypt, hashFunctionContextInit, [ : ],
 			     [ ensc_have_beecrypt=no ])
 	fi
-
-	if test x"$ensc_have_beecrypt" != xyes; then
-		AC_MSG_WARN([
-****
-**** 'beecrypt' could not be found;
-**** this will disable the build of 'vhashify'
-****])
-	fi
 else
 	ensc_have_beecrypt=no
-fi
+fi;;
+esac
+
+case $ensc_crypto_api in
+(auto)		if test x"$ensc_have_beecrypt"  = xyes; then
+			AC_MSG_NOTICE([using beecrypt as crypto api])
+			ensc_crypto_api=beecrypt
+		fi;;
+(beecrypt)	if test x"$ensc_have_beecrypt" != xyes; then
+			AC_MSG_ERROR([beecrypt crypto api not found])
+		fi;;
+esac
 
 AM_CONDITIONAL(ENSC_HAVE_BEECRYPT, test x"$ensc_have_beecrypt" = xyes)
 AM_CONDITIONAL(ENSC_CAN_BEECRYPT_WITH_DIETLIBC, false)
 dnl
 dnl beecrypt stuff ends here}
+dnl
+dnl ########################
+
+
+dnl ########################
+dnl
+dnl {check for nss
+dnl
+
+case $ensc_crypto_api in
+(nss)	PKG_CHECK_MODULES(NSS, nss);;
+(auto)	PKG_CHECK_MODULES(NSS, nss, [
+		AC_MSG_NOTICE([using NSS as crypto api])
+		ensc_crypto_api=nss],
+                AC_MSG_RESULT(no));;
+esac
+
+dnl
+dnl nss stuff ends here}
+dnl
+dnl ########################
+
+case $ensc_crypto_api in
+(beecrypt)
+	ENSC_HAVE_CRYPTO=true
+	ENSC_CRYPTO_API=ENSC_CRYPTO_API_BEECRYPT
+	ENSC_CRYPTO_CFLAGS=
+	ENSC_CRYPTO_LIB=-lbeecrypt
+	ENSC_CAN_CRYPTO_WITH_DIETLIBC=false
+	;;
+
+(nss)
+	ENSC_HAVE_CRYPTO=true
+	ENSC_CRYPTO_API=ENSC_CRYPTO_API_NSS
+	ENSC_CRYPTO_CFLAGS=$NSS_CFLAGS
+	ENSC_CRYPTO_LIB=$NSS_LIBS
+	ENSC_CAN_CRYPTO_WITH_DIETLIBC=false
+	;;
+
+(none)
+	ENSC_HAVE_CRYPTO=false
+	ENSC_CRYPTO_API=ENSC_CRYPTO_API_NONE
+	ENSC_CRYPTO_CFLAGS=
+	ENSC_CRYPTO_LIB=
+	ENSC_CAN_CRYPTO_WITH_DIETLIBC=false
+
+	AC_MSG_WARN([No crypto api found/select. This will disable the build of `vhashify'])
+	;;
+
+(*)	AC_MSG_ERROR([internal error])
+esac
+
+AM_CONDITIONAL(ENSC_HAVE_CRYPTO, $ENSC_HAVE_CRYPTO)
+AM_CONDITIONAL(ENSC_CAN_CRYPTO_WITH_DIETLIBC, $ENSC_CAN_CRYPTO_WITH_DIETLIBC)
+AC_SUBST(ENSC_CRYPTO_CFLAGS, $ENSC_CRYPTO_CFLAGS)
+AC_SUBST(ENSC_CRYPTO_LIB,    $ENSC_CRYPTO_LIB)
+AC_DEFINE_UNQUOTED(ENSC_CRYPTO_API, $ENSC_CRYPTO_API, [Used crypto API])
+
+dnl
+dnl crypto stuff ends here}
 dnl
 dnl ########################
 
@@ -406,6 +491,7 @@ Features:
             ext2fs Source: $ensc_cv_test_ext2fs_header
     syscall(2) invocation: $with_syscall
       vserver(2) syscall#: $ensc_cv_value_syscall_vserver
+               crypto api: $ensc_crypto_api
    
 Paths:
                    prefix: $prefix

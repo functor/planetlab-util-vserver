@@ -1,4 +1,4 @@
-// $Id$    --*- c++ -*--
+// $Id: syscall_tagmigrate-v23.hc 2674 2008-01-27 07:55:13Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2007 Daniel Hokka Zakrisson
 //  
@@ -23,5 +23,6 @@
 static inline ALWAYSINLINE int
 vc_tag_migrate_tag(tag_t tag)
 {
-  return vserver(VCMD_tag_migrate, TAG_USER2KERNEL(tag), NULL);
+  tag_t res = vserver(VCMD_tag_migrate, TAG_USER2KERNEL(tag), NULL);
+  return TAG_KERNEL2USER(res);
 }

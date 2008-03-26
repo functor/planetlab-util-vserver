@@ -1,3 +1,544 @@
+2008-03-17 08:59  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* NEWS, configure.ac: Version 0.30.215.
+
+2008-03-17 08:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/ncaps-net.c, lib/nflags-net.c, lib/vserver.h: Add the new
+	  flags.
+
+2008-03-16 03:30  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions, scripts/vserver.stop: Fix
+	  vserver ... stop --rescue-init.
+	  Use it in stopSleepingGuest, to prevent races and to do proper
+	  cleanup.
+	  If vserver ... stop has already been invoked, remove SC_HELPER
+	  from the context.
+
+2008-03-15 16:05  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vdevmap.c: Add some examples.
+	  Disallow combinations that make no sense.
+	  Allow defaults to be set.
+
+2008-03-11 10:07  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpost, scripts/vserver.functions: fix openrc
+	  startup; only fix inittab in plain initstyle
+
+2008-03-10 22:41  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions: bash doesn't execute traps until
+	  after the current job has finished executing, so run sleep in a
+	  loop.
+
+2008-03-10 19:59  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_netremove-netv2.hc: A kernel without IPv6-support
+	  will return ENOSYS for vc_net_remove_ipv6.
+
+2008-03-05 15:46  Benedikt Böhm <hollow@gentoo.org>
+
+	* distrib/gentoo/initpost: add openrc support to gentoo/initpost
+
+2008-03-02 14:04  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions: Workaround kernel oddities.
+
+2008-03-01 01:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/Makefile-files: Include attribute-util.h in the tarball.
+
+2008-03-01 01:20  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/lockfile.c: lockf(F_LOCK) requests a write lock, which
+	  requires the file to be open in write mode.
+
+2008-03-01 01:15  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vattribute.c: Remove unused variable.
+
+2008-03-01 01:07  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/attribute-util.h, src/nattribute.c, src/vattribute.c: Factor
+	  out bitfield-to-string code to src/attribute-util.h.
+	  Add --get for nattribute too.
+
+2008-03-01 00:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/rpm-fake.c, src/vnamespace.c, src/vspace.c: Revert commit
+	  2690, clone is needed for pid namespaces and on kernels <2.6.16.
+
+2008-03-01 00:22  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, scripts/util-vserver-vars.pathsubst,
+	  scripts/vserver.functions, scripts/vserver.stop, src/tunctl.c:
+	  Add basic support for creating tun/tap interfaces in the
+	  configuration.
+
+2008-02-29 22:16  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vserver.stop: use ! instead of ~ to avoid shell expansion
+
+2008-02-29 13:29  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/rpm-fake.c, src/vnamespace.c, src/vspace.c: use
+	  unshare(CLONE_NEWNS) instead of a complicated 'clone(NEWNS) ...
+	  waitpid()' operation
+
+2008-02-29 13:27  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* build-all: use hostspecific Build directory
+
+2008-02-28 23:54  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/tunctl.c: Set persist last, this way, no interface is left
+	  behind if one of the ioctls fail.
+
+2008-02-28 23:28  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst, ensc_wrappers/wrappers-ioctl.hc,
+	  src/Makefile-files, src/tunctl.c: Add tunctl.
+
+2008-02-28 23:12  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vrsetup.c: Avoid pointer/integer conversion warning on LP64.
+
+2008-02-21 23:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* NEWS, configure.ac, lib_internal/Makefile-files,
+	  lib_internal/crypto-wrapper-beecrypt.h,
+	  lib_internal/crypto-wrapper-nss.h, lib_internal/crypto-wrapper.h,
+	  lib_internal/testsuite/Makefile-files,
+	  lib_internal/testsuite/SPEED-RESULTS.txt,
+	  lib_internal/testsuite/crypto-speed.c,
+	  lib_internal/testsuite/crypto.c, src/Makefile-files,
+	  src/testsuite/Makefile-files, src/testsuite/hashcalc-plain.c,
+	  src/testsuite/hashcalc.c, src/testsuite/hashcalc.sh,
+	  src/vhashify-init.hc, src/vhashify.c: added support for using
+	  libnss instead of beecrypt for vhashify's
+	  hash calculation. libnss has bad SHA1 performance on i386, but is
+	  a)
+	  maintained and b) gives better performance with all other hashes
+	  and
+	  on x86_64.
+	  
+	  I am just waiting for somebody to write the OpenSSL layer so that
+	  I
+	  can try the padlock hardware crypto device on my C7 ;)
+
+2008-02-21 23:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/Makefile-files: added h2ext-worker to OPTIONS_PREEMPT
+	  list
+
+2008-02-21 23:11  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* build-all: fixed CPPFLAGS quoting problems introduced by last
+	  commit
+
+2008-02-21 23:10  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* scripts/vmount: fixed endless loop when no '--' is given
+	  fixed --help/--version handling
+
+2008-02-21 22:34  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* build-all: added code to enable i386 builds on x86_64 platforms
+	  added $CONFIGURE_FLAGS configuration env
+	  set LDFLAGS
+
+2008-02-21 22:33  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/testsuite/matchlist.c: fixed unused param +
+	  unsigned/signed mismatch warning
+
+2008-02-21 22:32  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* src/vspace.c: fixed
+	  
+	  | src/vspace.c:177: warning: passing argument 2 of
+	  'isNumberUnsigned' from incompatible pointer type
+	  
+	  warning
+
+2008-02-16 22:09  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/util-lockfile.c, src/lockfile.c, src/secure-mount.c,
+	  vserver-start/main.c: Use lockf instead of flock, the former
+	  works on NFS.
+
+2008-02-14 19:28  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/rpm-fake.c: Disable VXF_SC_HELPER for rpm-fake created
+	  contexts.
+
+2008-02-11 23:41  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions: Set the barrier and warn if it
+	  could not be set automatically.
+
+2008-02-09 00:27  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/rpm-fake.c: We only want to wait on the context if we created
+	  it.
+
+2008-01-27 07:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/alpine/initpost, distrib/alpine/initpre,
+	  distrib/debian/initpost, distrib/gentoo/init-vserver.sh,
+	  distrib/gentoo/initpost, distrib/gentoo/initpre,
+	  distrib/gentoo/net.vserver, distrib/gentoo/reboot.sh,
+	  distrib/gentoo/shutdown.sh, distrib/misc/environment,
+	  distrib/misc/h2ext.desc, gentoo/Makefile-files,
+	  gentoo/bash-wrapper, gentoo/util-vserver, gentoo/vprocunhide,
+	  gentoo/vservers.default, lib/syscall_ctxcreate-v21.hc,
+	  lib/syscall_fgetiattr-v22.hc, lib/syscall_fgetiattr.c,
+	  lib/syscall_fsetiattr-v22.hc, lib/syscall_fsetiattr.c,
+	  lib/syscall_getbadness-v23.hc, lib/syscall_getbadness.c,
+	  lib/syscall_getccaps-v21.hc, lib/syscall_getsched-v21.hc,
+	  lib/syscall_getsched.c, lib/syscall_netadd-netv2.hc,
+	  lib/syscall_netremove-netv2.hc, lib/syscall_setbadness-v23.hc,
+	  lib/syscall_setbadness.c, lib/syscall_setsched-v22.hc,
+	  lib/syscall_tagcreate.c, lib/syscall_tagmigrate-v23.hc,
+	  lib/syscall_tagmigrate.c, lib/syscall_tasktag-v23.hc,
+	  lib/syscall_tasktag.c, lib/syscall_unsetmapping-v21.hc,
+	  lib/syscall_unsetmapping.c, lib/tagopt2tag.c,
+	  lib_internal/mkdir.c, lib_internal/sys_unshare.h,
+	  lib_internal/testsuite/matchlist.c,
+	  man/vserver-build.8.pathsubst, mkrelease, scripts/h2ext-worker,
+	  scripts/vserver-build.fai, src/h2ext.c, src/vmemctrl.c,
+	  src/vspace.c, src/vtag.c: Add missing svn:keywords.
+
+2008-01-26 11:44  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions: Make sure /dev gets proper
+	  permissions.
+
+2008-01-26 11:44  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.functions: Prevent deadlock between
+	  sc_helper vserver ... stop invocation, and stopSleepingGuest.
+
+2008-01-23 10:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/sys_unshare.h: Use the correct syscall number.
+
+2008-01-23 06:14  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am: Fedora 8 is redhat-style too.
+
+2008-01-22 09:19  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.stop, scripts/vserver.suexec, src/vspace.c: Fix
+	  vspace stuff.
+
+2008-01-21 14:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/naddress.c: Don't require a netmask/prefix.
+
+2008-01-20 08:15  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: Add missing files.
+
+2008-01-20 08:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Add missing closing tag.
+
+2008-01-20 08:01  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/rpm-fake.c: Hopefully this will make it bullet-proof.
+
+2008-01-20 07:56  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, scripts/vserver.functions,
+	  scripts/vserver.start, scripts/vserver.stop,
+	  scripts/vserver.suexec, src/vspace.c: Add preliminary support for
+	  pid and network namespaces.
+
+2008-01-20 06:58  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* sysv/util-vserver: getPhysicalDir doesn't work if it doesn't
+	  already exist.
+
+2008-01-15 13:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: debootstrap 1.0.8.
+
+2008-01-13 18:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver: Use $cmd instead of $2.
+
+2008-01-13 18:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_tagmigrate-v23.hc: Only migrate to the tag once.
+
+2008-01-12 15:55  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h, src/vspace.c: Add support for PID and net
+	  namespaces.
+
+2008-01-12 15:48  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vspace.c: Pid namespaces require clone.
+
+2008-01-12 15:35  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* ., lib, lib_internal: Fix svn:ignores.
+
+2008-01-08 17:19  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: Backslash...
+
+2008-01-08 16:53  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/rpm-fake.c: Attempt to close race between dying
+	  rpm-fake-resolver and other rpm-fake processes.
+
+2008-01-08 16:49  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.delete: cache need not exist.
+
+2008-01-06 01:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vmount: Work with nonamespace guests.
+
+2008-01-04 17:42  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vattribute.c: Add --get.
+
+2008-01-03 15:33  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/val2text.hc: Don't remove bits for which there were no match.
+	  Cast 1 to the TYPE, so uint64 values can be looked up.
+
+2008-01-03 15:30  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib_internal/util-io.h, src/h2ext.c: Move WRITE_INT to util-io.h,
+	  so other programs can use it too.
+
+2008-01-03 14:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vmount: Make vmount <guest> -- -a work.
+
+2008-01-03 00:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h: Fix typo.
+
+2007-12-22 16:30  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/redhat/initpost: Leave rsyslog enabled for Fedora 8.
+
+2007-12-20 00:09  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vclone.c: Don't bail on EINVAL, since the clone build method
+	  sets the contexts unconditionally.
+
+2007-12-19 19:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/debian/initpost: Remove all unknown services.
+
+2007-12-19 14:28  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build, scripts/vserver-build.clone: Use/support
+	  the "new" vclone features in the clone build method.
+
+2007-12-19 02:17  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/ccaps-v13.c, lib/vserver.h: Add VXC_KTHREAD.
+
+2007-12-05 14:24  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/syscall_tagmigrate-v23.hc: Use TAG_KERNEL2USER on the result.
+
+2007-12-05 00:51  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver-build.debootstrap: Work with newer versions of
+	  debootstrap too.
+
+2007-12-03 21:08  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/f7/yum.repos.d/fedora.repo: Correct path to keys.
+
+2007-12-03 18:06  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver: Document --debug.
+
+2007-11-30 23:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/h2ext.desc: Use --numeric-owner for tar and
+	  --numeric-uid-gid for cpio.
+
+2007-11-26 23:47  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vsched.c: Floats are numbers too.
+
+2007-11-19 04:48  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am, distrib/f8,
+	  distrib/f8/yum.repos.d/fedora-development.repo,
+	  distrib/f8/yum.repos.d/fedora-updates-testing.repo,
+	  distrib/f8/yum.repos.d/fedora-updates.repo,
+	  distrib/f8/yum.repos.d/fedora.repo: Add Fedora 8.
+
+2007-11-17 23:52  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vdispatch-conf, scripts/vemerge, scripts/vesync,
+	  scripts/vupdateworld: fix a corner case in gentoo helpers
+
+2007-11-17 21:36  Benedikt Böhm <hollow@gentoo.org>
+
+	* scripts/vserver.functions: use sane PATH during shutdown
+
+2007-11-13 22:17  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/debootstrap.uri: Update to 1.0.6.
+
+2007-10-29 21:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/Makefile-files, scripts/vmount: Add vmount, a wrapper to
+	  mount something in a guest.
+
+2007-10-27 19:34  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst, man/Makefile-files,
+	  man/vserver-build.8.pathsubst, man/vserver.8: Man pages update
+	  from Micah Anderson.
+
+2007-10-25 01:18  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/Makefile.am, distrib/alpine, distrib/alpine/initpost,
+	  distrib/alpine/initpre: Add "Alpine Linux".
+
+2007-10-25 00:26  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver: Cleanup the help message.
+
+2007-10-25 00:23  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/debian/initpost, distrib/redhat/initpost,
+	  scripts/vserver, scripts/vserver-build.functions,
+	  scripts/vserver.stop: Create helper functions to start a guest
+	  that just sleeps and kills.
+
+2007-10-22 20:43  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* src/vmemctrl.c: Fix startup bug on older kernels.
+
+2007-10-16 00:27  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* configure.ac, scripts/util-vserver-vars.pathsubst,
+	  scripts/vserver.functions, scripts/vserver.start,
+	  util-vserver.spec.in: Lots of small fixes to make everything
+	  behave like it should.
+
+2007-10-15 11:38  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* contrib/manifest.dat.pathsubst: Add vmemctrl and vspace to the
+	  manifest.
+
+2007-10-15 11:31  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, gentoo/util-vserver,
+	  scripts/vserver.functions, scripts/vserver.start,
+	  scripts/vserver.stop, sysv/util-vserver: Add support for
+	  per-guest device maps.
+
+2007-10-14 14:40  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Improve the disk limit descriptions.
+
+2007-10-14 00:32  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* distrib/misc/vprocunhide-files: Hide conntrack files.
+
+2007-10-13 14:17  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml, scripts/vserver.functions,
+	  scripts/vserver.start: Add support for the OOM bias in the
+	  configuration.
+
+2007-10-13 12:13  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* kernel/context_cmd.h, kernel/switch.h, lib/Makefile-files,
+	  lib/syscall_getbadness-v23.hc, lib/syscall_getbadness.c,
+	  lib/syscall_setbadness-v23.hc, lib/syscall_setbadness.c,
+	  lib/vserver.h, src, src/Makefile-files, src/vmemctrl.c: Add
+	  support for the OOM bias, and vmemctrl to control it.
+
+2007-10-13 01:10  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h, src, src/Makefile-files, src/vspace.c: Added
+	  vspace, like vnamespace but generic.
+
+2007-10-12 00:03  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions, scripts/vserver.start: Run fsck on
+	  filesystems in the guest's fstab.
+
+2007-10-11 23:47  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* lib/vserver.h, src/naddress.c: Ranges might want masks too.
+
+2007-10-11 20:37  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* kernel/device_cmd.h, lib/Makefile-files,
+	  lib/syscall_unsetmapping-v21.hc, lib/syscall_unsetmapping.c,
+	  lib/vserver.h, scripts/vserver.functions, src/vdevmap.c: Add
+	  support for vc_unset_mapping introduced in 2.3.0.27.
+
+2007-10-10 09:01  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* doc/configuration.xml: Clarify which entries are required for
+	  cpusets.
+
+2007-10-06 17:23  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions: People love symlinks.
+
+2007-09-11 21:26  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* distrib/f7/yum/yum.conf, scripts/vserver-build.functions.yum:
+	  added support for yum's new persistdir option
+
+2007-09-11 21:22  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/yum-3.2.4-chroot.patch: fixed patch and re-added lost
+	  hunk which caused broken paths for cachedir, logfile and friends
+
+2007-09-06 17:48  Daniel Hokka Zakrisson <daniel@hozac.com>
+
+	* scripts/vserver.functions, src/vtag.c: Unbreak dynamic contexts.
+
+2007-09-06 07:53  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* contrib/Makefile-files, contrib/yum-3.2.4-chroot.patch: added
+	  patch for yum-3.2.4
+
+2007-09-03 07:42  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/matchlist-appendfiles.c,
+	  lib_internal/matchlist-initmanually.c, lib_internal/matchlist.h,
+	  lib_internal/util-safechdir.h: whitespace-cleanup
+
+2007-09-03 07:40  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/matchlist-appendfiles.c,
+	  lib_internal/matchlist-initmanually.c, lib_internal/matchlist.h:
+	  fixed const-ness of matchlist functions
+	  
+	  made the initial file-list a 'char const **' to ease
+	  initialization from string constants
+
+2007-09-03 07:38  Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+
+	* lib_internal/util-safechdir.h: fixed declaration of 'struct stat'
+	  
+	  include <sys/stat.h> instead of declaring it with 'struct stat'
+	  as it might cause conflicts when 'stat' is #defined as stat64
+	  in this header
+
 2007-09-02 20:03  Daniel Hokka Zakrisson <daniel@hozac.com>
 
 	* NEWS, configure.ac: Version 0.30.214.

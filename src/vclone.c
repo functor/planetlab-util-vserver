@@ -1,4 +1,4 @@
-// $Id: vclone.c 2569 2007-07-22 17:24:29Z dhozac $    --*- c -*--
+// $Id: vclone.c 2646 2007-12-20 00:09:06Z dhozac $    --*- c -*--
 
 // Copyright (C) 2007 Daniel Hokka Zakrisson
 //  
@@ -181,7 +181,8 @@ handleDirEntry(const PathInfo *src_path, const PathInfo *basename,
 	if (!Unify_copy(basename->d, st, dst_path.d))
 	  PERROR_Q(ENSC_WRAPPERS_PREFIX "Unify_copy", dst_path.d);
 	else if (global_args->xid != VC_NOCTX &&
-		 vc_set_iattr(dst_path.d, global_args->xid, 0, VC_IATTR_XID) == -1)
+		 vc_set_iattr(dst_path.d, global_args->xid, 0, VC_IATTR_XID) == -1 &&
+		 errno != EINVAL)
 	  PERROR_Q(ENSC_WRAPPERS_PREFIX "vc_set_iattr", dst_path.d);
 	else
 	  res = true;

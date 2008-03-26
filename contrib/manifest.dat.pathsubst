@@ -69,6 +69,7 @@ base   @PKGLIBDIR@/save_ctxinfo
 base   @PKGLIBDIR@/secure-mount
 base   @PKGLIBDIR@/sigexec
 base   @PKGLIBDIR@/start-vservers
+base   @PKGLIBDIR@/tunctl
 build  @PKGLIBDIR@/vapt-get-worker
 build  @PKGLIBDIR@/vyum-worker
 build  @PKGLIBDIR@/vpkg
@@ -110,6 +111,8 @@ build  @SBINDIR@/vemerge
 build  @SBINDIR@/vesync
 core   @SBINDIR@/vkill
 core   @SBINDIR@/vlimit
+core   @SBINDIR@/vmemctrl
+core   @SBINDIR@/vmount
 core   @SBINDIR@/vnamespace
 base   @SBINDIR@/vps
 base   @SBINDIR@/vpstree
@@ -121,6 +124,7 @@ legacy @SBINDIR@/vserver-copy
 core   @SBINDIR@/vserver-info
 base   @SBINDIR@/vserver-stat
 base   @SBINDIR@/vsomething
+core   @SBINDIR@/vspace
 core   @SBINDIR@/vtag
 base   @SBINDIR@/vtop
 core   @SBINDIR@/vuname
@@ -134,11 +138,12 @@ core   @MANDIR@/*/reducecap*
 legacy @MANDIR@/*/distrib-info*
 legacy @MANDIR@/*/vserver-copy*
 legacy @MANDIR@/*/rebootmgr*
-legacy @MANDIR@/*/vps.*
+base   @MANDIR@/*/vps.*
 base   @MANDIR@/*/vpstree.*
 base   @MANDIR@/*/vserver-stat*
 base   @MANDIR@/*/vserver.*
 base   @MANDIR@/*/vtop*
+build  @MANDIR@/*/vserver-build*
 legacy @CONFIG@ @INITRDDIR@/v_gated
 legacy @CONFIG@ @INITRDDIR@/v_httpd
 legacy @CONFIG@ @INITRDDIR@/v_named

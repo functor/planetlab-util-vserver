@@ -1,4 +1,4 @@
-// $Id: ncaps-net.c 2585 2007-08-12 00:13:31Z dhozac $    --*- c -*--
+// $Id: ncaps-net.c 2705 2008-03-17 08:55:11Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <ensc@delenn.intern.sigma-chemnitz.de>
 //  
@@ -31,7 +31,8 @@
 #define DECL(STR, VAL) { STR, sizeof(STR)-1, VAL }
 
 static struct Mapping_uint64 const VALUES[] = {
-  DECL("raw_icmp", VC_NXC_RAW_ICMP),
+  DECL("tun_create",	VC_NXC_TUN_CREATE),
+  DECL("raw_icmp",	VC_NXC_RAW_ICMP),
 };
 
 inline static char const *

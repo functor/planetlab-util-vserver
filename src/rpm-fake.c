@@ -1,4 +1,4 @@
-// $Id: rpm-fake.c 2578 2007-08-08 20:05:26Z dhozac $    --*- c++ -*--
+// $Id: rpm-fake.c 2693 2008-03-01 00:26:31Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -95,6 +95,8 @@ static int		sync_sock = -1;
 static unsigned int	debug_level = 0;
 
 static bool		is_initialized = false;
+
+static bool		ctx_created = false;
 
   //DECLARE(rpm_execcon);
   //DECLARE(execv);
@@ -255,6 +257,7 @@ setupContext(xid_t xid, char const **xid_str)
       char			buf[sizeof(xid_t)*3 + 128];
       size_t			l;
       struct vc_ctx_caps	caps;
+      struct vc_ctx_flags	flags;
       
       strcpy(buf, "rpm-fake.so #");
       l = utilvserver_fmt_uint(buf+sizeof("rpm-fake.so #")-1, getppid());
@@ -265,11 +268,16 @@ setupContext(xid_t xid, char const **xid_str)
       caps.bcaps = ~vc_get_insecurebcaps();
       caps.bmask = ~0ull;
       Evc_set_ccaps(rc, &caps);
+
+      flags.flagword = 0;
+      flags.mask = VC_VXF_SC_HELPER;
+      Evc_set_cflags(rc, &flags);
       
 	// context will be activated later...
 
       xid = rc;
       res = true;
+      ctx_created = true;
     }
   }
 
@@ -510,6 +518,15 @@ exitRPMFake()
     uint8_t	c;
     if (read(sync_sock, &c, 1)!=1) { /*...*/ }
     if (write(pw_sock, "Q", 1)!=1) { /*...*/ }
+    if (ctx_created) {
+      if (vc_isSupported(vcFEATURE_VWAIT)) {
+	if (vc_wait_exit(ctx)==-1) { /*...*/ }
+      }
+      else {
+	/* this can race */
+	if (read(sync_sock, &c, 1)!=0) { /*...*/}
+      }
+    }
   }
 }
 

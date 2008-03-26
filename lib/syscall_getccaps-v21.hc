@@ -1,4 +1,4 @@
-// $Id$    --*- c -*--
+// $Id: syscall_getccaps-v21.hc 2674 2008-01-27 07:55:13Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

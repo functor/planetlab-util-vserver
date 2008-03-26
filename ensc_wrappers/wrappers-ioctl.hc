@@ -1,4 +1,4 @@
-// $Id: wrappers-ioctl.hc 814 2004-02-06 14:47:18Z ensc $    --*- c -*--
+// $Id: wrappers-ioctl.hc 2687 2008-02-28 23:28:31Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -27,3 +27,8 @@ Eioctl(int fd, int request, void *p)
   FatalErrnoError(res<0, "ioctl()");
 }
 
+#define EioctlD(fd, request, p)				\
+  do {							\
+    int   res = ioctl(fd, request, p);			\
+    FatalErrnoError(res<0, "ioctl(" #request ")");	\
+  } while (0)

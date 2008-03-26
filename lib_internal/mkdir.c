@@ -1,4 +1,4 @@
-// $Id$    --*- c -*--
+// $Id: mkdir.c 2674 2008-01-27 07:55:13Z dhozac $    --*- c -*--
 
 // Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

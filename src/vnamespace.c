@@ -1,4 +1,4 @@
-// $Id: vnamespace.c 2415 2006-12-08 13:24:49Z dhozac $    --*- c -*--
+// $Id: vnamespace.c 2693 2008-03-01 00:26:31Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

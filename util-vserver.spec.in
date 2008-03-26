@@ -1,4 +1,4 @@
-# $Id: util-vserver.spec.in 2575 2007-08-05 18:35:40Z dhozac $
+# $Id: util-vserver.spec.in 2626 2007-10-16 00:27:58Z dhozac $
 
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
@@ -39,6 +39,7 @@ Obsoletes:	vserver < %version
 BuildRequires:	mount vconfig gawk iproute iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel beecrypt-devel
+BuildRequires:	e2fsprogs
 %{!?_without_doc:BuildRequires:	doxygen tetex-latex}
 Requires(post):		%name-core
 Requires(pre):		%pkglibdir

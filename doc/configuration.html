@@ -566,6 +566,13 @@ The master yum configuration file. It supports the @YUMETCDIR@,
 The configuration directory for the vserver vserver-name.
     </div>
         <ul>
+          <li>
+            <span class="file" title="/etc/vservers/$vserver-name/badness">badness</span>
+            <br />
+            <div class="description">
+Contains the bias to be applied to processes in this guest when the OOM-killer strikes.
+      </div>
+          </li>
           <li id="bcapabilities">
             <span class="list" title="/etc/vservers/$vserver-name/bcapabilities">bcapabilities</span>
             <br />
@@ -900,6 +907,52 @@ from/to at startup via initscript.
                 </ul>
               </li>
               <li>
+                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">apps</span>/<span class="">vdevmap</span></span>
+                <br />
+                <ul>
+                  <li>
+                    <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">apps</span>/<span class="">vdevmap</span>/<span class="sybmolic">x</span></span>
+                    <br />
+                    <div class="description">'x' is an arbitrary name, replace it with e.g. device names</div>
+                    <ul>
+                      <li>
+                        <span class="boolean" title="/etc/vservers/$vserver-name/apps/vdevmap/x/create">create</span>
+                        <br />
+                        <div class="description">When this file exists, the device can be created (if the guest has <a class="optionref" href="#bcapabilities">CAP_MKNOD</a>)</div>
+                      </li>
+                      <li>
+                        <span class="file" title="/etc/vservers/$vserver-name/apps/vdevmap/x/device">device</span>
+                        <br />
+                        <div class="description">Contains the name of a device node</div>
+                      </li>
+                      <li>
+                        <span class="file" title="/etc/vservers/$vserver-name/apps/vdevmap/x/flags">flags</span>
+                        <br />
+                        <div class="description">This file will let you specify unimplemented flags manually</div>
+                      </li>
+                      <li>
+                        <span class="boolean" title="/etc/vservers/$vserver-name/apps/vdevmap/x/open">open</span>
+                        <br />
+                        <div class="description">When this file exists, the device can be opened</div>
+                      </li>
+                      <li id="guest-vdevmap-remap">
+                        <span class="boolean" title="/etc/vservers/$vserver-name/apps/vdevmap/x/remap">remap</span>
+                        <br />
+                        <div class="description">
+When this file exists, <a class="optionref" href="#guest-vdevmap-target">target</a> will
+have to exist as well and opening the device will in fact open the target device
+            </div>
+                      </li>
+                      <li id="guest-vdevmap-target">
+                        <span class="file" title="/etc/vservers/$vserver-name/apps/vdevmap/x/target">target</span>
+                        <br />
+                        <div class="description">Contains the device node of the target node to open instead of the device when <a class="optionref" href="#guest-vdevmap-remap">remap</a> is set</div>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li>
                 <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">apps</span>/<span class="">vshelper</span></span>
                 <br />
                 <ul>
@@ -1051,6 +1104,9 @@ filesystem.
           <li>
             <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">cpuset</span></span>
             <br />
+            <div class="description">
+Puts the guest in a cpuset. Required entries are name, cpus and mems.
+      </div>
             <ul>
               <li>
                 <span class="file" title="/etc/vservers/$vserver-name/cpuset/cpu_exclusive">cpu_exclusive</span>
@@ -1087,28 +1143,32 @@ filesystem.
           <li>
             <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">dlimits</span></span>
             <br />
+            <div class="description">
+Note that all entries are required for the disk limit to be applied.
+      </div>
             <ul>
               <li>
-                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">dlimits</span>/<span class="symbolic">dlimit</span></span>
+                <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">dlimits</span>/<span class="symbolic">x</span></span>
                 <br />
+                <div class="description">'x' is an arbitrary name, replace it with e.g. integers</div>
                 <ul>
                   <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/directory">directory</span>
+                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$x/directory">directory</span>
                     <br />
                     <div class="description">The directory to which the limit should be applied</div>
                   </li>
                   <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/inodes_total">inodes_total</span>
+                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$x/inodes_total">inodes_total</span>
                     <br />
                     <div class="description">The amount of inodes this vserver should be limited to</div>
                   </li>
                   <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/reserved">reserved</span>
+                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$x/reserved">reserved</span>
                     <br />
                     <div class="description">How much space (percentage-wise) should be reserved for the root user</div>
                   </li>
                   <li>
-                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$dlimit/space_total">space_total</span>
+                    <span class="file" title="/etc/vservers/$vserver-name/dlimits/$x/space_total">space_total</span>
                     <br />
                     <div class="description">The amount of space this vserver should be limited to (measured in blocks of 1024 bytes)</div>
                   </li>
@@ -1189,9 +1249,24 @@ numbers like '00' are good names for these directories.
                     <div class="description">When this file exists, this interface will be ignored.</div>
                   </li>
                   <li>
+                    <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/gid">gid</span>
+                    <br />
+                    <div class="description">
+Sets the group ownership of tun/tap interfaces. Requires a group id,
+not a group name.
+	  </div>
+                  </li>
+                  <li>
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/ip">ip</span>
                     <br />
                     <div class="description">The IP address which will be assigned to this interface.</div>
+                  </li>
+                  <li>
+                    <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/linktype">linktype</span>
+                    <br />
+                    <div class="description">
+Sets the link type of tun/tap interfaces.
+	  </div>
                   </li>
                   <li>
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/mask">mask</span>
@@ -1207,6 +1282,14 @@ this file. Without such an entry, the IP will not be shown by
 <code class="tool">ifconfig</code> but by <code class="command">ip addr ls</code> only.  Such
 a labeled interface is known as an "alias" also (e.g. 'eth0:foo').
           </div>
+                  </li>
+                  <li>
+                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/nocsum">nocsum</span>
+                    <br />
+                    <div class="description">
+If a tun or tap interface is created, the presence of this file will
+disable checksumming on it.
+	  </div>
                   </li>
                   <li>
                     <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/nodev">nodev</span>
@@ -1236,6 +1319,38 @@ interface will be skipped. This will override the global
                     <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/scope">scope</span>
                     <br />
                     <div class="description">The scope of the network interface.</div>
+                  </li>
+                  <li>
+                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/shared">shared</span>
+                    <br />
+                    <div class="description">
+When this file exists, the tun/tap interface created will not be
+owned by this particular guest.
+	  </div>
+                  </li>
+                  <li>
+                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/tap">tap</span>
+                    <br />
+                    <div class="description">
+When this file exists, a tap interface will be created when the guest
+starts, and removed when the guest stops.
+	  </div>
+                  </li>
+                  <li>
+                    <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/tun">tun</span>
+                    <br />
+                    <div class="description">
+When this file exists, a tun interface will be created when the guest
+starts, and removed when the guest stops.
+	  </div>
+                  </li>
+                  <li>
+                    <span class="file" title="/etc/vservers/$vserver-name/interfaces/$iface/uid">uid</span>
+                    <br />
+                    <div class="description">
+Sets the ownership of tun/tap interfaces. Requires a user id, not a
+username.
+	  </div>
                   </li>
                   <li>
                     <span class="boolean" title="/etc/vservers/$vserver-name/interfaces/$iface/vlandev">vlandev</span>
@@ -1586,6 +1701,27 @@ the configuration directory will be made the working directory.
                     <div class="description">See prepre-start.</div>
                   </li>
                 </ul>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <span class="directory">/etc/vservers/<span class="symbolic">vserver-name</span>/<span class="">spaces</span></span>
+            <br />
+            <ul>
+              <li>
+                <span class="file" title="/etc/vservers/$vserver-name/spaces/mask">mask</span>
+                <br />
+                <div class="description">Contains a mask of spaces to clone/enter</div>
+              </li>
+              <li>
+                <span class="boolean" title="/etc/vservers/$vserver-name/spaces/net">net</span>
+                <br />
+                <div class="description">Enable network virtualization for this guest</div>
+              </li>
+              <li>
+                <span class="boolean" title="/etc/vservers/$vserver-name/spaces/pid">pid</span>
+                <br />
+                <div class="description">Enables pid virtualization for this guest</div>
               </li>
             </ul>
           </li>

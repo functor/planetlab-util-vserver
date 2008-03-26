@@ -1,4 +1,4 @@
-# $Id: vserver-build.debootstrap 2574 2007-07-31 19:43:17Z dhozac $	--*- sh -*--
+# $Id: vserver-build.debootstrap 2641 2007-12-05 00:51:04Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -95,8 +95,10 @@ EOF
         cd $dir
         ar x "$dst"
         tar xzf data.tar.gz
-        export DEBOOTSTRAP_DIR=`pwd`/usr/lib/debootstrap
+        DEBOOTSTRAP_DIR=`pwd`/usr/lib/debootstrap
         DEBOOTSTRAP=`pwd`/usr/sbin/debootstrap
+        test -d "$DEBOOTSTRAP_DIR" || DEBOOTSTRAP_DIR=`pwd`/usr/share/debootstrap
+        export DEBOOTSTRAP_DIR
 
 	local arch
 	arch=$(uname -i 2>/dev/null) || \

@@ -1,4 +1,4 @@
-// $Id: lockfile.c 1447 2004-04-13 08:27:50Z ensc $    --*- c -*--
+// $Id: lockfile.c 2696 2008-03-01 01:20:42Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -44,7 +44,7 @@ showHelp(char const *cmd)
 	    "  2.  'lockfile' will be called\n"
 	    "  3a. 'lockfile' waits until somebody opens the <syncpipe> for reading\n"
 	    "  3b. parent (shell) opens the pipe for reading and blocks\n"
-	    "  4.  'lockfile' calls flock() on the <lockfile>\n"
+	    "  4.  'lockfile' calls lockf() on the <lockfile>\n"
 	    "  5.  'lockfile' closes the <syncpipe>\n"
 	    "  6.  parent (shell) unlocks since <syncpipe> is closed\n"
 	    "  7.  'lockfile' goes into infinite loop\n"
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 		   
   if ((sync_fd=open(argv[idx+1], O_WRONLY))==-1)
     perror("lockfile: open(<syncpipe>)");
-  else if ((fd=open(argv[idx], O_CREAT|O_RDONLY|O_NOFOLLOW|O_NONBLOCK, 0644))==-1)
+  else if ((fd=open(argv[idx], O_CREAT|O_WRONLY|O_NOFOLLOW|O_NONBLOCK, 0644))==-1)
     perror("lockfile: open(<lockfile>)");
   else if (unlink(argv[idx+1])==-1)
     perror("lockfile: unlink(<syncpipe>)");
@@ -122,10 +122,10 @@ int main(int argc, char *argv[])
   else while (time(0)<end_time && getppid()==ppid) {
     int		duration = end_time-time(0);
     alarm(MIN(10, MAX(duration,1)));
-    
-    if (flock(fd,LOCK_EX)==-1) {
+
+    if (lockf(fd,F_LOCK,0)==-1) {
       if (errno==EINTR) continue;
-      perror("lockfile: flock()");
+      perror("lockfile: lockf()");
       break;
     }
     signal(SIGALRM, SIG_IGN);

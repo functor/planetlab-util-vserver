@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Used crypto API */
+#undef ENSC_CRYPTO_API
+
 /* Define to 1 if dietlibc supports C99 */
 #undef ENSC_DIETLIBC_C99
 

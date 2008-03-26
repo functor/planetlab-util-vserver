@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2579 2007-08-08 20:47:12Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2685 2008-02-21 23:22:23Z ensc $  -*- makefile -*-
 
 ## Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -52,6 +52,9 @@ endif
 
 noinst_HEADERS += \
 				lib_internal/coreassert.h \
+				lib_internal/crypto-wrapper.h \
+				lib_internal/crypto-wrapper-nss.h \
+				lib_internal/crypto-wrapper-beecrypt.h \
 				lib_internal/errinfo.h \
 				lib_internal/jail.h \
 				lib_internal/matchlist.h \

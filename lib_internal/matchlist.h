@@ -1,16 +1,16 @@
-// $Id: matchlist.h 1912 2005-03-18 00:20:02Z ensc $    --*- c -*--
+// $Id: matchlist.h 2608 2007-09-03 07:42:17Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
-//  
+//
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; version 2 of the License.
-//  
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//  
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -52,12 +52,12 @@ struct MatchList
 
 struct MatchVserverInfo
 {
-    char const 		*name;
+    char const		*name;
 
     vcCfgStyle		style;
     PathInfo		vdir;
     PathInfo		appdir;
-    
+
     bool		use_pkgmgmt;
 };
 
@@ -73,7 +73,7 @@ void		MatchList_initRefserverList(struct MatchList **, size_t *cnt,
 					    char const *dir) NONNULL((1,2,3));
 void		MatchList_destroy(struct MatchList *) NONNULL((1));
 void		MatchList_appendFiles(struct MatchList *, size_t idx,
-				      char **files, size_t count,
+				      char const **files, size_t count,
 				      bool auto_type) NONNULL((1,3));
 
 MatchType	MatchList_compare(struct MatchList const *,

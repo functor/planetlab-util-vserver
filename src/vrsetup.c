@@ -1,4 +1,4 @@
-// $Id: vrsetup.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: vrsetup.c 2686 2008-02-28 23:12:06Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
   else if (do_delete)    Eioctl(fd, VROOT_CLR_DEV, 0);
   else {
     int		dfd = EopenD(real_root_device, O_RDONLY, 0);
-    Eioctl(fd, VROOT_SET_DEV, (void*)dfd);
+    Eioctl(fd, VROOT_SET_DEV, (void*)(long)dfd);
     Eclose(dfd);
   }
 

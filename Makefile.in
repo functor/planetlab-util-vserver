@@ -63,8 +63,9 @@ pkglib_PROGRAMS = src/capchroot$(EXEEXT) src/chain-echo$(EXEEXT) \
 	src/mask2prefix$(EXEEXT) src/exec-ulimit$(EXEEXT) \
 	src/rpm-fake-resolver$(EXEEXT) src/vshelper-sync$(EXEEXT) \
 	src/sigexec$(EXEEXT) src/chbind-compat$(EXEEXT) \
-	src/vsysctl$(EXEEXT) src/h2ext$(EXEEXT) $(am__EXEEXT_8) \
-	$(am__EXEEXT_9) $(am__EXEEXT_10) $(am__EXEEXT_11)
+	src/vsysctl$(EXEEXT) src/h2ext$(EXEEXT) src/tunctl$(EXEEXT) \
+	$(am__EXEEXT_9) $(am__EXEEXT_10) $(am__EXEEXT_11) \
+	$(am__EXEEXT_12)
 legacy_PROGRAMS = src/ifspec$(EXEEXT) src/listdevip$(EXEEXT) \
 	src/parserpmdump$(EXEEXT) src/rebootmgr$(EXEEXT) \
 	src/showperm$(EXEEXT) src/vreboot$(EXEEXT)
@@ -77,24 +78,26 @@ sbin_PROGRAMS = src/exec-cd$(EXEEXT) src/lsxid$(EXEEXT) \
 	src/vserver-stat$(EXEEXT) src/vserver-info$(EXEEXT) \
 	src/vuname$(EXEEXT) src/vwait$(EXEEXT) src/ncontext$(EXEEXT) \
 	src/nattribute$(EXEEXT) src/naddress$(EXEEXT) \
-	src/vdevmap$(EXEEXT) src/vtag$(EXEEXT) $(am__EXEEXT_9) \
-	$(am__EXEEXT_12)
+	src/vdevmap$(EXEEXT) src/vtag$(EXEEXT) src/vspace$(EXEEXT) \
+	src/vmemctrl$(EXEEXT) $(am__EXEEXT_10) $(am__EXEEXT_13)
 noinst_PROGRAMS = tests/escaperoot$(EXEEXT) tests/forkbomb$(EXEEXT) \
 	tests/testipc$(EXEEXT) tests/testlimit$(EXEEXT) \
-	tests/testopenf$(EXEEXT) $(am__EXEEXT_6)
+	tests/testopenf$(EXEEXT) $(am__EXEEXT_7)
 EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_1)
 check_PROGRAMS = lib/testsuite/cflags$(EXEEXT) \
 	lib/testsuite/personality$(EXEEXT) lib/testsuite/fmt$(EXEEXT) \
 	lib/testsuite/parselimit$(EXEEXT) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) ensc_vector/testsuite/test1$(EXEEXT) \
 	ensc_vector/testsuite/test2$(EXEEXT) \
-	lib_internal/testsuite/command$(EXEEXT) $(am__EXEEXT_5)
+	lib_internal/testsuite/command$(EXEEXT) $(am__EXEEXT_5) \
+	$(am__EXEEXT_6)
 TESTS = lib/testsuite/cflags$(EXEEXT) \
 	lib/testsuite/personality$(EXEEXT) lib/testsuite/fmt$(EXEEXT) \
 	lib/testsuite/parselimit$(EXEEXT) $(am__EXEEXT_4) \
-	$(am__EXEEXT_14) $(am__EXEEXT_1) \
+	$(am__EXEEXT_15) $(am__EXEEXT_1) \
 	ensc_vector/testsuite/test1$(EXEEXT) \
-	ensc_vector/testsuite/test2$(EXEEXT) $(am__EXEEXT_15)
+	ensc_vector/testsuite/test2$(EXEEXT) $(am__EXEEXT_16) \
+	$(am__EXEEXT_17)
 DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 	$(noinst_HEADERS) $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/config.h.in \
@@ -134,14 +137,14 @@ DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib/syscall_setdlimit.c
 
 @USE_DIETLIBC_TRUE@am__append_2 = $(LIBVSERVER_DIET)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@am__append_3 = src/vhashify
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_4 = src/vhashify
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@am__append_3 = src/vhashify
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@am__append_4 = src/vhashify
 @ENSC_HAVE_C99_COMPILER_TRUE@am__append_5 = src/vdlimit
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_6 = src/testsuite/hashcalc		\
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@					src/testsuite/hashcalc-plain
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@am__append_6 = src/testsuite/hashcalc		\
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@					src/testsuite/hashcalc-plain
 
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__append_7 = src/testsuite/hashcalc-plain.sh		\
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@					src/testsuite/hashcalc.sh
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@am__append_7 = src/testsuite/hashcalc-plain.sh		\
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@					src/testsuite/hashcalc.sh
 
 @HAVE_XSLTP_TRUE@am__append_8 = $(doc_gen_DOCS)
 @HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@am__append_9 = $(doc_gen_DOCS)
@@ -170,10 +173,17 @@ DIST_COMMON = README $(am__configure_deps) $(include_HEADERS) \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/matchlist \
 @ENSC_HAVE_C99_COMPILER_TRUE@				lib_internal/testsuite/matchlist-gnu
 
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_17 = vserver-start/vserver.start.bin
-@ENSC_HAVE_C99_COMPILER_TRUE@am__append_18 = vserver-start/vserver.start.bin
-@HAVE_GENTOO_INIT_TRUE@am__append_19 = $(gentoo_src_SCRPTS)
-@HAVE_GENTOO_INIT_TRUE@am__append_20 = gentoo/bash-wrapper
+@ENSC_HAVE_CRYPTO_TRUE@am__append_17 = lib_internal/testsuite/crypto \
+@ENSC_HAVE_CRYPTO_TRUE@				lib_internal/testsuite/crypto-speed
+
+@ENSC_HAVE_CRYPTO_TRUE@am__append_18 = lib_internal/testsuite/crypto
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@am__append_19 = lib_internal/testsuite/crypto \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@				lib_internal/testsuite/crypto-speed
+
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_20 = vserver-start/vserver.start.bin
+@ENSC_HAVE_C99_COMPILER_TRUE@am__append_21 = vserver-start/vserver.start.bin
+@HAVE_GENTOO_INIT_TRUE@am__append_22 = $(gentoo_src_SCRPTS)
+@HAVE_GENTOO_INIT_TRUE@am__append_23 = gentoo/bash-wrapper
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ensc_cflags.m4 \
@@ -297,6 +307,7 @@ am__lib_libvserver_a_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_enternamespace-v21.hc \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
 	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
+	lib/syscall_unsetmapping.c lib/syscall_unsetmapping-v21.hc \
 	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
 	lib/syscall_getccaps-v21.hc lib/syscall_getsched.c \
 	lib/syscall_getsched-v21.hc lib/syscall_ctxcreate-v21.hc \
@@ -306,6 +317,8 @@ am__lib_libvserver_a_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_netremove-netv2.hc lib/syscall_tagmigrate-v23.hc \
 	lib/syscall_tagmigrate.c lib/syscall_tagcreate.c \
 	lib/syscall_tasktag-v23.hc lib/syscall_tasktag.c \
+	lib/syscall_getbadness.c lib/syscall_getbadness-v23.hc \
+	lib/syscall_setbadness.c lib/syscall_setbadness-v23.hc \
 	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
 	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
 	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
@@ -376,6 +389,7 @@ am__objects_7 = lib/lib_libvserver_a-syscall_rlimitstat.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_ctxstat.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_getspacemask.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_setmapping.$(OBJEXT) \
+	lib/lib_libvserver_a-syscall_unsetmapping.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_getsched.$(OBJEXT)
 am__objects_8 = lib/lib_libvserver_a-syscall_fsetiattr.$(OBJEXT) \
@@ -383,7 +397,9 @@ am__objects_8 = lib/lib_libvserver_a-syscall_fsetiattr.$(OBJEXT) \
 am__objects_9 =
 am__objects_10 = lib/lib_libvserver_a-syscall_tagmigrate.$(OBJEXT) \
 	lib/lib_libvserver_a-syscall_tagcreate.$(OBJEXT) \
-	lib/lib_libvserver_a-syscall_tasktag.$(OBJEXT)
+	lib/lib_libvserver_a-syscall_tasktag.$(OBJEXT) \
+	lib/lib_libvserver_a-syscall_getbadness.$(OBJEXT) \
+	lib/lib_libvserver_a-syscall_setbadness.$(OBJEXT)
 am__objects_11 = ensc_fmt/lib_libvserver_a-fmt-32.$(OBJEXT) \
 	ensc_fmt/lib_libvserver_a-fmt-64.$(OBJEXT) \
 	ensc_fmt/lib_libvserver_a-fmtx-32.$(OBJEXT) \
@@ -687,6 +703,7 @@ am__lib_libvserver_la_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_enternamespace-v21.hc \
 	lib/syscall_setnamespace-v21.hc lib/syscall_ctxmigrate-v21.hc \
 	lib/syscall_setmapping.c lib/syscall_setmapping-v21.hc \
+	lib/syscall_unsetmapping.c lib/syscall_unsetmapping-v21.hc \
 	lib/syscall_schedinfo.c lib/syscall_schedinfo-v21.hc \
 	lib/syscall_getccaps-v21.hc lib/syscall_getsched.c \
 	lib/syscall_getsched-v21.hc lib/syscall_ctxcreate-v21.hc \
@@ -696,6 +713,8 @@ am__lib_libvserver_la_SOURCES_DIST = lib/syscall.c lib/checkversion.c \
 	lib/syscall_netremove-netv2.hc lib/syscall_tagmigrate-v23.hc \
 	lib/syscall_tagmigrate.c lib/syscall_tagcreate.c \
 	lib/syscall_tasktag-v23.hc lib/syscall_tasktag.c \
+	lib/syscall_getbadness.c lib/syscall_getbadness-v23.hc \
+	lib/syscall_setbadness.c lib/syscall_setbadness-v23.hc \
 	ensc_fmt/fmt-32.c ensc_fmt/fmt-64.c ensc_fmt/fmtx-32.c \
 	ensc_fmt/fmtx-64.c ensc_fmt/fmt-tai64n.c ensc_fmt/fmt.h \
 	ensc_fmt/fmt.hc ensc_fmt/fmtx.hc ensc_fmt/fmt-internal.h
@@ -764,13 +783,16 @@ am__objects_27 = lib/lib_libvserver_la-syscall_rlimitstat.lo \
 	lib/lib_libvserver_la-syscall_ctxstat.lo \
 	lib/lib_libvserver_la-syscall_getspacemask.lo \
 	lib/lib_libvserver_la-syscall_setmapping.lo \
+	lib/lib_libvserver_la-syscall_unsetmapping.lo \
 	lib/lib_libvserver_la-syscall_schedinfo.lo \
 	lib/lib_libvserver_la-syscall_getsched.lo
 am__objects_28 = lib/lib_libvserver_la-syscall_fsetiattr.lo \
 	lib/lib_libvserver_la-syscall_fgetiattr.lo
 am__objects_29 = lib/lib_libvserver_la-syscall_tagmigrate.lo \
 	lib/lib_libvserver_la-syscall_tagcreate.lo \
-	lib/lib_libvserver_la-syscall_tasktag.lo
+	lib/lib_libvserver_la-syscall_tasktag.lo \
+	lib/lib_libvserver_la-syscall_getbadness.lo \
+	lib/lib_libvserver_la-syscall_setbadness.lo
 am__objects_30 = ensc_fmt/lib_libvserver_la-fmt-32.lo \
 	ensc_fmt/lib_libvserver_la-fmt-64.lo \
 	ensc_fmt/lib_libvserver_la-fmtx-32.lo \
@@ -817,8 +839,8 @@ src_rpm_fake_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(src_rpm_fake_la_CFLAGS) \
 	$(CFLAGS) $(src_rpm_fake_la_LDFLAGS) $(LDFLAGS) -o $@
 am__EXEEXT_1 =
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_2 = src/testsuite/hashcalc$(EXEEXT) \
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@	src/testsuite/hashcalc-plain$(EXEEXT)
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@am__EXEEXT_2 = src/testsuite/hashcalc$(EXEEXT) \
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@	src/testsuite/hashcalc-plain$(EXEEXT)
 am__EXEEXT_3 = src/testsuite/rpm-fake-test$(EXEEXT) $(am__EXEEXT_2)
 am__EXEEXT_4 = src/testsuite/vunify-functest$(EXEEXT) \
 	src/testsuite/chcontext-test$(EXEEXT) \
@@ -831,17 +853,20 @@ am__EXEEXT_4 = src/testsuite/vunify-functest$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/sigbus-gnu$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/matchlist$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/matchlist-gnu$(EXEEXT)
+@ENSC_HAVE_CRYPTO_TRUE@am__EXEEXT_6 =  \
+@ENSC_HAVE_CRYPTO_TRUE@	lib_internal/testsuite/crypto$(EXEEXT) \
+@ENSC_HAVE_CRYPTO_TRUE@	lib_internal/testsuite/crypto-speed$(EXEEXT)
 legacyPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-am__EXEEXT_6 = tests/getctx$(EXEEXT) tests/getinitpid$(EXEEXT) \
+am__EXEEXT_7 = tests/getctx$(EXEEXT) tests/getinitpid$(EXEEXT) \
 	tests/vserver-info$(EXEEXT)
-am__EXEEXT_7 = src/vunify$(EXEEXT) src/vcopy$(EXEEXT) \
+am__EXEEXT_8 = src/vunify$(EXEEXT) src/vcopy$(EXEEXT) \
 	src/vclone$(EXEEXT)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_8 = $(am__EXEEXT_7)
-@ENSC_HAVE_CXX_COMPILER_TRUE@am__EXEEXT_9 = $(am__EXEEXT_1)
-@ENSC_HAVE_BEECRYPT_TRUE@@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_10 = src/vhashify$(EXEEXT)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_11 = vserver-start/vserver.start.bin$(EXEEXT)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_9 = $(am__EXEEXT_8)
+@ENSC_HAVE_CXX_COMPILER_TRUE@am__EXEEXT_10 = $(am__EXEEXT_1)
+@ENSC_HAVE_C99_COMPILER_TRUE@@ENSC_HAVE_CRYPTO_TRUE@am__EXEEXT_11 = src/vhashify$(EXEEXT)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_12 = vserver-start/vserver.start.bin$(EXEEXT)
 pkglibPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_12 = src/vdlimit$(EXEEXT)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_13 = src/vdlimit$(EXEEXT)
 sbinPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(legacy_PROGRAMS) $(noinst_PROGRAMS) $(pkglib_PROGRAMS) \
 	$(sbin_PROGRAMS)
@@ -897,6 +922,30 @@ am_lib_internal_testsuite_copy_OBJECTS =  \
 lib_internal_testsuite_copy_OBJECTS =  \
 	$(am_lib_internal_testsuite_copy_OBJECTS)
 lib_internal_testsuite_copy_DEPENDENCIES = $(LIBINTERNAL_GLIBC)
+am__lib_internal_testsuite_crypto_SOURCES_DIST =  \
+	lib_internal/testsuite/crypto.c
+@ENSC_HAVE_CRYPTO_TRUE@am_lib_internal_testsuite_crypto_OBJECTS = lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.$(OBJEXT)
+lib_internal_testsuite_crypto_OBJECTS =  \
+	$(am_lib_internal_testsuite_crypto_OBJECTS)
+am__DEPENDENCIES_1 =
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_DEPENDENCIES =  \
+@ENSC_HAVE_CRYPTO_TRUE@	$(am__DEPENDENCIES_1)
+lib_internal_testsuite_crypto_LINK = $(LIBTOOL) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(lib_internal_testsuite_crypto_CFLAGS) $(CFLAGS) \
+	$(lib_internal_testsuite_crypto_LDFLAGS) $(LDFLAGS) -o $@
+am__lib_internal_testsuite_crypto_speed_SOURCES_DIST =  \
+	lib_internal/testsuite/crypto-speed.c
+@ENSC_HAVE_CRYPTO_TRUE@am_lib_internal_testsuite_crypto_speed_OBJECTS = lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.$(OBJEXT)
+lib_internal_testsuite_crypto_speed_OBJECTS =  \
+	$(am_lib_internal_testsuite_crypto_speed_OBJECTS)
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_speed_DEPENDENCIES =  \
+@ENSC_HAVE_CRYPTO_TRUE@	$(am__DEPENDENCIES_1)
+lib_internal_testsuite_crypto_speed_LINK = $(LIBTOOL) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(lib_internal_testsuite_crypto_speed_CFLAGS) $(CFLAGS) \
+	$(lib_internal_testsuite_crypto_speed_LDFLAGS) $(LDFLAGS) -o \
+	$@
 am_lib_internal_testsuite_filecfg_ml_OBJECTS =  \
 	lib_internal/testsuite/filecfg-ml.$(OBJEXT)
 lib_internal_testsuite_filecfg_ml_OBJECTS =  \
@@ -930,7 +979,6 @@ lib_internal_testsuite_sigbus_gnu_OBJECTS =  \
 lib_internal_testsuite_sigbus_gnu_LDADD = $(LDADD)
 am_src_capchroot_OBJECTS = src/capchroot.$(OBJEXT)
 src_capchroot_OBJECTS = $(am_src_capchroot_OBJECTS)
-am__DEPENDENCIES_1 =
 am__DEPENDENCIES_2 = $(LIBVSERVER) $(am__DEPENDENCIES_1)
 src_capchroot_DEPENDENCIES = $(am__DEPENDENCIES_2)
 src_capchroot_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
@@ -1090,35 +1138,40 @@ src_testsuite_chcontext_test_OBJECTS =  \
 	$(am_src_testsuite_chcontext_test_OBJECTS)
 src_testsuite_chcontext_test_DEPENDENCIES = lib/libvserver.la \
 	$(LIBINTERNAL)
-am_src_testsuite_hashcalc_OBJECTS = src/testsuite/hashcalc.$(OBJEXT)
+am_src_testsuite_hashcalc_OBJECTS =  \
+	src/testsuite/src_testsuite_hashcalc-hashcalc.$(OBJEXT)
 src_testsuite_hashcalc_OBJECTS = $(am_src_testsuite_hashcalc_OBJECTS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(am__DEPENDENCIES_1)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_1) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
 src_testsuite_hashcalc_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(src_testsuite_hashcalc_CFLAGS) $(CFLAGS) \
 	$(src_testsuite_hashcalc_LDFLAGS) $(LDFLAGS) -o $@
-am_src_testsuite_hashcalc_plain_OBJECTS =  \
-	src/testsuite/hashcalc-plain.$(OBJEXT)
+am_src_testsuite_hashcalc_plain_OBJECTS = src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.$(OBJEXT)
 src_testsuite_hashcalc_plain_OBJECTS =  \
 	$(am_src_testsuite_hashcalc_plain_OBJECTS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(am__DEPENDENCIES_1)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_1) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
 src_testsuite_hashcalc_plain_LINK = $(LIBTOOL) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
-	$(AM_CFLAGS) $(CFLAGS) $(src_testsuite_hashcalc_plain_LDFLAGS) \
-	$(LDFLAGS) -o $@
+	$(src_testsuite_hashcalc_plain_CFLAGS) $(CFLAGS) \
+	$(src_testsuite_hashcalc_plain_LDFLAGS) $(LDFLAGS) -o $@
 am_src_testsuite_rpm_fake_test_OBJECTS =  \
 	src/testsuite/rpm-fake-test.$(OBJEXT)
 src_testsuite_rpm_fake_test_OBJECTS =  \
@@ -1128,6 +1181,12 @@ am_src_testsuite_vunify_functest_OBJECTS = src/testsuite/src_testsuite_vunify_fu
 src_testsuite_vunify_functest_OBJECTS =  \
 	$(am_src_testsuite_vunify_functest_OBJECTS)
 src_testsuite_vunify_functest_DEPENDENCIES = $(LIBINTERNAL)
+am_src_tunctl_OBJECTS = src/tunctl.$(OBJEXT)
+src_tunctl_OBJECTS = $(am_src_tunctl_OBJECTS)
+src_tunctl_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBINTERNAL)
+src_tunctl_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(src_tunctl_LDFLAGS) $(LDFLAGS) -o $@
 am_src_vattribute_OBJECTS = src/vattribute.$(OBJEXT)
 src_vattribute_OBJECTS = $(am_src_vattribute_OBJECTS)
 src_vattribute_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -1170,19 +1229,21 @@ src_vdu_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBINTERNAL)
 src_vdu_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	--mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(src_vdu_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_src_vhashify_OBJECTS = src/vhashify.$(OBJEXT)
+am_src_vhashify_OBJECTS = src/src_vhashify-vhashify.$(OBJEXT)
 src_vhashify_OBJECTS = $(am_src_vhashify_OBJECTS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_vhashify_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_vhashify_DEPENDENCIES =  \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_vhashify_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBINTERNAL_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBENSCVECTOR_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(LIBVSERVER_GLIBC) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@	$(am__DEPENDENCIES_1)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_vhashify_DEPENDENCIES =  \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBINTERNAL) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(LIBENSCVECTOR) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_1) \
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@	$(am__DEPENDENCIES_2)
 src_vhashify_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(src_vhashify_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(src_vhashify_CFLAGS) \
+	$(CFLAGS) $(src_vhashify_LDFLAGS) $(LDFLAGS) -o $@
 am_src_vkill_OBJECTS = src/src_vkill-vkill.$(OBJEXT)
 src_vkill_OBJECTS = $(am_src_vkill_OBJECTS)
 src_vkill_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -1195,6 +1256,12 @@ src_vlimit_DEPENDENCIES = $(am__DEPENDENCIES_2)
 src_vlimit_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(src_vlimit_LDFLAGS) $(LDFLAGS) -o $@
+am_src_vmemctrl_OBJECTS = src/vmemctrl.$(OBJEXT)
+src_vmemctrl_OBJECTS = $(am_src_vmemctrl_OBJECTS)
+src_vmemctrl_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBINTERNAL)
+src_vmemctrl_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(src_vmemctrl_LDFLAGS) $(LDFLAGS) -o $@
 am_src_vnamespace_OBJECTS = src/vnamespace.$(OBJEXT)
 src_vnamespace_OBJECTS = $(am_src_vnamespace_OBJECTS)
 src_vnamespace_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBINTERNAL)
@@ -1235,6 +1302,12 @@ src_vserver_stat_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 am_src_vshelper_sync_OBJECTS = src/vshelper-sync.$(OBJEXT)
 src_vshelper_sync_OBJECTS = $(am_src_vshelper_sync_OBJECTS)
 src_vshelper_sync_LDADD = $(LDADD)
+am_src_vspace_OBJECTS = src/vspace.$(OBJEXT)
+src_vspace_OBJECTS = $(am_src_vspace_OBJECTS)
+src_vspace_DEPENDENCIES = $(am__DEPENDENCIES_2) $(LIBINTERNAL)
+src_vspace_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(src_vspace_LDFLAGS) $(LDFLAGS) -o $@
 am_src_vsysctl_OBJECTS = src/vsysctl.$(OBJEXT)
 src_vsysctl_OBJECTS = $(am_src_vsysctl_OBJECTS)
 src_vsysctl_DEPENDENCIES = $(am__DEPENDENCIES_2)
@@ -1351,6 +1424,8 @@ SOURCES = $(nodist_lib_dietlibc_not_enabled_error_a_SOURCES) \
 	$(lib_testsuite_personality_SOURCES) \
 	$(lib_internal_testsuite_command_SOURCES) \
 	$(lib_internal_testsuite_copy_SOURCES) \
+	$(lib_internal_testsuite_crypto_SOURCES) \
+	$(lib_internal_testsuite_crypto_speed_SOURCES) \
 	$(lib_internal_testsuite_filecfg_ml_SOURCES) \
 	$(lib_internal_testsuite_isnumber_SOURCES) \
 	$(lib_internal_testsuite_isnumber_gnu_SOURCES) \
@@ -1378,16 +1453,17 @@ SOURCES = $(nodist_lib_dietlibc_not_enabled_error_a_SOURCES) \
 	$(src_testsuite_hashcalc_SOURCES) \
 	$(src_testsuite_hashcalc_plain_SOURCES) \
 	$(src_testsuite_rpm_fake_test_SOURCES) \
-	$(src_testsuite_vunify_functest_SOURCES) \
+	$(src_testsuite_vunify_functest_SOURCES) $(src_tunctl_SOURCES) \
 	$(src_vattribute_SOURCES) $(src_vclone_SOURCES) \
 	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
 	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
 	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
 	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
-	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
-	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
-	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
-	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
+	$(src_vmemctrl_SOURCES) $(src_vnamespace_SOURCES) \
+	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
+	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
+	$(src_vserver_stat_SOURCES) $(src_vshelper_sync_SOURCES) \
+	$(src_vspace_SOURCES) $(src_vsysctl_SOURCES) \
 	$(src_vtag_SOURCES) $(src_vuname_SOURCES) \
 	$(src_vunify_SOURCES) $(src_vwait_SOURCES) \
 	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
@@ -1409,6 +1485,8 @@ DIST_SOURCES = $(am__lib_libvserver_a_SOURCES_DIST) \
 	$(lib_testsuite_personality_SOURCES) \
 	$(lib_internal_testsuite_command_SOURCES) \
 	$(lib_internal_testsuite_copy_SOURCES) \
+	$(am__lib_internal_testsuite_crypto_SOURCES_DIST) \
+	$(am__lib_internal_testsuite_crypto_speed_SOURCES_DIST) \
 	$(lib_internal_testsuite_filecfg_ml_SOURCES) \
 	$(lib_internal_testsuite_isnumber_SOURCES) \
 	$(lib_internal_testsuite_isnumber_gnu_SOURCES) \
@@ -1436,16 +1514,17 @@ DIST_SOURCES = $(am__lib_libvserver_a_SOURCES_DIST) \
 	$(src_testsuite_hashcalc_SOURCES) \
 	$(src_testsuite_hashcalc_plain_SOURCES) \
 	$(src_testsuite_rpm_fake_test_SOURCES) \
-	$(src_testsuite_vunify_functest_SOURCES) \
+	$(src_testsuite_vunify_functest_SOURCES) $(src_tunctl_SOURCES) \
 	$(src_vattribute_SOURCES) $(src_vclone_SOURCES) \
 	$(src_vcontext_SOURCES) $(src_vcopy_SOURCES) \
 	$(src_vdevmap_SOURCES) $(src_vdlimit_SOURCES) \
 	$(src_vdu_SOURCES) $(src_vhashify_SOURCES) \
 	$(src_vkill_SOURCES) $(src_vlimit_SOURCES) \
-	$(src_vnamespace_SOURCES) $(src_vps_SOURCES) \
-	$(src_vreboot_SOURCES) src/vrsetup.c $(src_vsched_SOURCES) \
-	$(src_vserver_info_SOURCES) $(src_vserver_stat_SOURCES) \
-	$(src_vshelper_sync_SOURCES) $(src_vsysctl_SOURCES) \
+	$(src_vmemctrl_SOURCES) $(src_vnamespace_SOURCES) \
+	$(src_vps_SOURCES) $(src_vreboot_SOURCES) src/vrsetup.c \
+	$(src_vsched_SOURCES) $(src_vserver_info_SOURCES) \
+	$(src_vserver_stat_SOURCES) $(src_vshelper_sync_SOURCES) \
+	$(src_vspace_SOURCES) $(src_vsysctl_SOURCES) \
 	$(src_vtag_SOURCES) $(src_vuname_SOURCES) \
 	$(src_vunify_SOURCES) $(src_vwait_SOURCES) \
 	$(tests_escaperoot_SOURCES) $(tests_forkbomb_SOURCES) \
@@ -1473,11 +1552,11 @@ RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
   distclean-recursive maintainer-clean-recursive
 ETAGS = etags
 CTAGS = ctags
-@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_13 =  \
+@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_14 =  \
 @ENSC_HAVE_C99_COMPILER_TRUE@	src/testsuite/vunify-test.sh \
 @ENSC_HAVE_C99_COMPILER_TRUE@	$(am__append_7)
-am__EXEEXT_14 = $(am__EXEEXT_13)
-@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_15 = lib_internal/testsuite/filecfg-ml$(EXEEXT) \
+am__EXEEXT_15 = $(am__EXEEXT_14)
+@ENSC_HAVE_C99_COMPILER_TRUE@am__EXEEXT_16 = lib_internal/testsuite/filecfg-ml$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/copy-check \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/isnumber$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/isnumber-gnu$(EXEEXT) \
@@ -1485,6 +1564,8 @@ am__EXEEXT_14 = $(am__EXEEXT_13)
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/sigbus-gnu$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/matchlist$(EXEEXT) \
 @ENSC_HAVE_C99_COMPILER_TRUE@	lib_internal/testsuite/matchlist-gnu$(EXEEXT)
+@ENSC_HAVE_CRYPTO_TRUE@am__EXEEXT_17 =  \
+@ENSC_HAVE_CRYPTO_TRUE@	lib_internal/testsuite/crypto$(EXEEXT)
 DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
@@ -1531,6 +1612,8 @@ ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
+ENSC_CRYPTO_CFLAGS = @ENSC_CRYPTO_CFLAGS@
+ENSC_CRYPTO_LIB = @ENSC_CRYPTO_LIB@
 ENSC_PATHPROG_SED = @ENSC_PATHPROG_SED@
 ENSC_USE_EXPENSIVE_TESTS = @ENSC_USE_EXPENSIVE_TESTS@
 ENV = @ENV@
@@ -1538,6 +1621,7 @@ EXEEXT = @EXEEXT@
 F77 = @F77@
 FFLAGS = @FFLAGS@
 FILE = @FILE@
+FSCK = @FSCK@
 GPG_KEY = @GPG_KEY@
 GREP = @GREP@
 GZIP = @GZIP@
@@ -1568,6 +1652,8 @@ MV = @MV@
 NAMEIF = @NAMEIF@
 NICE = @NICE@
 NOHUP = @NOHUP@
+NSS_CFLAGS = @NSS_CFLAGS@
+NSS_LIBS = @NSS_LIBS@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -1576,6 +1662,7 @@ PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
+PKG_CONFIG = @PKG_CONFIG@
 PS = @PS@
 RANLIB = @RANLIB@
 RELEASE_CPPFLAGS = @RELEASE_CPPFLAGS@
@@ -1679,7 +1766,8 @@ noinst_HEADERS = $(ENSC_VECTOR_HDRS) compat.h compat-c99.h \
 	src/compat-pivot_root.h src/stack-start.h src/vcopy-init.hc \
 	src/vunify.h src/vunify-init.hc src/vhashify.h \
 	src/vhashify-init.hc src/vserver-visitdir.hc \
-	src/context-sync.hc ensc_wrappers/wrappers-clone.hc \
+	src/context-sync.hc src/attribute-util.h \
+	ensc_wrappers/wrappers-clone.hc \
 	ensc_wrappers/wrappers-dirent.hc \
 	ensc_wrappers/wrappers-fcntl.hc ensc_wrappers/wrappers-io.hc \
 	ensc_wrappers/wrappers-ioctl.hc \
@@ -1696,14 +1784,17 @@ noinst_HEADERS = $(ENSC_VECTOR_HDRS) compat.h compat-c99.h \
 	ensc_wrappers/wrappers-vserver.hc \
 	ensc_wrappers/wrappers-wait.hc ensc_wrappers/wrappers.h \
 	ensc_wrappers/wrappers_handler.hc lib_internal/coreassert.h \
-	lib_internal/errinfo.h lib_internal/jail.h \
-	lib_internal/matchlist.h lib_internal/pathinfo.h \
-	lib_internal/string.h lib_internal/sys_clone.h \
-	lib_internal/sys_personality.h lib_internal/sys_unshare.h \
-	lib_internal/unify.h lib_internal/util.h \
-	lib_internal/util-cast.h lib_internal/util-commonstrings.h \
-	lib_internal/util-debug.h lib_internal/util-declarecmd.h \
-	lib_internal/util-dimof.h lib_internal/util-dotfile.h \
+	lib_internal/crypto-wrapper.h \
+	lib_internal/crypto-wrapper-nss.h \
+	lib_internal/crypto-wrapper-beecrypt.h lib_internal/errinfo.h \
+	lib_internal/jail.h lib_internal/matchlist.h \
+	lib_internal/pathinfo.h lib_internal/string.h \
+	lib_internal/sys_clone.h lib_internal/sys_personality.h \
+	lib_internal/sys_unshare.h lib_internal/unify.h \
+	lib_internal/util.h lib_internal/util-cast.h \
+	lib_internal/util-commonstrings.h lib_internal/util-debug.h \
+	lib_internal/util-declarecmd.h lib_internal/util-dimof.h \
+	lib_internal/util-dotfile.h \
 	lib_internal/util-exitlikeprocess.h lib_internal/util-io.h \
 	lib_internal/util-lockfile.h lib_internal/util-mem.h \
 	lib_internal/util-perror.h lib_internal/util-safechdir.h \
@@ -1713,7 +1804,7 @@ noinst_LIBRARIES = $(ENSC_VECTOR_LIBS) $(LIBINTERNAL_GLIBC) \
 lib_LIBRARIES = $(am__append_2)
 lib_LTLIBRARIES = $(LIBVSERVER_GLIBC)
 pkglib_LTLIBRARIES = src/rpm-fake.la
-pkglib_SCRIPTS = $(scripts_pkglib_src_SCRPTS) $(am__append_20)
+pkglib_SCRIPTS = $(scripts_pkglib_src_SCRPTS) $(am__append_23)
 pkglib_DATA = FEATURES.txt $(scripts_pkglib_src_DTA) \
 	$(scripts_pkglib_gen_DTA)
 legacy_SCRIPTS = $(scripts_legacy_src_SCRPTS) \
@@ -1721,7 +1812,7 @@ legacy_SCRIPTS = $(scripts_legacy_src_SCRPTS) \
 sbin_SCRIPTS = $(scripts_sbin_src_PRGS) $(scripts_sbin_gen_PRGS) \
 	$(scripts_legacy_src_PRGS)
 noinst_DATA = $(contrib_gen_DTA)
-initrd_SCRIPTS = $(am__append_11) $(am__append_19)
+initrd_SCRIPTS = $(am__append_11) $(am__append_22)
 sysconf_DATA = $(am__append_10)
 DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	ensc_fmt/lib_libvserver_a-% lib/testsuite/cflags \
@@ -1737,14 +1828,16 @@ DIETPROGS = $(LIBENSCVECTOR_DIET) lib/lib_libvserver_a-% \
 	src/vsched src/vshelper-sync src/vrsetup src/vserver-stat \
 	src/vserver-info src/vdlimit src/vdu src/vwait src/ncontext \
 	src/nattribute src/naddress src/vdevmap src/vsysctl src/vclone \
-	src/h2ext src/vtag $(am__append_3) $(tests_dietprogs) \
+	src/h2ext src/vtag src/vspace src/vmemctrl src/tunctl \
+	$(am__append_3) $(tests_dietprogs) \
 	lib_internal/libinternal-diet.a \
 	lib_internal/testsuite/isnumber lib_internal/testsuite/sigbus \
-	lib_internal/testsuite/matchlist $(am__append_17)
+	lib_internal/testsuite/matchlist $(am__append_19) \
+	$(am__append_20)
 BUILT_SOURCES = pathconfig.h \
 			.fixups
 
-man_MANS = $(man_pages)
+man_MANS = $(man_pages) $(man_gen_DTA)
 kernel_HDRS = $(wildcard kernel/*.h)
 EXTRA_DIST = pathconfig.h.pathsubst util-vserver.spec THANKS \
 	REQUIREMENTS $(kernel_HDRS) lib/apidoc/list2xxx.syntax \
@@ -1752,7 +1845,7 @@ EXTRA_DIST = pathconfig.h.pathsubst util-vserver.spec THANKS \
 	src/testsuite/hashcalc.sh src/testsuite/hashcalc-plain.sh \
 	src/testsuite/vwait-test.sh $(doc_compatibility_SRCS) \
 	$(doc_configuration_SRCS) $(doc_old_doc) $(doc_gen_DOCS) \
-	$(man_pages) $(scripts_pkglib_src_DTA) \
+	$(man_pages) $(man_susbt_SRCS) $(scripts_pkglib_src_DTA) \
 	$(scripts_pkglib_src_SCRPTS) $(scripts_legacy_src_SCRPTS) \
 	$(scripts_legacy_src_PRGS) $(scripts_sbin_src_PRGS) \
 	$(scripts_subst_SRCS) sysv/v_gated.subst sysv/v_httpd.subst \
@@ -1764,9 +1857,9 @@ EXTRA_DIST = pathconfig.h.pathsubst util-vserver.spec THANKS \
 	contrib/yum-2.6.0-chroot.patch contrib/yum-2.9.6-chroot.patch \
 	contrib/yum-3.0.3-chroot.patch contrib/yum-3.0.5-chroot.patch \
 	contrib/yum-3.2.0-chroot.patch contrib/yum-3.2.1-chroot.patch \
-	contrib/make-manifest lib_internal/testsuite/copy-check \
-	$(gentoo_src_SCRPTS) gentoo/bash-wrapper $(addsuffix \
-	.pc.subst, $(PKGCONFIG_FILES))
+	contrib/yum-3.2.4-chroot.patch contrib/make-manifest \
+	lib_internal/testsuite/copy-check $(gentoo_src_SCRPTS) \
+	gentoo/bash-wrapper $(addsuffix .pc.subst, $(PKGCONFIG_FILES))
 check_SCRIPTS = $(src_testsuite_check_src_SCRPTS) \
 	$(src_testsuite_check_gen_SCRPTS)
 TESTS_DEBUG = no
@@ -1781,7 +1874,7 @@ AM_CPPFLAGS = -I $(top_srcdir)/lib -I $(top_srcdir)/ensc_wrappers \
 CLEANFILES = $(BUILT_SOURCES) .*.pathsubst.stamp */.*.pathsubst.stamp \
 	*/*/.*.pathsubst.stamp pathconfig.h .fixups lib/libvserver.la \
 	lib/libvserver.a lib/apidoc/.apidoc doc/*.raw.html* \
-	doc/*.html.tmp $(am__append_8) $(am__append_9) \
+	doc/*.html.tmp $(am__append_8) $(am__append_9) $(man_gen_DTA) \
 	$(scripts_pkglib_gen_DTA) $(scripts_sbin_gen_PRGS) \
 	$(scripts_sbincfg_gen_DTA) $(scripts_legacy_gen_SCRPTS) \
 	$(sysv_gen_SCRPTS) $(contrib_gen_DTA) libensc_vector-diet.a \
@@ -1796,12 +1889,12 @@ AM_INSTALLCHECK_STD_OPTIONS_EXEMPT = src/parserpmdump src/showperm \
 	scripts/vyum-worker scripts/vrpm-preload \
 	scripts/save_s_context scripts/vservers.grabinfo.sh \
 	scripts/vpstree scripts/vserver-wrapper scripts/vsysvwrapper \
-	scripts/vtop scripts/legacy/distrib-info scripts/legacy/vps \
-	scripts/legacy/save_s_context scripts/legacy/vserver \
-	scripts/legacy/rootshell scripts/legacy/vserver-copy \
-	scripts/legacy/vserverkillall $(sysv_src_SCRPTS) \
-	$(sysv_gen_SCRPTS) vserver-start/vserver.start.bin \
-	$(gentoo_src_SCRPTS)
+	scripts/vtop scripts/h2ext-worker scripts/legacy/distrib-info \
+	scripts/legacy/vps scripts/legacy/save_s_context \
+	scripts/legacy/vserver scripts/legacy/rootshell \
+	scripts/legacy/vserver-copy scripts/legacy/vserverkillall \
+	$(sysv_src_SCRPTS) $(sysv_gen_SCRPTS) \
+	vserver-start/vserver.start.bin $(gentoo_src_SCRPTS)
 @USE_DIETLIBC_TRUE@DIET_CC := $(DIET) $(DIETFLAGS) $(CC)
 @USE_DIETLIBC_FALSE@VSERVER_LDFLGS := 
 @USE_DIETLIBC_TRUE@VSERVER_LDFLGS := -static
@@ -1932,6 +2025,8 @@ lib_v21_SRCS = lib/syscall_setccaps-v21.hc \
 				lib/syscall_ctxmigrate-v21.hc \
 				lib/syscall_setmapping.c \
 				lib/syscall_setmapping-v21.hc \
+				lib/syscall_unsetmapping.c \
+				lib/syscall_unsetmapping-v21.hc \
 				lib/syscall_schedinfo.c \
 				lib/syscall_schedinfo-v21.hc \
 				lib/syscall_getccaps-v21.hc \
@@ -1952,7 +2047,11 @@ lib_v23_SRCS = lib/syscall_tagmigrate-v23.hc \
 				lib/syscall_tagmigrate.c \
 				lib/syscall_tagcreate.c \
 				lib/syscall_tasktag-v23.hc \
-				lib/syscall_tasktag.c
+				lib/syscall_tasktag.c \
+				lib/syscall_getbadness.c \
+				lib/syscall_getbadness-v23.hc \
+				lib/syscall_setbadness.c \
+				lib/syscall_setbadness-v23.hc
 
 PKGCONFIG_FILES = lib/util-vserver
 lib_SRCS = lib/syscall.c \
@@ -2113,10 +2212,11 @@ src_vunify_SOURCES = src/vunify.c
 src_vunify_LDADD = $(LIBINTERNAL) $(VSERVER_LDADDS)
 src_vunify_LDFLAGS = $(VSERVER_LDFLGS)
 src_vhashify_SOURCES = src/vhashify.c
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_vhashify_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) -lbeecrypt
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_vhashify_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) -lbeecrypt $(VSERVER_LDADDS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_vhashify_LDFLAGS = 
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_vhashify_LDFLAGS = $(VSERVER_LDFLGS)
+src_vhashify_CFLAGS = $(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_vhashify_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) $(ENSC_CRYPTO_LIB)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_vhashify_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) $(ENSC_CRYPTO_LIB) $(VSERVER_LDADDS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_vhashify_LDFLAGS = -Wl,--as-needed
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_vhashify_LDFLAGS = $(VSERVER_LDFLGS)
 src_vuname_SOURCES = src/vuname.c
 src_vuname_LDADD = $(VSERVER_LDADDS)
 src_vuname_LDFLAGS = $(VSERVER_LDFLGS)
@@ -2154,6 +2254,15 @@ src_h2ext_LDFLAGS = $(VSERVER_LDFLGS)
 src_vtag_SOURCES = src/vtag.c
 src_vtag_LDADD = $(VSERVER_LDADDS)
 src_vtag_LDFLAGS = $(VSERVER_LDADDS)
+src_vspace_SOURCES = src/vspace.c
+src_vspace_LDADD = $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vspace_LDFLAGS = $(VSERVER_LDFLGS)
+src_vmemctrl_SOURCES = src/vmemctrl.c
+src_vmemctrl_LDADD = $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_vmemctrl_LDFLAGS = $(VSERVER_LDFLGS)
+src_tunctl_SOURCES = src/tunctl.c
+src_tunctl_LDADD = $(VSERVER_LDADDS) $(LIBINTERNAL)
+src_tunctl_LDFLAGS = $(VSERVER_LDFLGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_sbin_C99_X_PROGS = 
 @ENSC_HAVE_C99_COMPILER_TRUE@src_sbin_C99_X_PROGS = $(src_sbin_C99_PROGS)
 @ENSC_HAVE_C99_COMPILER_FALSE@src_pkglib_C99_X_PROGS = 
@@ -2184,14 +2293,16 @@ src_testsuite_chbind_test_SOURCES = src/testsuite/chbind-test.c
 src_testsuite_chbind_test_LDADD = lib/libvserver.la
 src_testsuite_hashcalc_SOURCES = src/testsuite/hashcalc.c
 src_testsuite_hashcalc_plain_SOURCES = src/testsuite/hashcalc-plain.c
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) -lbeecrypt
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) -lbeecrypt $(VSERVER_LDADDS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_LDFLAGS = 
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_LDFLAGS = $(VSERVER_LDFLGS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) -lbeecrypt
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) -lbeecrypt $(VSERVER_LDADDS)
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_LDFLAGS = 
-@ENSC_CAN_BEECRYPT_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_LDFLAGS = $(VSERVER_LDFLGS)
+src_testsuite_hashcalc_CFLAGS = $(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+src_testsuite_hashcalc_plain_CFLAGS = $(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) $(ENSC_CRYPTO_LIB)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) $(ENSC_CRYPTO_LIB) $(VSERVER_LDADDS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_LDFLAGS = -Wl,--as-needed
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_LDFLAGS = $(VSERVER_LDFLGS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_LDADD = $(LIBINTERNAL_GLIBC) $(LIBENSCVECTOR_GLIBC) $(LIBVSERVER_GLIBC) $(ENSC_CRYPTO_LIB)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_LDADD = $(LIBINTERNAL) $(LIBENSCVECTOR) $(ENSC_CRYPTO_LIB) $(VSERVER_LDADDS)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@src_testsuite_hashcalc_plain_LDFLAGS = -Wl,--as-needed
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_TRUE@src_testsuite_hashcalc_plain_LDFLAGS = $(VSERVER_LDFLGS)
 src_testsuite_CPPFLAGS = -I $(top_srcdir)/src -D ENSC_TESTSUITE
 doc_old_doc = doc/intro.txt
 XSLT_AMFLAGS = --stringparam confdir '$(sysconfdir)/vservers'
@@ -2222,6 +2333,8 @@ man_pages = man/chbind.8 \
 			   man/vserver.8 \
 			   man/vtop.8
 
+man_susbt_SRCS = man/vserver-build.8.pathsubst
+man_gen_DTA = man/vserver-build.8
 scripts_pkglib_src_DTA = scripts/functions \
 				scripts/vserver-build.apt-rpm \
 				scripts/vserver-build.skeleton \
@@ -2281,7 +2394,8 @@ scripts_sbin_src_PRGS = scripts/chbind \
 				scripts/vsomething \
 				scripts/vtop \
 				scripts/vupdateworld \
-				scripts/vyum
+				scripts/vyum \
+				scripts/vmount
 
 scripts_sbin_gen_PRGS = 
 scripts_sbincfg_gen_DTA = 
@@ -2471,6 +2585,14 @@ lib_internal_testsuite_matchlist_CPPFLAGS = $(AM_CPPFLAGS)		# see note above
 lib_internal_testsuite_matchlist_gnu_SOURCES = lib_internal/testsuite/matchlist.c
 lib_internal_testsuite_matchlist_gnu_LDADD = $(LIBINTERNAL_GLIBC)
 lib_internal_testsuite_matchlist_gnu_CPPFLAGS = $(AM_CPPFLAGS)		# see note above
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_speed_SOURCES = lib_internal/testsuite/crypto-speed.c
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_speed_CFLAGS = $(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_speed_LDADD = $(ENSC_CRYPTO_LIB) -lrt
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_SOURCES = lib_internal/testsuite/crypto.c
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_CFLAGS = $(AM_CFLAGS) $(ENSC_CRYPTO_CFLAGS)
+@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_LDADD = $(ENSC_CRYPTO_LIB)
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_speed_LDFLAGS = -Wl,--as-needed
+@ENSC_CAN_CRYPTO_WITH_DIETLIBC_FALSE@@ENSC_HAVE_CRYPTO_TRUE@lib_internal_testsuite_crypto_LDFLAGS = -Wl,--as-needed
 vserver_start_vserver_start_bin_SOURCES = \
 						vserver-start/main.c \
 						vserver-start/mount.c \
@@ -2808,6 +2930,8 @@ lib/lib_libvserver_a-syscall_getspacemask.$(OBJEXT):  \
 	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-syscall_setmapping.$(OBJEXT):  \
 	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-syscall_unsetmapping.$(OBJEXT):  \
+	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT): lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-syscall_getsched.$(OBJEXT): lib/$(am__dirstamp) \
@@ -2822,6 +2946,10 @@ lib/lib_libvserver_a-syscall_tagcreate.$(OBJEXT): lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_a-syscall_tasktag.$(OBJEXT): lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-syscall_getbadness.$(OBJEXT):  \
+	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_a-syscall_setbadness.$(OBJEXT):  \
+	lib/$(am__dirstamp) lib/$(DEPDIR)/$(am__dirstamp)
 ensc_fmt/$(am__dirstamp):
 	@$(MKDIR_P) ensc_fmt
 	@: > ensc_fmt/$(am__dirstamp)
@@ -3448,6 +3576,8 @@ lib/lib_libvserver_la-syscall_getspacemask.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-syscall_setmapping.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-syscall_unsetmapping.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-syscall_schedinfo.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-syscall_getsched.lo: lib/$(am__dirstamp) \
@@ -3461,6 +3591,10 @@ lib/lib_libvserver_la-syscall_tagmigrate.lo: lib/$(am__dirstamp) \
 lib/lib_libvserver_la-syscall_tagcreate.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 lib/lib_libvserver_la-syscall_tasktag.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-syscall_getbadness.lo: lib/$(am__dirstamp) \
+	lib/$(DEPDIR)/$(am__dirstamp)
+lib/lib_libvserver_la-syscall_setbadness.lo: lib/$(am__dirstamp) \
 	lib/$(DEPDIR)/$(am__dirstamp)
 ensc_fmt/lib_libvserver_la-fmt-32.lo: ensc_fmt/$(am__dirstamp) \
 	ensc_fmt/$(DEPDIR)/$(am__dirstamp)
@@ -3696,6 +3830,18 @@ lib_internal/testsuite/copy.$(OBJEXT):  \
 lib_internal/testsuite/copy$(EXEEXT): $(lib_internal_testsuite_copy_OBJECTS) $(lib_internal_testsuite_copy_DEPENDENCIES) lib_internal/testsuite/$(am__dirstamp)
 	@rm -f lib_internal/testsuite/copy$(EXEEXT)
 	$(LINK) $(lib_internal_testsuite_copy_OBJECTS) $(lib_internal_testsuite_copy_LDADD) $(LIBS)
+lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.$(OBJEXT):  \
+	lib_internal/testsuite/$(am__dirstamp) \
+	lib_internal/testsuite/$(DEPDIR)/$(am__dirstamp)
+lib_internal/testsuite/crypto$(EXEEXT): $(lib_internal_testsuite_crypto_OBJECTS) $(lib_internal_testsuite_crypto_DEPENDENCIES) lib_internal/testsuite/$(am__dirstamp)
+	@rm -f lib_internal/testsuite/crypto$(EXEEXT)
+	$(lib_internal_testsuite_crypto_LINK) $(lib_internal_testsuite_crypto_OBJECTS) $(lib_internal_testsuite_crypto_LDADD) $(LIBS)
+lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.$(OBJEXT):  \
+	lib_internal/testsuite/$(am__dirstamp) \
+	lib_internal/testsuite/$(DEPDIR)/$(am__dirstamp)
+lib_internal/testsuite/crypto-speed$(EXEEXT): $(lib_internal_testsuite_crypto_speed_OBJECTS) $(lib_internal_testsuite_crypto_speed_DEPENDENCIES) lib_internal/testsuite/$(am__dirstamp)
+	@rm -f lib_internal/testsuite/crypto-speed$(EXEEXT)
+	$(lib_internal_testsuite_crypto_speed_LINK) $(lib_internal_testsuite_crypto_speed_OBJECTS) $(lib_internal_testsuite_crypto_speed_LDADD) $(LIBS)
 lib_internal/testsuite/filecfg-ml.$(OBJEXT):  \
 	lib_internal/testsuite/$(am__dirstamp) \
 	lib_internal/testsuite/$(DEPDIR)/$(am__dirstamp)
@@ -3913,12 +4059,14 @@ src/testsuite/chcontext-test.$(OBJEXT): src/testsuite/$(am__dirstamp) \
 src/testsuite/chcontext-test$(EXEEXT): $(src_testsuite_chcontext_test_OBJECTS) $(src_testsuite_chcontext_test_DEPENDENCIES) src/testsuite/$(am__dirstamp)
 	@rm -f src/testsuite/chcontext-test$(EXEEXT)
 	$(LINK) $(src_testsuite_chcontext_test_OBJECTS) $(src_testsuite_chcontext_test_LDADD) $(LIBS)
-src/testsuite/hashcalc.$(OBJEXT): src/testsuite/$(am__dirstamp) \
+src/testsuite/src_testsuite_hashcalc-hashcalc.$(OBJEXT):  \
+	src/testsuite/$(am__dirstamp) \
 	src/testsuite/$(DEPDIR)/$(am__dirstamp)
 src/testsuite/hashcalc$(EXEEXT): $(src_testsuite_hashcalc_OBJECTS) $(src_testsuite_hashcalc_DEPENDENCIES) src/testsuite/$(am__dirstamp)
 	@rm -f src/testsuite/hashcalc$(EXEEXT)
 	$(src_testsuite_hashcalc_LINK) $(src_testsuite_hashcalc_OBJECTS) $(src_testsuite_hashcalc_LDADD) $(LIBS)
-src/testsuite/hashcalc-plain.$(OBJEXT): src/testsuite/$(am__dirstamp) \
+src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.$(OBJEXT):  \
+	src/testsuite/$(am__dirstamp) \
 	src/testsuite/$(DEPDIR)/$(am__dirstamp)
 src/testsuite/hashcalc-plain$(EXEEXT): $(src_testsuite_hashcalc_plain_OBJECTS) $(src_testsuite_hashcalc_plain_DEPENDENCIES) src/testsuite/$(am__dirstamp)
 	@rm -f src/testsuite/hashcalc-plain$(EXEEXT)
@@ -3934,6 +4082,11 @@ src/testsuite/src_testsuite_vunify_functest-vunify-functest.$(OBJEXT):  \
 src/testsuite/vunify-functest$(EXEEXT): $(src_testsuite_vunify_functest_OBJECTS) $(src_testsuite_vunify_functest_DEPENDENCIES) src/testsuite/$(am__dirstamp)
 	@rm -f src/testsuite/vunify-functest$(EXEEXT)
 	$(LINK) $(src_testsuite_vunify_functest_OBJECTS) $(src_testsuite_vunify_functest_LDADD) $(LIBS)
+src/tunctl.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/tunctl$(EXEEXT): $(src_tunctl_OBJECTS) $(src_tunctl_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/tunctl$(EXEEXT)
+	$(src_tunctl_LINK) $(src_tunctl_OBJECTS) $(src_tunctl_LDADD) $(LIBS)
 src/vattribute.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vattribute$(EXEEXT): $(src_vattribute_OBJECTS) $(src_vattribute_DEPENDENCIES) src/$(am__dirstamp)
@@ -3969,7 +4122,7 @@ src/vdu.$(OBJEXT): src/$(am__dirstamp) src/$(DEPDIR)/$(am__dirstamp)
 src/vdu$(EXEEXT): $(src_vdu_OBJECTS) $(src_vdu_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vdu$(EXEEXT)
 	$(src_vdu_LINK) $(src_vdu_OBJECTS) $(src_vdu_LDADD) $(LIBS)
-src/vhashify.$(OBJEXT): src/$(am__dirstamp) \
+src/src_vhashify-vhashify.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vhashify$(EXEEXT): $(src_vhashify_OBJECTS) $(src_vhashify_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vhashify$(EXEEXT)
@@ -3984,6 +4137,11 @@ src/vlimit.$(OBJEXT): src/$(am__dirstamp) \
 src/vlimit$(EXEEXT): $(src_vlimit_OBJECTS) $(src_vlimit_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vlimit$(EXEEXT)
 	$(src_vlimit_LINK) $(src_vlimit_OBJECTS) $(src_vlimit_LDADD) $(LIBS)
+src/vmemctrl.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vmemctrl$(EXEEXT): $(src_vmemctrl_OBJECTS) $(src_vmemctrl_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vmemctrl$(EXEEXT)
+	$(src_vmemctrl_LINK) $(src_vmemctrl_OBJECTS) $(src_vmemctrl_LDADD) $(LIBS)
 src/vnamespace.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vnamespace$(EXEEXT): $(src_vnamespace_OBJECTS) $(src_vnamespace_DEPENDENCIES) src/$(am__dirstamp)
@@ -4023,6 +4181,11 @@ src/vshelper-sync.$(OBJEXT): src/$(am__dirstamp) \
 src/vshelper-sync$(EXEEXT): $(src_vshelper_sync_OBJECTS) $(src_vshelper_sync_DEPENDENCIES) src/$(am__dirstamp)
 	@rm -f src/vshelper-sync$(EXEEXT)
 	$(LINK) $(src_vshelper_sync_OBJECTS) $(src_vshelper_sync_LDADD) $(LIBS)
+src/vspace.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+src/vspace$(EXEEXT): $(src_vspace_OBJECTS) $(src_vspace_DEPENDENCIES) src/$(am__dirstamp)
+	@rm -f src/vspace$(EXEEXT)
+	$(src_vspace_LINK) $(src_vspace_OBJECTS) $(src_vspace_LDADD) $(LIBS)
 src/vsysctl.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/vsysctl$(EXEEXT): $(src_vsysctl_OBJECTS) $(src_vsysctl_DEPENDENCIES) src/$(am__dirstamp)
@@ -4379,6 +4542,7 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_a-syscall_enternamespace.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_fgetiattr.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_fsetiattr.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-syscall_getbadness.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_getccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_getcflags.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_getdlimit.$(OBJEXT)
@@ -4403,6 +4567,7 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_a-syscall_rlimit.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_rlimitstat.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_schedinfo.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-syscall_setbadness.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setcflags.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_setdlimit.$(OBJEXT)
@@ -4416,6 +4581,7 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_a-syscall_tagcreate.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_tagmigrate.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_tasktag.$(OBJEXT)
+	-rm -f lib/lib_libvserver_a-syscall_unsetmapping.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_virtstat.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-syscall_waitexit.$(OBJEXT)
 	-rm -f lib/lib_libvserver_a-tagopt2tag.$(OBJEXT)
@@ -4530,6 +4696,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-syscall_fgetiattr.lo
 	-rm -f lib/lib_libvserver_la-syscall_fsetiattr.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_fsetiattr.lo
+	-rm -f lib/lib_libvserver_la-syscall_getbadness.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-syscall_getbadness.lo
 	-rm -f lib/lib_libvserver_la-syscall_getccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_getccaps.lo
 	-rm -f lib/lib_libvserver_la-syscall_getcflags.$(OBJEXT)
@@ -4578,6 +4746,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-syscall_rlimitstat.lo
 	-rm -f lib/lib_libvserver_la-syscall_schedinfo.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_schedinfo.lo
+	-rm -f lib/lib_libvserver_la-syscall_setbadness.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-syscall_setbadness.lo
 	-rm -f lib/lib_libvserver_la-syscall_setccaps.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_setccaps.lo
 	-rm -f lib/lib_libvserver_la-syscall_setcflags.$(OBJEXT)
@@ -4604,6 +4774,8 @@ mostlyclean-compile:
 	-rm -f lib/lib_libvserver_la-syscall_tagmigrate.lo
 	-rm -f lib/lib_libvserver_la-syscall_tasktag.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_tasktag.lo
+	-rm -f lib/lib_libvserver_la-syscall_unsetmapping.$(OBJEXT)
+	-rm -f lib/lib_libvserver_la-syscall_unsetmapping.lo
 	-rm -f lib/lib_libvserver_la-syscall_virtstat.$(OBJEXT)
 	-rm -f lib/lib_libvserver_la-syscall_virtstat.lo
 	-rm -f lib/lib_libvserver_la-syscall_waitexit.$(OBJEXT)
@@ -4701,6 +4873,8 @@ mostlyclean-compile:
 	-rm -f lib_internal/testsuite/command.$(OBJEXT)
 	-rm -f lib_internal/testsuite/copy.$(OBJEXT)
 	-rm -f lib_internal/testsuite/filecfg-ml.$(OBJEXT)
+	-rm -f lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.$(OBJEXT)
+	-rm -f lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.$(OBJEXT)
 	-rm -f lib_internal/testsuite/lib_internal_testsuite_isnumber-isnumber.$(OBJEXT)
 	-rm -f lib_internal/testsuite/lib_internal_testsuite_isnumber_gnu-isnumber.$(OBJEXT)
 	-rm -f lib_internal/testsuite/lib_internal_testsuite_matchlist-matchlist.$(OBJEXT)
@@ -4742,13 +4916,15 @@ mostlyclean-compile:
 	-rm -f src/sigexec.$(OBJEXT)
 	-rm -f src/src_rpm_fake_la-rpm-fake.$(OBJEXT)
 	-rm -f src/src_rpm_fake_la-rpm-fake.lo
+	-rm -f src/src_vhashify-vhashify.$(OBJEXT)
 	-rm -f src/src_vkill-vkill.$(OBJEXT)
 	-rm -f src/testsuite/chbind-test.$(OBJEXT)
 	-rm -f src/testsuite/chcontext-test.$(OBJEXT)
-	-rm -f src/testsuite/hashcalc-plain.$(OBJEXT)
-	-rm -f src/testsuite/hashcalc.$(OBJEXT)
 	-rm -f src/testsuite/rpm-fake-test.$(OBJEXT)
+	-rm -f src/testsuite/src_testsuite_hashcalc-hashcalc.$(OBJEXT)
+	-rm -f src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.$(OBJEXT)
 	-rm -f src/testsuite/src_testsuite_vunify_functest-vunify-functest.$(OBJEXT)
+	-rm -f src/tunctl.$(OBJEXT)
 	-rm -f src/vattribute.$(OBJEXT)
 	-rm -f src/vclone.$(OBJEXT)
 	-rm -f src/vcontext.$(OBJEXT)
@@ -4756,9 +4932,9 @@ mostlyclean-compile:
 	-rm -f src/vdevmap.$(OBJEXT)
 	-rm -f src/vdlimit.$(OBJEXT)
 	-rm -f src/vdu.$(OBJEXT)
-	-rm -f src/vhashify.$(OBJEXT)
 	-rm -f src/vlimit.$(OBJEXT)
 	-rm -f src/vlogin.$(OBJEXT)
+	-rm -f src/vmemctrl.$(OBJEXT)
 	-rm -f src/vnamespace.$(OBJEXT)
 	-rm -f src/vps.$(OBJEXT)
 	-rm -f src/vreboot.$(OBJEXT)
@@ -4767,6 +4943,7 @@ mostlyclean-compile:
 	-rm -f src/vserver-info.$(OBJEXT)
 	-rm -f src/vserver-stat.$(OBJEXT)
 	-rm -f src/vshelper-sync.$(OBJEXT)
+	-rm -f src/vspace.$(OBJEXT)
 	-rm -f src/vsysctl.$(OBJEXT)
 	-rm -f src/vtag.$(OBJEXT)
 	-rm -f src/vuname.$(OBJEXT)
@@ -4904,6 +5081,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_enternamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_fgetiattr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_fsetiattr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_getccaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_getcflags.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_getdlimit.Po@am__quote@
@@ -4928,6 +5106,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_rlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_rlimitstat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setccaps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setcflags.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_setdlimit.Po@am__quote@
@@ -4941,6 +5120,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_tagcreate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_tagmigrate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_tasktag.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_virtstat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-syscall_waitexit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_a-tagopt2tag.Po@am__quote@
@@ -5002,6 +5182,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_enternamespace.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_fgetiattr.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_fsetiattr.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_getbadness.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_getccaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_getcflags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_getdlimit.Plo@am__quote@
@@ -5026,6 +5207,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_rlimit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_rlimitstat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setbadness.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setccaps.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setcflags.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_setdlimit.Plo@am__quote@
@@ -5039,6 +5221,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_tagcreate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_tagmigrate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_tasktag.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_unsetmapping.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_virtstat.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-syscall_waitexit.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib/$(DEPDIR)/lib_libvserver_la-tagopt2tag.Plo@am__quote@
@@ -5128,6 +5311,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/command.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/copy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/filecfg-ml.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_isnumber-isnumber.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_isnumber_gnu-isnumber.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_matchlist-matchlist.Po@am__quote@
@@ -5168,7 +5353,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/showperm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/sigexec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/src_rpm_fake_la-rpm-fake.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/src_vhashify-vhashify.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/src_vkill-vkill.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/tunctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vattribute.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vclone.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vcontext.Po@am__quote@
@@ -5176,9 +5363,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdevmap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vdu.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vhashify.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vlimit.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vlogin.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vmemctrl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vnamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vps.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vreboot.Po@am__quote@
@@ -5187,6 +5374,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vserver-info.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vserver-stat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vshelper-sync.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vspace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vsysctl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vtag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vuname.Po@am__quote@
@@ -5194,9 +5382,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/vwait.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/chbind-test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/chcontext-test.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/hashcalc-plain.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/hashcalc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/rpm-fake-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/testsuite/$(DEPDIR)/src_testsuite_vunify_functest-vunify-functest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/escaperoot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/forkbomb.Po@am__quote@
@@ -6518,6 +6706,20 @@ lib/lib_libvserver_a-syscall_setmapping.obj: lib/syscall_setmapping.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_setmapping.obj `if test -f 'lib/syscall_setmapping.c'; then $(CYGPATH_W) 'lib/syscall_setmapping.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_setmapping.c'; fi`
 
+lib/lib_libvserver_a-syscall_unsetmapping.o: lib/syscall_unsetmapping.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_unsetmapping.o -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Tpo -c -o lib/lib_libvserver_a-syscall_unsetmapping.o `test -f 'lib/syscall_unsetmapping.c' || echo '$(srcdir)/'`lib/syscall_unsetmapping.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_unsetmapping.c' object='lib/lib_libvserver_a-syscall_unsetmapping.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_unsetmapping.o `test -f 'lib/syscall_unsetmapping.c' || echo '$(srcdir)/'`lib/syscall_unsetmapping.c
+
+lib/lib_libvserver_a-syscall_unsetmapping.obj: lib/syscall_unsetmapping.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_unsetmapping.obj -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Tpo -c -o lib/lib_libvserver_a-syscall_unsetmapping.obj `if test -f 'lib/syscall_unsetmapping.c'; then $(CYGPATH_W) 'lib/syscall_unsetmapping.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_unsetmapping.c'; fi`
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_unsetmapping.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_unsetmapping.c' object='lib/lib_libvserver_a-syscall_unsetmapping.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_unsetmapping.obj `if test -f 'lib/syscall_unsetmapping.c'; then $(CYGPATH_W) 'lib/syscall_unsetmapping.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_unsetmapping.c'; fi`
+
 lib/lib_libvserver_a-syscall_schedinfo.o: lib/syscall_schedinfo.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_schedinfo.o -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo -c -o lib/lib_libvserver_a-syscall_schedinfo.o `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c
 @am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_schedinfo.Po
@@ -6615,6 +6817,34 @@ lib/lib_libvserver_a-syscall_tasktag.obj: lib/syscall_tasktag.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_tasktag.c' object='lib/lib_libvserver_a-syscall_tasktag.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_tasktag.obj `if test -f 'lib/syscall_tasktag.c'; then $(CYGPATH_W) 'lib/syscall_tasktag.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_tasktag.c'; fi`
+
+lib/lib_libvserver_a-syscall_getbadness.o: lib/syscall_getbadness.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_getbadness.o -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Tpo -c -o lib/lib_libvserver_a-syscall_getbadness.o `test -f 'lib/syscall_getbadness.c' || echo '$(srcdir)/'`lib/syscall_getbadness.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_getbadness.c' object='lib/lib_libvserver_a-syscall_getbadness.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_getbadness.o `test -f 'lib/syscall_getbadness.c' || echo '$(srcdir)/'`lib/syscall_getbadness.c
+
+lib/lib_libvserver_a-syscall_getbadness.obj: lib/syscall_getbadness.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_getbadness.obj -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Tpo -c -o lib/lib_libvserver_a-syscall_getbadness.obj `if test -f 'lib/syscall_getbadness.c'; then $(CYGPATH_W) 'lib/syscall_getbadness.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_getbadness.c'; fi`
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_getbadness.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_getbadness.c' object='lib/lib_libvserver_a-syscall_getbadness.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_getbadness.obj `if test -f 'lib/syscall_getbadness.c'; then $(CYGPATH_W) 'lib/syscall_getbadness.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_getbadness.c'; fi`
+
+lib/lib_libvserver_a-syscall_setbadness.o: lib/syscall_setbadness.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_setbadness.o -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Tpo -c -o lib/lib_libvserver_a-syscall_setbadness.o `test -f 'lib/syscall_setbadness.c' || echo '$(srcdir)/'`lib/syscall_setbadness.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setbadness.c' object='lib/lib_libvserver_a-syscall_setbadness.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_setbadness.o `test -f 'lib/syscall_setbadness.c' || echo '$(srcdir)/'`lib/syscall_setbadness.c
+
+lib/lib_libvserver_a-syscall_setbadness.obj: lib/syscall_setbadness.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_a-syscall_setbadness.obj -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Tpo -c -o lib/lib_libvserver_a-syscall_setbadness.obj `if test -f 'lib/syscall_setbadness.c'; then $(CYGPATH_W) 'lib/syscall_setbadness.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_setbadness.c'; fi`
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Tpo lib/$(DEPDIR)/lib_libvserver_a-syscall_setbadness.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setbadness.c' object='lib/lib_libvserver_a-syscall_setbadness.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_a-syscall_setbadness.obj `if test -f 'lib/syscall_setbadness.c'; then $(CYGPATH_W) 'lib/syscall_setbadness.c'; else $(CYGPATH_W) '$(srcdir)/lib/syscall_setbadness.c'; fi`
 
 ensc_fmt/lib_libvserver_a-fmt-32.o: ensc_fmt/fmt-32.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_a_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ensc_fmt/lib_libvserver_a-fmt-32.o -MD -MP -MF ensc_fmt/$(DEPDIR)/lib_libvserver_a-fmt-32.Tpo -c -o ensc_fmt/lib_libvserver_a-fmt-32.o `test -f 'ensc_fmt/fmt-32.c' || echo '$(srcdir)/'`ensc_fmt/fmt-32.c
@@ -8919,6 +9149,13 @@ lib/lib_libvserver_la-syscall_setmapping.lo: lib/syscall_setmapping.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_setmapping.lo `test -f 'lib/syscall_setmapping.c' || echo '$(srcdir)/'`lib/syscall_setmapping.c
 
+lib/lib_libvserver_la-syscall_unsetmapping.lo: lib/syscall_unsetmapping.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_unsetmapping.lo -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_la-syscall_unsetmapping.Tpo -c -o lib/lib_libvserver_la-syscall_unsetmapping.lo `test -f 'lib/syscall_unsetmapping.c' || echo '$(srcdir)/'`lib/syscall_unsetmapping.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_la-syscall_unsetmapping.Tpo lib/$(DEPDIR)/lib_libvserver_la-syscall_unsetmapping.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_unsetmapping.c' object='lib/lib_libvserver_la-syscall_unsetmapping.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_unsetmapping.lo `test -f 'lib/syscall_unsetmapping.c' || echo '$(srcdir)/'`lib/syscall_unsetmapping.c
+
 lib/lib_libvserver_la-syscall_schedinfo.lo: lib/syscall_schedinfo.c
 @am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_schedinfo.lo -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Tpo -c -o lib/lib_libvserver_la-syscall_schedinfo.lo `test -f 'lib/syscall_schedinfo.c' || echo '$(srcdir)/'`lib/syscall_schedinfo.c
 @am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Tpo lib/$(DEPDIR)/lib_libvserver_la-syscall_schedinfo.Plo
@@ -8967,6 +9204,20 @@ lib/lib_libvserver_la-syscall_tasktag.lo: lib/syscall_tasktag.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_tasktag.c' object='lib/lib_libvserver_la-syscall_tasktag.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_tasktag.lo `test -f 'lib/syscall_tasktag.c' || echo '$(srcdir)/'`lib/syscall_tasktag.c
+
+lib/lib_libvserver_la-syscall_getbadness.lo: lib/syscall_getbadness.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_getbadness.lo -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_la-syscall_getbadness.Tpo -c -o lib/lib_libvserver_la-syscall_getbadness.lo `test -f 'lib/syscall_getbadness.c' || echo '$(srcdir)/'`lib/syscall_getbadness.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_la-syscall_getbadness.Tpo lib/$(DEPDIR)/lib_libvserver_la-syscall_getbadness.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_getbadness.c' object='lib/lib_libvserver_la-syscall_getbadness.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_getbadness.lo `test -f 'lib/syscall_getbadness.c' || echo '$(srcdir)/'`lib/syscall_getbadness.c
+
+lib/lib_libvserver_la-syscall_setbadness.lo: lib/syscall_setbadness.c
+@am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib/lib_libvserver_la-syscall_setbadness.lo -MD -MP -MF lib/$(DEPDIR)/lib_libvserver_la-syscall_setbadness.Tpo -c -o lib/lib_libvserver_la-syscall_setbadness.lo `test -f 'lib/syscall_setbadness.c' || echo '$(srcdir)/'`lib/syscall_setbadness.c
+@am__fastdepCC_TRUE@	mv -f lib/$(DEPDIR)/lib_libvserver_la-syscall_setbadness.Tpo lib/$(DEPDIR)/lib_libvserver_la-syscall_setbadness.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib/syscall_setbadness.c' object='lib/lib_libvserver_la-syscall_setbadness.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/lib_libvserver_la-syscall_setbadness.lo `test -f 'lib/syscall_setbadness.c' || echo '$(srcdir)/'`lib/syscall_setbadness.c
 
 ensc_fmt/lib_libvserver_la-fmt-32.lo: ensc_fmt/fmt-32.c
 @am__fastdepCC_TRUE@	$(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_libvserver_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ensc_fmt/lib_libvserver_la-fmt-32.lo -MD -MP -MF ensc_fmt/$(DEPDIR)/lib_libvserver_la-fmt-32.Tpo -c -o ensc_fmt/lib_libvserver_la-fmt-32.lo `test -f 'ensc_fmt/fmt-32.c' || echo '$(srcdir)/'`ensc_fmt/fmt-32.c
@@ -9066,6 +9317,34 @@ lib/testsuite/lib_testsuite_personality-personality.obj: lib/testsuite/personali
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_testsuite_personality_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib/testsuite/lib_testsuite_personality-personality.obj `if test -f 'lib/testsuite/personality.c'; then $(CYGPATH_W) 'lib/testsuite/personality.c'; else $(CYGPATH_W) '$(srcdir)/lib/testsuite/personality.c'; fi`
 
+lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.o: lib_internal/testsuite/crypto.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_CFLAGS) $(CFLAGS) -MT lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.o -MD -MP -MF lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Tpo -c -o lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.o `test -f 'lib_internal/testsuite/crypto.c' || echo '$(srcdir)/'`lib_internal/testsuite/crypto.c
+@am__fastdepCC_TRUE@	mv -f lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Tpo lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib_internal/testsuite/crypto.c' object='lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_CFLAGS) $(CFLAGS) -c -o lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.o `test -f 'lib_internal/testsuite/crypto.c' || echo '$(srcdir)/'`lib_internal/testsuite/crypto.c
+
+lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.obj: lib_internal/testsuite/crypto.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_CFLAGS) $(CFLAGS) -MT lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.obj -MD -MP -MF lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Tpo -c -o lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.obj `if test -f 'lib_internal/testsuite/crypto.c'; then $(CYGPATH_W) 'lib_internal/testsuite/crypto.c'; else $(CYGPATH_W) '$(srcdir)/lib_internal/testsuite/crypto.c'; fi`
+@am__fastdepCC_TRUE@	mv -f lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Tpo lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto-crypto.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib_internal/testsuite/crypto.c' object='lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_CFLAGS) $(CFLAGS) -c -o lib_internal/testsuite/lib_internal_testsuite_crypto-crypto.obj `if test -f 'lib_internal/testsuite/crypto.c'; then $(CYGPATH_W) 'lib_internal/testsuite/crypto.c'; else $(CYGPATH_W) '$(srcdir)/lib_internal/testsuite/crypto.c'; fi`
+
+lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.o: lib_internal/testsuite/crypto-speed.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_speed_CFLAGS) $(CFLAGS) -MT lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.o -MD -MP -MF lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Tpo -c -o lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.o `test -f 'lib_internal/testsuite/crypto-speed.c' || echo '$(srcdir)/'`lib_internal/testsuite/crypto-speed.c
+@am__fastdepCC_TRUE@	mv -f lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Tpo lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib_internal/testsuite/crypto-speed.c' object='lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_speed_CFLAGS) $(CFLAGS) -c -o lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.o `test -f 'lib_internal/testsuite/crypto-speed.c' || echo '$(srcdir)/'`lib_internal/testsuite/crypto-speed.c
+
+lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.obj: lib_internal/testsuite/crypto-speed.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_speed_CFLAGS) $(CFLAGS) -MT lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.obj -MD -MP -MF lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Tpo -c -o lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.obj `if test -f 'lib_internal/testsuite/crypto-speed.c'; then $(CYGPATH_W) 'lib_internal/testsuite/crypto-speed.c'; else $(CYGPATH_W) '$(srcdir)/lib_internal/testsuite/crypto-speed.c'; fi`
+@am__fastdepCC_TRUE@	mv -f lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Tpo lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_crypto_speed-crypto-speed.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='lib_internal/testsuite/crypto-speed.c' object='lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(lib_internal_testsuite_crypto_speed_CFLAGS) $(CFLAGS) -c -o lib_internal/testsuite/lib_internal_testsuite_crypto_speed-crypto-speed.obj `if test -f 'lib_internal/testsuite/crypto-speed.c'; then $(CYGPATH_W) 'lib_internal/testsuite/crypto-speed.c'; else $(CYGPATH_W) '$(srcdir)/lib_internal/testsuite/crypto-speed.c'; fi`
+
 lib_internal/testsuite/lib_internal_testsuite_isnumber-isnumber.o: lib_internal/testsuite/isnumber.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_internal_testsuite_isnumber_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT lib_internal/testsuite/lib_internal_testsuite_isnumber-isnumber.o -MD -MP -MF lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_isnumber-isnumber.Tpo -c -o lib_internal/testsuite/lib_internal_testsuite_isnumber-isnumber.o `test -f 'lib_internal/testsuite/isnumber.c' || echo '$(srcdir)/'`lib_internal/testsuite/isnumber.c
 @am__fastdepCC_TRUE@	mv -f lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_isnumber-isnumber.Tpo lib_internal/testsuite/$(DEPDIR)/lib_internal_testsuite_isnumber-isnumber.Po
@@ -9150,6 +9429,34 @@ lib_internal/testsuite/lib_internal_testsuite_sigbus_gnu-sigbus.obj: lib_interna
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(lib_internal_testsuite_sigbus_gnu_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o lib_internal/testsuite/lib_internal_testsuite_sigbus_gnu-sigbus.obj `if test -f 'lib_internal/testsuite/sigbus.c'; then $(CYGPATH_W) 'lib_internal/testsuite/sigbus.c'; else $(CYGPATH_W) '$(srcdir)/lib_internal/testsuite/sigbus.c'; fi`
 
+src/testsuite/src_testsuite_hashcalc-hashcalc.o: src/testsuite/hashcalc.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_CFLAGS) $(CFLAGS) -MT src/testsuite/src_testsuite_hashcalc-hashcalc.o -MD -MP -MF src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Tpo -c -o src/testsuite/src_testsuite_hashcalc-hashcalc.o `test -f 'src/testsuite/hashcalc.c' || echo '$(srcdir)/'`src/testsuite/hashcalc.c
+@am__fastdepCC_TRUE@	mv -f src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Tpo src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/testsuite/hashcalc.c' object='src/testsuite/src_testsuite_hashcalc-hashcalc.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_CFLAGS) $(CFLAGS) -c -o src/testsuite/src_testsuite_hashcalc-hashcalc.o `test -f 'src/testsuite/hashcalc.c' || echo '$(srcdir)/'`src/testsuite/hashcalc.c
+
+src/testsuite/src_testsuite_hashcalc-hashcalc.obj: src/testsuite/hashcalc.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_CFLAGS) $(CFLAGS) -MT src/testsuite/src_testsuite_hashcalc-hashcalc.obj -MD -MP -MF src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Tpo -c -o src/testsuite/src_testsuite_hashcalc-hashcalc.obj `if test -f 'src/testsuite/hashcalc.c'; then $(CYGPATH_W) 'src/testsuite/hashcalc.c'; else $(CYGPATH_W) '$(srcdir)/src/testsuite/hashcalc.c'; fi`
+@am__fastdepCC_TRUE@	mv -f src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Tpo src/testsuite/$(DEPDIR)/src_testsuite_hashcalc-hashcalc.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/testsuite/hashcalc.c' object='src/testsuite/src_testsuite_hashcalc-hashcalc.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_CFLAGS) $(CFLAGS) -c -o src/testsuite/src_testsuite_hashcalc-hashcalc.obj `if test -f 'src/testsuite/hashcalc.c'; then $(CYGPATH_W) 'src/testsuite/hashcalc.c'; else $(CYGPATH_W) '$(srcdir)/src/testsuite/hashcalc.c'; fi`
+
+src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.o: src/testsuite/hashcalc-plain.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_plain_CFLAGS) $(CFLAGS) -MT src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.o -MD -MP -MF src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Tpo -c -o src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.o `test -f 'src/testsuite/hashcalc-plain.c' || echo '$(srcdir)/'`src/testsuite/hashcalc-plain.c
+@am__fastdepCC_TRUE@	mv -f src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Tpo src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/testsuite/hashcalc-plain.c' object='src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_plain_CFLAGS) $(CFLAGS) -c -o src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.o `test -f 'src/testsuite/hashcalc-plain.c' || echo '$(srcdir)/'`src/testsuite/hashcalc-plain.c
+
+src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.obj: src/testsuite/hashcalc-plain.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_plain_CFLAGS) $(CFLAGS) -MT src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.obj -MD -MP -MF src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Tpo -c -o src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.obj `if test -f 'src/testsuite/hashcalc-plain.c'; then $(CYGPATH_W) 'src/testsuite/hashcalc-plain.c'; else $(CYGPATH_W) '$(srcdir)/src/testsuite/hashcalc-plain.c'; fi`
+@am__fastdepCC_TRUE@	mv -f src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Tpo src/testsuite/$(DEPDIR)/src_testsuite_hashcalc_plain-hashcalc-plain.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/testsuite/hashcalc-plain.c' object='src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_testsuite_hashcalc_plain_CFLAGS) $(CFLAGS) -c -o src/testsuite/src_testsuite_hashcalc_plain-hashcalc-plain.obj `if test -f 'src/testsuite/hashcalc-plain.c'; then $(CYGPATH_W) 'src/testsuite/hashcalc-plain.c'; else $(CYGPATH_W) '$(srcdir)/src/testsuite/hashcalc-plain.c'; fi`
+
 src/testsuite/src_testsuite_vunify_functest-vunify-functest.o: src/testsuite/vunify-functest.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_testsuite_vunify_functest_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/testsuite/src_testsuite_vunify_functest-vunify-functest.o -MD -MP -MF src/testsuite/$(DEPDIR)/src_testsuite_vunify_functest-vunify-functest.Tpo -c -o src/testsuite/src_testsuite_vunify_functest-vunify-functest.o `test -f 'src/testsuite/vunify-functest.c' || echo '$(srcdir)/'`src/testsuite/vunify-functest.c
 @am__fastdepCC_TRUE@	mv -f src/testsuite/$(DEPDIR)/src_testsuite_vunify_functest-vunify-functest.Tpo src/testsuite/$(DEPDIR)/src_testsuite_vunify_functest-vunify-functest.Po
@@ -9163,6 +9470,20 @@ src/testsuite/src_testsuite_vunify_functest-vunify-functest.obj: src/testsuite/v
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/testsuite/vunify-functest.c' object='src/testsuite/src_testsuite_vunify_functest-vunify-functest.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_testsuite_vunify_functest_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/testsuite/src_testsuite_vunify_functest-vunify-functest.obj `if test -f 'src/testsuite/vunify-functest.c'; then $(CYGPATH_W) 'src/testsuite/vunify-functest.c'; else $(CYGPATH_W) '$(srcdir)/src/testsuite/vunify-functest.c'; fi`
+
+src/src_vhashify-vhashify.o: src/vhashify.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_vhashify_CFLAGS) $(CFLAGS) -MT src/src_vhashify-vhashify.o -MD -MP -MF src/$(DEPDIR)/src_vhashify-vhashify.Tpo -c -o src/src_vhashify-vhashify.o `test -f 'src/vhashify.c' || echo '$(srcdir)/'`src/vhashify.c
+@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/src_vhashify-vhashify.Tpo src/$(DEPDIR)/src_vhashify-vhashify.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vhashify.c' object='src/src_vhashify-vhashify.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_vhashify_CFLAGS) $(CFLAGS) -c -o src/src_vhashify-vhashify.o `test -f 'src/vhashify.c' || echo '$(srcdir)/'`src/vhashify.c
+
+src/src_vhashify-vhashify.obj: src/vhashify.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_vhashify_CFLAGS) $(CFLAGS) -MT src/src_vhashify-vhashify.obj -MD -MP -MF src/$(DEPDIR)/src_vhashify-vhashify.Tpo -c -o src/src_vhashify-vhashify.obj `if test -f 'src/vhashify.c'; then $(CYGPATH_W) 'src/vhashify.c'; else $(CYGPATH_W) '$(srcdir)/src/vhashify.c'; fi`
+@am__fastdepCC_TRUE@	mv -f src/$(DEPDIR)/src_vhashify-vhashify.Tpo src/$(DEPDIR)/src_vhashify-vhashify.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/vhashify.c' object='src/src_vhashify-vhashify.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(src_vhashify_CFLAGS) $(CFLAGS) -c -o src/src_vhashify-vhashify.obj `if test -f 'src/vhashify.c'; then $(CYGPATH_W) 'src/vhashify.c'; else $(CYGPATH_W) '$(srcdir)/src/vhashify.c'; fi`
 
 src/src_vkill-vkill.o: src/vkill.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(src_vkill_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/src_vkill-vkill.o -MD -MP -MF src/$(DEPDIR)/src_vkill-vkill.Tpo -c -o src/src_vkill-vkill.o `test -f 'src/vkill.c' || echo '$(srcdir)/'`src/vkill.c
@@ -9948,6 +10269,8 @@ doc_doc:			$(doc_gen_DOCS)
 @HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@				@-rm -f '$@.tmp' '$@'
 @HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@				$(XSLTPROC) $(XSLT_FLAGS) $(XSLT_AMFLAGS) -o '$@.tmp' "$(STYLESHEET)" "$<"
 @HAVE_XSLTPROC_TRUE@@HAVE_XSLTP_FALSE@				@mv -f '$@.tmp' '$@'
+
+man/vserver-build.8:	man/.vserver-build.8.pathsubst.stamp
 
 scripts/util-vserver-vars:	scripts/.util-vserver-vars.pathsubst.stamp
 scripts/legacy/vps:		scripts/legacy/.vps.pathsubst.stamp

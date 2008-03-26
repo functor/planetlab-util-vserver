@@ -1,4 +1,4 @@
-# $Id: vserver-build.functions 2571 2007-07-29 16:55:06Z dhozac $	--*- sh -*--
+# $Id: vserver-build.functions 2704 2008-03-16 03:30:22Z dhozac $	--*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -54,7 +54,8 @@ function populateDev
 {
     local spec
 
-    mkdir -p -m755 "$VDIR"/dev/pts
+    mkdir -p -m755 "$VDIR"/dev
+    mkdir -m755 "$VDIR"/dev/pts
 
     while read spec; do
 	makeDevEntry "$VDIR"/dev $spec
@@ -202,6 +203,9 @@ exist already; please try to use '--force', or remove them manually."
 
     mkdir -p -m755 "$VDIR"
     $_SETATTR --~barrier "$VDIR"
+    $_SETATTR --barrier "$VDIR"/.. || colwarn $"\
+WARNING: could not set the barrier attribute on '$VDIR/..',
+         please set it manually."
     base._addGeneratedFile "$VDIR"
     
     mkdir -p -m755 "$SETUP_CONFDIR"/apps "$VDIR"/etc
@@ -255,4 +259,28 @@ Context '$SETUP_CONTEXT' is already in use. Please select another one."
 function base.setSuccess
 {
     __BASE_SUCCESS=1
+}
+
+function startSleepingGuest
+{
+    local guest="$1"
+    local timeout="${2:-15}"
+    $_VSERVER "$guest" start --rescue --rescue-init bash -c "
+	exec  > /dev/null
+	exec 2> /dev/null
+	trap 'kill -s 9 -- -1; exit 0' INT
+	i=0
+	while [ \$i -lt $timeout ]; do
+	    sleep 1
+	    let ++i
+	done
+	kill -s 15 -- -1
+	sleep 1
+	kill -s 9 -- -1"
+}
+
+function stopSleepingGuest
+{
+    local guest="$1"
+    $_VSERVER "$guest" stop --rescue-init
 }

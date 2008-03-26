@@ -1,4 +1,4 @@
-// $Id: val2text.hc 1544 2004-05-08 01:27:48Z ensc $    --*- c -*--
+// $Id: val2text.hc 2651 2008-01-03 15:33:01Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -67,10 +67,11 @@
 									\
     if (idx==-1) {							\
       size_t	i;							\
-      for (i=0; i<sizeof(*val)*8 && (*val&(1<<i))==0; ++i) {}		\
-      del_val = (1<<i);							\
+      for (i=0; i<sizeof(*val)*8 && (*val&((TYPE)1<<i))==0; ++i) {}	\
+      del_val = ((TYPE)1<<i);						\
       idx     = searchValue(del_val, map, map_len);			\
     }									\
-    *val &= ~del_val;							\
+    if (idx!=-1)							\
+      *val &= ~del_val;							\
     return idx;								\
   }

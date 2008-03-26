@@ -1,4 +1,4 @@
-// $Id: main.c 2589 2007-08-16 03:06:50Z dhozac $    --*- c -*--
+// $Id: main.c 2678 2008-02-16 22:09:30Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -98,7 +98,7 @@ initLock()
   ptr  = Xmemcpy(ptr, ".startup",  sizeof(".startup"));
   *ptr = '\0';
 
-  if (!lockfile(&fd, tmp, LOCK_EX, 30, &err)) {
+  if (!lockfile(&fd, tmp, F_LOCK, 30, &err)) {
     WRITE_MSG(2, "vserver.start: failed to lock '");
     WRITE_STR(2, tmp);
     WRITE_MSG(2, "': ");

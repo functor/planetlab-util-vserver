@@ -1,4 +1,4 @@
-// $Id$    --*- c -*--
+// $Id: sys_unshare.h 2674 2008-01-27 07:55:13Z dhozac $    --*- c -*--
 
 // Copyright (C) 2007 Daniel Hokka Zakrisson
 //  
@@ -81,7 +81,7 @@ _syscall1(int, sys_unshare, int, flags)
 inline static UNUSED ALWAYSINLINE
 int sys_unshare(int flags)
 {
-  return syscall(__NR_sys_clone, flags);
+  return syscall(__NR_sys_unshare, flags);
 }
 #endif
 

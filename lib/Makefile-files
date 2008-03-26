@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2589 2007-08-16 03:06:50Z dhozac $  -*- makefile -*-
+## $Id: Makefile-files 2619 2007-10-13 12:13:30Z dhozac $  -*- makefile -*-
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  
@@ -130,6 +130,8 @@ lib_v21_SRCS =			lib/syscall_setccaps-v21.hc \
 				lib/syscall_ctxmigrate-v21.hc \
 				lib/syscall_setmapping.c \
 				lib/syscall_setmapping-v21.hc \
+				lib/syscall_unsetmapping.c \
+				lib/syscall_unsetmapping-v21.hc \
 				lib/syscall_schedinfo.c \
 				lib/syscall_schedinfo-v21.hc \
 				lib/syscall_getccaps-v21.hc \
@@ -150,7 +152,11 @@ lib_v23_SRCS =			lib/syscall_tagmigrate-v23.hc \
 				lib/syscall_tagmigrate.c \
 				lib/syscall_tagcreate.c \
 				lib/syscall_tasktag-v23.hc \
-				lib/syscall_tasktag.c
+				lib/syscall_tasktag.c \
+				lib/syscall_getbadness.c \
+				lib/syscall_getbadness-v23.hc \
+				lib/syscall_setbadness.c \
+				lib/syscall_setbadness-v23.hc
 
 if ENSC_HAVE_C99_COMPILER
 lib_v13_SRCS +=			lib/syscall_adddlimit-v13.hc \

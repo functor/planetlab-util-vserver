@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE database SYSTEM "configuration.dtd" []>
-<!-- $Id: configuration.xml 2599 2007-08-26 21:30:50Z dhozac $ -->
+<!-- $Id: configuration.xml 2692 2008-03-01 00:22:34Z dhozac $ -->
 
 <database xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:noNamespaceSchemaLocation="file:configuration.xsd">
@@ -666,6 +666,11 @@ called as <command>chbind &lt;options&gt; mount ...</command>. See
 <optionref>fstab</optionref> also.
       </description>
     </data>
+    <scalar name="badness">
+      <description>
+Contains the bias to be applied to processes in this guest when the OOM-killer strikes.
+      </description>
+    </scalar>
     
     <collection name="apps">
       <collection name="init">
@@ -780,7 +785,34 @@ pair per line.
 	  </description>
 	</hash>
       </collection>
-      
+
+      <collection name="vdevmap">
+        <collection name="x" type="sybmolic">
+          <description>'x' is an arbitrary name, replace it with e.g. device names</description>
+          <boolean name="open">
+            <description>When this file exists, the device can be opened</description>
+          </boolean>
+          <boolean name="create">
+            <description>When this file exists, the device can be created (if the guest has <optionref ref="bcapabilities">CAP_MKNOD</optionref>)</description>
+          </boolean>
+          <boolean id="guest-vdevmap-remap" name="remap">
+            <description>
+When this file exists, <optionref ref="guest-vdevmap-target">target</optionref> will
+have to exist as well and opening the device will in fact open the target device
+            </description>
+          </boolean>
+          <scalar name="flags">
+            <description>This file will let you specify unimplemented flags manually</description>
+          </scalar>
+          <scalar name="device">
+            <description>Contains the name of a device node</description>
+          </scalar>
+          <scalar id="guest-vdevmap-target" name="target">
+            <description>Contains the device node of the target node to open instead of the device when <optionref ref="guest-vdevmap-remap">remap</optionref> is set</description>
+          </scalar>
+        </collection>
+      </collection>
+  
       <collection name="vshelper">
 	<scalar name="sync-timeout">
 	  <default>30</default>
@@ -1309,6 +1341,47 @@ When this file exists, the steps which setup and destroy a VLAN
 interface will be executed.
 	  </description>
 	</boolean>
+	<boolean name="tun" since="0.30.215">
+	  <description>
+When this file exists, a tun interface will be created when the guest
+starts, and removed when the guest stops.
+	  </description>
+	</boolean>
+	<boolean name="tap" since="0.30.215">
+	  <description>
+When this file exists, a tap interface will be created when the guest
+starts, and removed when the guest stops.
+	  </description>
+	</boolean>
+	<boolean name="nocsum" since="0.30.215">
+	  <description>
+If a tun or tap interface is created, the presence of this file will
+disable checksumming on it.
+	  </description>
+	</boolean>
+	<boolean name="shared" since="0.30.215">
+	  <description>
+When this file exists, the tun/tap interface created will not be
+owned by this particular guest.
+	  </description>
+	</boolean>
+	<scalar name="uid" since="0.30.215">
+	  <description>
+Sets the ownership of tun/tap interfaces. Requires a user id, not a
+username.
+	  </description>
+	</scalar>
+	<scalar name="gid" since="0.30.215">
+	  <description>
+Sets the group ownership of tun/tap interfaces. Requires a group id,
+not a group name.
+	  </description>
+	</scalar>
+	<scalar name="linktype" since="0.30.215">
+	  <description>
+Sets the link type of tun/tap interfaces.
+	  </description>
+	</scalar>
       </collection>
     </collection>
     
@@ -1399,7 +1472,11 @@ tools and can *not* be modified.
     </collection>
 
     <collection name="dlimits" since="0.30.210">
-      <collection name="dlimit" type="symbolic">
+      <description>
+Note that all entries are required for the disk limit to be applied.
+      </description>
+      <collection name="x" type="symbolic">
+        <description>'x' is an arbitrary name, replace it with e.g. integers</description>
         <scalar name="directory">
           <description>The directory to which the limit should be applied</description>
         </scalar>
@@ -1428,6 +1505,9 @@ tools and can *not* be modified.
     </collection>
 
     <collection name="cpuset" since="0.30.211">
+      <description>
+Puts the guest in a cpuset. Required entries are name, cpus and mems.
+      </description>
       <scalar name="name">
         <description>The name of the cpuset for this vserver</description>
       </scalar>
@@ -1512,6 +1592,18 @@ tools and can *not* be modified.
           <description>The bucket to apply these settings to</description>
         </scalar>
       </collection>
+    </collection>
+
+    <collection name="spaces" since="0.30.215">
+      <boolean name="pid">
+        <description>Enables pid virtualization for this guest</description>
+      </boolean>
+      <boolean name="net">
+        <description>Enable network virtualization for this guest</description>
+      </boolean>
+      <scalar name="mask">
+        <description>Contains a mask of spaces to clone/enter</description>
+      </scalar>
     </collection>
   </collection>
   </database>

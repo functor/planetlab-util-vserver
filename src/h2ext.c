@@ -1,4 +1,4 @@
-// $Id$
+// $Id: h2ext.c 2674 2008-01-27 07:55:13Z dhozac $
 
 // Copyright (C) 2007 Daniel Hokka Zakrisson <daniel@hozac.com>
 //  
@@ -208,17 +208,6 @@ byteswap(void *p, size_t len)
     buf[len - i - 1] = buf[i];
     buf[i] = tmp;
   }
-}
-
-static inline ALWAYSINLINE void
-WRITE_INT(int fd, int num)
-{
-  char   buf[sizeof(num)*3+2];
-  size_t l;
-
-  l = utilvserver_fmt_long(buf,num);
-
-  Vwrite(fd, buf, l);
 }
 
 static int

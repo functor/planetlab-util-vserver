@@ -1,16 +1,16 @@
-// $Id: matchlist-initmanually.c 1954 2005-03-22 14:59:46Z ensc $    --*- c -*--
+// $Id: matchlist-initmanually.c 2608 2007-09-03 07:42:17Z ensc $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
-//  
+//
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation; version 2 of the License.
-//  
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//  
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
@@ -42,13 +42,13 @@ extern bool	Global_doRenew() PURE CONST;
 
 static void
 readExcludeListFD(int fd,
-		  char ***files,  size_t *size,
+		  char const ***files,  size_t *size,
 		  char **buf)
 {
   off_t		len;
   size_t	lines = 0;
   char		*ptr;
-  
+
   if (fd==-1) return; // todo: message on verbose?
 
   len = Elseek(fd, 0, SEEK_END);
@@ -80,7 +80,7 @@ readExcludeListFD(int fd,
       do {
 	*tmp-- = '\0';
       } while (tmp>ptr && *tmp==' ');
-      
+
       if (tmp>ptr) (*files)[(*size)++] = ptr;
     }
 
@@ -90,7 +90,7 @@ readExcludeListFD(int fd,
 
 static void
 readExcludeList(char const *filename,
-		char ***files,  size_t *size,
+		char const ***files,  size_t *size,
 		char **buf)
 {
   int		fd = open(filename, O_RDONLY);
@@ -102,10 +102,10 @@ readExcludeList(char const *filename,
 
 static void
 getConfigfileList(char const *vserver,
-		  char ***files, size_t *size,
+		  char const ***files, size_t *size,
 		  char **buf)
 {
-  char 		tmpname[] = "/tmp/vunify.XXXXXX";
+  char		tmpname[] = "/tmp/vunify.XXXXXX";
   pid_t		pid;
   int		fd = Emkstemp(tmpname);
 
@@ -115,7 +115,7 @@ getConfigfileList(char const *vserver,
   if (pid==0) {
     char	*args[10];
     char const	**ptr = (char const **)(args)+0;
-    
+
     Edup2(fd, 1);
     //Eclose(0);
     if (fd!=1) Eclose(fd);
@@ -129,7 +129,7 @@ getConfigfileList(char const *vserver,
   }
   else {
     int		status;
-    
+
     if (TEMP_FAILURE_RETRY(wait4(pid, &status, 0,0))==-1) {
       perror("wait4()");
       exit(1);
@@ -151,11 +151,11 @@ MatchList_initManually(struct MatchList *list,
 		       char const *vdir, char const *exclude_file)
 {
   char			*buf[2] = { 0,0 };
-  
-  char			**fixed_files = 0;
+
+  char const		**fixed_files = 0;
   size_t		fixed_count   = 0;
 
-  char			**expr_files  = 0;
+  char const		**expr_files  = 0;
   size_t		expr_count    = 0;
   size_t		len;
 
@@ -167,7 +167,7 @@ MatchList_initManually(struct MatchList *list,
   }
   else
     len  = strlen(vdir);
-  
+
   if (Global_getVerbosity()>=1) {
     WRITE_MSG(1, "Initializing exclude-list for ");
     Vwrite(1, vdir, len);

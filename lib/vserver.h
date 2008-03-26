@@ -1,4 +1,4 @@
-/* $Id: vserver.h 2589 2007-08-16 03:06:50Z dhozac $
+/* $Id: vserver.h 2705 2008-03-17 08:55:11Z dhozac $
 
 *  Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 *   
@@ -211,6 +211,8 @@
 #define VC_VXC_ADMIN_MAPPER		0x00200000ull
 #define VC_VXC_ADMIN_CLOOP		0x00400000ull
 
+#define VC_VXC_KTHREAD			0x01000000ull
+
 
 // the scheduler flags
 #define VC_VXSM_FILL_RATE		0x0001
@@ -237,6 +239,7 @@
 
 #define VC_NXF_SINGLE_IP		0x00000100ull
 #define VC_NXF_LBACK_REMAP		0x00000200ull
+#define VC_NXF_LBACK_ALLOW		0x00000400ull
 
 #define VC_NXF_HIDE_NETIF		0x02000000ull
 #define VC_NXF_HIDE_LBACK		0x04000000ull
@@ -249,6 +252,8 @@
 
 
 // the network capabilities
+#define VC_NXC_TUN_CREATE		0x00000001ull
+
 #define VC_NXC_RAW_ICMP			0x00000100ull
 
 
@@ -306,7 +311,15 @@
 #ifndef CLONE_NEWIPC
 #  define CLONE_NEWIPC			0x08000000
 #endif
-
+#ifndef CLONE_NEWUSER
+#  define CLONE_NEWUSER			0x10000000
+#endif
+#ifndef CLONE_NEWPID
+#  define CLONE_NEWPID			0x20000000
+#endif
+#ifndef CLONE_NEWNET
+#  define CLONE_NEWNET			0x40000000
+#endif
 
 
 #define VC_BAD_PERSONALITY		((uint_least32_t)(-1))
@@ -632,20 +645,26 @@ extern "C" {
       uint16_t			vna_flags;
       uint16_t			vna_prefix;
       uint16_t			vna_parent;
-      union {
-	struct {
-	  struct in_addr	ip;
-	  struct in_addr	mask;
-	} ipv4;
-	struct {
-	  struct in6_addr	ip;
-	  struct in6_addr	mask;
-	} ipv6;
-      } u;
-#define vna_v4_ip	u.ipv4.ip
-#define vna_v4_mask	u.ipv4.mask
-#define vna_v6_ip	u.ipv6.ip
-#define vna_v6_mask	u.ipv6.mask
+      struct {
+	union {
+	  struct in_addr	v4;
+	  struct in6_addr	v6;
+	} ip;
+	union {
+	  struct in_addr	v4;
+	  struct in6_addr	v6;
+	} ip2;
+	union {
+	  struct in_addr	v4;
+	  struct in6_addr	v6;
+	} mask;
+      } s;
+#define vna_v4_ip	s.ip.v4
+#define vna_v4_ip2	s.ip2.v4
+#define vna_v4_mask	s.mask.v4
+#define vna_v6_ip	s.ip.v6
+#define vna_v6_ip2	s.ip2.v6
+#define vna_v6_mask	s.mask.v6
   };
 
   struct vc_net_flags {
@@ -813,6 +832,10 @@ extern "C" {
 
     /* misc. syscalls */
   int		vc_set_mapping(xid_t xid, const char *device, const char *target, uint32_t flags);
+  int		vc_unset_mapping(xid_t xid, const char *device, const char *target, uint32_t flags);
+
+  int		vc_get_badness(xid_t xid, int64_t *badness);
+  int		vc_set_badness(xid_t xid, int64_t badness);
 
 
   /** \brief    Information about parsing errors

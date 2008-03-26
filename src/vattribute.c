@@ -1,4 +1,4 @@
-// $Id: vattribute.c 2403 2006-11-24 23:06:08Z dhozac $    --*- c -*--
+// $Id: vattribute.c 2695 2008-03-01 01:15:31Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -21,6 +21,7 @@
 #endif
 
 #include "util.h"
+#include "attribute-util.h"
 #include <lib/vserver.h>
 
 #include <getopt.h>
@@ -40,6 +41,7 @@
 #define CMD_FLAG		0x2003
 #define CMD_SECURE		0x2004
 #define CMD_BCAP		0x2005
+#define CMD_GET			0x2006
 
 int			wrapper_exit_code = 1;
 
@@ -49,6 +51,7 @@ CMDLINE_OPTIONS[] = {
   { "version",    no_argument,       0, CMD_VERSION },
   { "xid",        required_argument, 0, CMD_XID },
   { "set",        no_argument,       0, CMD_SET },
+  { "get",        no_argument,       0, CMD_GET },
   { "ccap",       required_argument, 0, CMD_CCAP },
   { "bcap",       required_argument, 0, CMD_BCAP },
   { "flag",       required_argument, 0, CMD_FLAG },
@@ -60,6 +63,7 @@ struct Arguments {
     xid_t		xid;
     struct vc_ctx_flags flags;
     struct vc_ctx_caps  caps;
+    int			mode;
 };
 
 static void
@@ -68,10 +72,12 @@ showHelp(int fd, char const *cmd, int res)
   WRITE_MSG(fd, "Usage:\n    ");
   WRITE_STR(fd, cmd);
   WRITE_MSG(fd,
-	    " --set [--xid <xid>] [--bcap [~!]<cap>] [--ccap [~!]<cap>] [--flag [~!]<flag>] [--secure] -- [<program> <args>*]\n"
+	    " [--xid <xid>] {--get|--set [--bcap [~!]<cap>] [--ccap [~!]<cap>]\n"
+	    "    [--flag [~!]<flag>] [--secure]} -- [<program> <args>*]\n"
 	    "\n"
-	    " --bcap <cap>   ...  system  capability to be added\n"
-	    " --cap  <cap>   ...  context capability to be added\n"
+	    " --bcap <cap>   ...  system  capability to be set\n"
+	    " --ccap <cap>   ...  context capability to be set\n"
+	    " --flag <flag>  ...  context flag to be set\n"
 	    "\n"
 	    "Please report bugs to " PACKAGE_BUGREPORT "\n");
 
@@ -82,7 +88,7 @@ static void
 showVersion()
 {
   WRITE_MSG(1,
-	    "vattribute " VERSION " -- sets attributes of vservers\n"
+	    "vattribute " VERSION " -- sets/gets attributes of vservers\n"
 	    "This program is part of " PACKAGE_STRING "\n\n"
 	    "Copyright (C) 2004 Enrico Scholz\n"
 	    VERSION_COPYRIGHT_DISCLAIMER);
@@ -151,14 +157,31 @@ parseSecure(struct vc_ctx_flags UNUSED * flags,
   flags->mask     = VC_VXF_HIDE_NETIF;
 }
 
+static int
+printAttrs(struct Arguments *args)
+{
+  struct vc_ctx_flags flags;
+  struct vc_ctx_caps caps;
+
+  Evc_get_cflags(args->xid, &flags);
+  Evc_get_ccaps(args->xid, &caps);
+
+  print_bitfield(1, bcap, "bcapabilities", &caps.bcaps);
+  print_bitfield(1, ccap, "ccapabilities", &caps.ccaps);
+  print_bitfield(1, cflag, "flags", &flags.flagword);
+
+  return 0;
+}
+
 int main(int argc, char *argv[])
 {
   struct Arguments		args = {
     .xid   = VC_NOCTX,
     .flags = { .flagword = 0, .mask = 0 },
     .caps  = { .bcaps = 0, .bmask = 0,.ccaps = 0, .cmask = 0 },
+    .mode  = CMD_SET,
   };
-  
+
   while (1) {
     int		c = getopt_long(argc, argv, "+", CMDLINE_OPTIONS, 0);
     if (c==-1) break;
@@ -166,7 +189,8 @@ int main(int argc, char *argv[])
     switch (c) {
       case CMD_HELP	:  showHelp(1, argv[0], 0);
       case CMD_VERSION	:  showVersion();
-      case CMD_SET	:  break; // default op currently
+      case CMD_SET	:  args.mode = CMD_SET;                    break;
+      case CMD_GET	:  args.mode = CMD_GET;                    break;
       case CMD_XID	:  args.xid = Evc_xidopt2xid(optarg,true); break;
       case CMD_FLAG	:  parseFlags(optarg, &args.flags);        break;
       case CMD_CCAP	:  parseCCaps(optarg, &args.caps);         break;
@@ -183,16 +207,25 @@ int main(int argc, char *argv[])
 
   if (args.xid==VC_NOCTX) args.xid = Evc_get_task_xid(0);
 
-  if ((args.caps.cmask || args.caps.bmask) &&
-      vc_set_ccaps(args.xid, &args.caps)==-1)
-    perror(ENSC_WRAPPERS_PREFIX "vc_set_ccaps()");
-  else if (args.flags.mask &&
-	   vc_set_cflags(args.xid, &args.flags)==-1)
-    perror(ENSC_WRAPPERS_PREFIX "vc_set_flags()");
-  else if (optind<argc)
-    EexecvpD(argv[optind], argv+optind);
-  else
-    return EXIT_SUCCESS;
+  if (args.mode == CMD_SET) {
+    if ((args.caps.cmask || args.caps.bmask) &&
+	vc_set_ccaps(args.xid, &args.caps)==-1)
+      perror(ENSC_WRAPPERS_PREFIX "vc_set_ccaps()");
+    else if (args.flags.mask &&
+	     vc_set_cflags(args.xid, &args.flags)==-1)
+      perror(ENSC_WRAPPERS_PREFIX "vc_set_flags()");
+    else if (optind<argc)
+      EexecvpD(argv[optind], argv+optind);
+    else
+      return EXIT_SUCCESS;
+  }
+  else if (args.mode == CMD_GET) {
+    printAttrs(&args);
+    if (optind<argc)
+      EexecvpD(argv[optind], argv+optind);
+    else
+      return EXIT_SUCCESS;
+  }
 
   return EXIT_FAILURE;
 }

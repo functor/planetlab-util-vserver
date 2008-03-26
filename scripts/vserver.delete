@@ -1,5 +1,5 @@
 #! /bin/bash
-# $Id: vserver.delete 2577 2007-08-05 18:36:56Z dhozac $
+# $Id: vserver.delete 2654 2008-01-08 16:49:17Z dhozac $
 
 # Copyright (C) 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -32,4 +32,4 @@ isVserverRunning "$VSERVER_DIR" &&
 base.init
 pkgmgmt.initVariables
 $_RM -rf "`$_VSERVER_INFO "$vserver" VDIR 1`" "$VSERVER_DIR" "$PKGCFGDIR" \
-	"`$_READLINK "$VSERVER_DIR/cache"`"
+	"`$_READLINK "$VSERVER_DIR/cache" 2>/dev/null`"

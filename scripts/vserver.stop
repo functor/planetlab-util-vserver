@@ -1,4 +1,4 @@
-# $Id: vserver.stop 2602 2007-08-27 10:53:04Z dhozac $  --*- sh -*--
+# $Id: vserver.stop 2704 2008-03-16 03:30:22Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -48,6 +48,14 @@ trap "cleanup" EXIT
 
 OPTION_FORCE_SYNC=1
 
+while test "$#" -gt 0; do
+    case "$1" in
+	(--rescue-init)	shift; _IS_FAKEINIT=1;;
+	(--)		shift; break;;
+	(-*)		panic $"vserver ... stop: unknown option '$1'";;
+    esac
+done
+
 set -e
 generateOptions   "$VSERVER_DIR"
 set +e
@@ -62,6 +70,8 @@ cd "$VSERVER_DIR"/vdir/
 
 test -z "$OPTION_DEFAULTTTY" || setDefaultTTY "$VSERVER_DIR"
 
+$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag !SC_HELPER
+
 fail=
 initWait	   "$VSERVER_DIR" "$S_CONTEXT" vwait_statdir
 if test -n "$_IS_FAKEINIT" && \
@@ -72,6 +82,7 @@ if test -n "$_IS_FAKEINIT" && \
 elif $_VSERVER_INFO - FEATURE migrate; then
     "${NICE_CMD[@]}" \
     "${CHBIND_CMD[@]}" \
+    "$_VSPACE" --enter "$S_CONTEXT" "${OPTS_VSPACE[@]}" -- \
     "$_VTAG" --migrate "${OPTS_VTAG_ENTER[@]}" --silent -- \
     $_VCONTEXT $SILENT_OPT --migrate --chroot --xid "$S_CONTEXT" -- \
     "${INITCMD_STOP[@]}" || fail=1
@@ -85,10 +96,10 @@ else
 fi
 
 # Remove persistent so those contexts can be stopped
-$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag ~persistent 2>/dev/null || :
-if $_VSERVER_INFO -q "$S_CONTEXT" XIDTYPE static &&
+$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag !persistent 2>/dev/null || :
+if $_VSERVER_INFO -q "$N_CONTEXT" XIDTYPE static &&
    $_VSERVER_INFO - FEATURE vnet; then
-    $_NATTRIBUTE --set --nid "$S_CONTEXT" --flag ~persistent 2>/dev/null || :
+    $_NATTRIBUTE --set --nid "$N_CONTEXT" --flag !persistent 2>/dev/null || :
 fi
 
 vshelper.doStopSync
@@ -103,7 +114,9 @@ sendKillSequence   "$S_CONTEXT" "${INITKILL_SEQ[@]}"
     echo $"Vserver '$VSERVER_DIR' still running unexpectedly; please investigate it manually..." >&2
 
 execScriptlets    "$VSERVER_DIR" "$VSERVER_NAME" post-stop
-    
+
+handleDeviceMap --unset "$S_CONTEXT" "$VSERVER_DIR/apps/vdevmap"
+
 umountVserver     "$VSERVER_DIR" || :
 disableInterfaces "$VSERVER_DIR"
 

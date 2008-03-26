@@ -1,4 +1,4 @@
-// $Id: util-lockfile.c 1616 2004-07-02 23:34:52Z ensc $    --*- c -*--
+// $Id: util-lockfile.c 2678 2008-02-16 22:09:30Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -61,8 +61,8 @@ lockfile(int *fd, char const *filename, int op, long timeout,
     alarm(timeout);
   }
 
-  errstr = "flock()";
-  while (flock(*fd, op)==-1) {
+  errstr = "lockf()";
+  while (lockf(*fd, op, 0)==-1) {
     if ((errno!=EINTR && errno!=EINTR) || alarm_flag) goto err;
   }
 

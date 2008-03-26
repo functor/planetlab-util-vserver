@@ -1,4 +1,4 @@
-// $Id$    --*- c -*--
+// $Id: matchlist.c 2680 2008-02-21 22:33:21Z ensc $    --*- c -*--
 
 // Copyright (C) 2007 Daniel Hokka Zakrisson
 //  
@@ -28,7 +28,7 @@
 
 int wrapper_exit_code = 255;
 
-int main(int argc, char *argv[])
+int main()
 {
 	struct MatchList list;
 	static const char *files[] = {
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 		return 0;
 	else {
 		char buf[(sizeof(result) * 8) / 3 + 2], *ptr;
-		ssize_t i;
+		size_t i;
 		WRITE_MSG(1, "result = ");
 		buf[sizeof(buf) - 1] = '\0';
 		for (i = 0, ptr = buf + sizeof(buf) - 2; i < (sizeof(result) * 8); i += 3, ptr--)

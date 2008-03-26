@@ -1,4 +1,4 @@
-# $Id: vserver.start 2599 2007-08-26 21:30:50Z dhozac $  --*- sh -*--
+# $Id: vserver.start 2664 2008-01-20 07:56:23Z dhozac $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -105,6 +105,8 @@ pushd "$VSERVER_DIR" >/dev/null
 execScriptlets   "$VSERVER_DIR" "$VSERVER_NAME" initialize
 popd >/dev/null
 
+fsckAllFS        "$VSERVER_DIR"
+
 mountRootFS      "$VSERVER_DIR"
 generateOptions  "$VSERVER_DIR"
 
@@ -116,9 +118,11 @@ setDiskLimits    "$VSERVER_DIR"
 
 enableInterfaces "$VSERVER_DIR" && have_interfaces=1
 
-mountVserver "$VSERVER_DIR"     && is_mounted=1
-prepareInit  "$VSERVER_DIR"
-addtoCPUSET  "$VSERVER_DIR"
+mountVserver     "$VSERVER_DIR" && is_mounted=1
+prepareInit      "$VSERVER_DIR"
+addtoCPUSET      "$VSERVER_DIR"
+
+handleDeviceMap --set "$S_CONTEXT" "$VSERVER_DIR/apps/vdevmap"
 
 pushd "$VSERVER_DIR"/vdir/ >/dev/null
 execScriptlets   "$VSERVER_DIR" "$VSERVER_NAME" pre-start
@@ -133,13 +137,16 @@ if $_VSERVER_INFO - FEATURE migrate; then
     "${CHBIND_CMD[@]}" \
     $_EXEC_ULIMIT "$VSERVER_DIR"/ulimits \
     $_VTAG       --create "${OPTS_VTAG_CREATE[@]}" --silent -- \
+    $_VSPACE     --new "${OPTS_VSPACE[@]}" -- \
     $_VCONTEXT   --create "${OPTS_VCONTEXT_CREATE[@]}" -- \
     ${OPTION_STRACE:+$_STRACE -fF -o /tmp/vserver-start.$$} \
     ${USE_VNAMESPACE:+$_VNAMESPACE --set -- } \
+    $_VSPACE     --set "${OPTS_VSPACE[@]}" -- \
     $_VLIMIT     --dir "$VSERVER_DIR"/rlimits --missingok -- \
     $_VSCHED     --xid self --force "${OPTS_VSCHED[@]}" -- \
     $_VSYSCTL    --xid self --dir "$VSERVER_DIR"/sysctl --missingok -- \
     $_VUNAME     --xid self --dir "$VSERVER_DIR"/uts    --missingok -- \
+    $_VMEMCTRL   --xid self --set "${OPTS_VMEMCTRL[@]}" -- \
     "${VSERVER_EXTRA_CMDS[@]}" \
     $_VUNAME     --xid self --set -t context="$VSERVER_DIR" -- \
     $_VATTRIBUTE --set "${OPTS_VATTRIBUTE[@]}" -- \

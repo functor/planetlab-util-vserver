@@ -1,4 +1,4 @@
-# $Id: vserver.functions 2599 2007-08-26 21:30:50Z dhozac $  --*- sh -*--
+# $Id: vserver.functions 2702 2008-03-11 10:07:26Z hollow $  --*- sh -*--
 
 # Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 #  
@@ -45,6 +45,8 @@ declare -a OPTS_VSCHED=()
 declare -a OPTS_ENV=()
 declare -a OPTS_VTAG_CREATE=()
 declare -a OPTS_VTAG_ENTER=()
+declare -a OPTS_VMEMCTRL=()
+declare -a OPTS_VSPACE=()
 
 declare -a STOPCMD_PREPARE=()
 
@@ -64,6 +66,7 @@ _IS_FAKEINIT=
 INITSTYLE=sysv
 
 S_CONTEXT=
+N_CONTEXT=
 
 SILENT_OPT=
 
@@ -106,9 +109,7 @@ function _generateChbindOptions
     f="$vdir"/interfaces/lback
     getFileValue lback "$f"
 
-    getFileValue nid "$vdir/ncontext" "$vdir/context"
-    
-    CHBIND_CMD=( $_CHBIND $SILENT_OPT --secure ${nid:+--nid "$nid"}
+    CHBIND_CMD=( $_CHBIND $SILENT_OPT --secure ${N_CONTEXT:+--nid "$N_CONTEXT"}
 		 ${bcast:+--bcast "$bcast"} ${lback:+--lback "$lback"}
 		)
 
@@ -314,9 +315,18 @@ function _generateInitOptions
 
 	(xgentoo)
 	    test -n "$RUNLEVEL_START" || RUNLEVEL_START="default"
+	    RC_PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-	    INITCMD_START=( env TERM=$TERM /lib/rcscripts/sh/init-vserver.sh "$RUNLEVEL_START" )
-	    INITCMD_STOP=( env -i TERM=$TERM RUNLEVEL=0 /sbin/rc shutdown )
+	    if test -x "$vdir/vdir/lib/rcscripts/sh/init-vserver.sh"; then
+	    	RC_WRAP=/lib/rcscripts/sh/init-vserver.sh
+	    elif test -x "$vdir/vdir/lib/rc/sh/init-vserver.sh"; then
+	    	RC_WRAP=/lib/rc/sh/init-vserver.sh
+	    else
+	    	panic "init-vserver.sh not found; aborting"
+	    fi
+
+	    INITCMD_START=( env TERM=$TERM $RC_WRAP "$RUNLEVEL_START" )
+	    INITCMD_STOP=( env -i PATH=$RC_PATH TERM=$TERM RUNLEVEL=0 /sbin/rc shutdown )
 	    INITCMD_PREPARE=( $_FAKE_RUNLEVEL 3 /var/run/utmp )
 	    ;;
 
@@ -509,6 +519,33 @@ create them before starting the vserver and use the 'nodev' flag then"
     return 0
 }
 
+function _getTunInfo
+{
+    local iface="$1"
+
+    test -e "$iface/tun" -o -e "$iface/tap" || return 1
+    test ! -e "$iface/tun"     || echo --tun
+    test ! -e "$iface/tap"     || echo --tap
+    test ! -e "$iface/nocsum"  || echo --~checksum
+    test   -e "$iface/shared"  || echo --nid-failure-ok "$N_CONTEXT"
+    if test -e "$iface/uid"; then
+	local uid
+	getFileValue uid "$iface/uid"
+	echo --uid "$uid"
+    fi
+    if test -e "$iface/gid"; then
+	local gid
+	getFileValue gid "$iface/gid"
+	echo --gid "$gid"
+    fi
+    if test -e "$iface/linktype"; then
+	local linktype
+	getFileValue linktype "$iface/linktype"
+	echo --linktype "$linktype"
+    fi
+    return 0
+}
+
 ## Usage: _processSingleInterface <interface-directory>
 function _processSingleInterface
 {
@@ -568,21 +605,27 @@ function _processSingleInterface
 
 	if ! test -e "$iface"/indirect; then
 	    # XXX: IPv6 hack
-	    use_bcast="broadcast ${bcast:-+}"
+	    local use_bcast="broadcast ${bcast:-+}"
 	    echo "$ip" | $_GREP -q : && use_bcast=
+
+	    local tun_info
+	    if tun_info=$(_getTunInfo "$iface"); then
+		_addInterfaceCmd TUNCTL "$dev" $tun_info
+	    fi
+
 	    _addInterfaceCmd IP_ADDR  "$ip${prefix:+/$prefix}" $use_bcast ${name:+label "$dev:$name"} dev "$dev"
 	    #_addInterfaceCmd IP_ROUTE "$ip${prefix:+/$prefix}" dev "$dev"
 	    _addInterfaceCmd IP_LINK  "$dev" $up
-	elif ! test -n "$ctx"; then
+	elif ! test -n "$N_CONTEXT"; then
 	    echo $"Using 'dummy' (indirect) for interface '$dev' requires a fixed context number; dynamic ctx are not supported" >&2
 	    return 1
 	else
-	    test -z "$mac" || _generateMac mac "$(basename $iface)" "$ctx" || return 1
+	    test -z "$mac" || _generateMac mac "$(basename $iface)" "$N_CONTEXT" || return 1
 	    _addInterfaceCmd MODPROBE dummy "$dev"
 	    _addInterfaceCmd IP_LINK  dev dummy0 address "$mac"
 	    _addInterfaceCmd NAMEIF   "$dev" "$mac"
 	    _addInterfaceCmd IP_ADDR  "$ip${prefix:+/$prefix}" dev "$dev"
-	    test -z "$extip" || _addInterfaceCmd IPTABLES "$ip${prefix:+/$prefix}" ${name:+label "$dev:$name"} "$ctx" "$extip"
+	    test -z "$extip" || _addInterfaceCmd IPTABLES "$ip${prefix:+/$prefix}" ${name:+label "$dev:$name"} "$N_CONTEXT" "$extip"
 	fi
 
 	break
@@ -593,9 +636,11 @@ function _processSingleInterface
 function _generateInterfaceOptions
 {
     local iface
-    local ctx
 
-    test ! -e "$1"/context || read ctx <"$1"/context
+    # XXX: This is here instead of in _generateChbindOptions
+    #      to avoid a circular dependency
+    getFileValue N_CONTEXT "$1/ncontext" "$1/context"
+    test -n "$N_CONTEXT" -o -z "$S_CONTEXT" || N_CONTEXT="$S_CONTEXT"
 
     for iface in "$1/interfaces/"*; do
         test   -d "$iface"          || continue
@@ -604,17 +649,6 @@ function _generateInterfaceOptions
         _processSingleInterface "$iface"
     done
     _HAVE_INTERFACE_OPTIONS=1
-}
-
-function _generateTagOptions
-{
-    local vdir="$1"
-    local tag
-
-    getFileValue tag "$vdir/tag" "$vdir/context" || return 0
-
-    OPTS_VTAG_CREATE=( --tag "$tag" )
-    OPTS_VTAG_ENTER=( --tag "$tag" )
 }
 
 function enableInterfaces
@@ -645,6 +679,11 @@ function enableInterfaces
 	    IP_ADDR_FLUSH)	$_IP addr  flush "$@";;
 	    IP_LINK)		$_IP link  set   "$@";;
 	    IP_ROUTE)		$_IP route add   "$@";;
+	    TUNCTL)
+		local dev="$1"
+		shift
+		$_TUNCTL --persist "$@" "$dev"
+		;;
 	    *)			echo "Unknown interface-command type '$type'" >&2; false;;
 	esac
 
@@ -680,11 +719,55 @@ function disableInterfaces
 	    IP_ADDR_FLUSH)	;;
 	    IP_LINK)		;; ## Ignore the link-down command for now
 	    IP_ROUTE)		$_IP route del "$@";;
+	    TUNCTL)		$_TUNCTL --~persist "$1";;
 	    *)			echo "Unknown interface-command type '$type'" >&2; false;;
 	esac
     done
 
     unlock 1
+}
+
+function _generateTagOptions
+{
+    local vdir="$1"
+    local tag
+
+    getFileValue tag "$vdir/tag" "$vdir/context"
+    test -n "$tag" || return 0
+
+    OPTS_VTAG_CREATE=( --tag "$tag" )
+    OPTS_VTAG_ENTER=( --tag "$tag" )
+}
+
+function _generateMemctrlOptions
+{
+    local vdir="$1"
+    local badness
+
+    getFileValue badness "$vdir/badness"
+    test -n "$badness" || return 0
+
+    OPTS_VMEMCTRL=( --badness "$badness" )
+}
+
+function _generateSpaceOptions
+{
+    local vdir="$1"
+    local d="$vdir"/spaces
+
+    test ! -e "$d"/pid || \
+      OPTS_VSPACE=( "${OPTS_VSPACE[@]}" --pid )
+
+    test ! -e "$d"/net || {
+	OPTS_VSPACE=( "${OPTS_VSPACE[@]}" --net )
+	# network context and namespace don't make much sense
+	_HAVE_CHBIND_OPTIONS=1
+	CHBIND_CMD=()
+    }
+
+    local mask
+    getFileValue mask "$d"/mask || \
+      OPTS_VSPACE=( "${OPTS_VSPACE[@]}" --mask "$mask" )
 }
 
 ## Usage: prepareInit <vserver-directory>
@@ -731,6 +814,8 @@ function generateOptions
     _generateScheduleOptions    "$1"
     _generatePersonalityOptions "$1"
     _generateTagOptions         "$1"
+    _generateMemctrlOptions     "$1"
+    _generateSpaceOptions       "$1"
 
     if test -n "$_IS_FAKEINIT"; then
 	CHCONTEXT_INIT_OPTS=( --disconnect --flag fakeinit )
@@ -890,6 +975,22 @@ function umountVserver
     popd >/dev/null           || return 1
 
     test -n "$is_ok"
+}
+
+function fsckAllFS
+{
+    local cfgdir=$1
+    local fstab="$cfgdir"/fstab
+    local FSTAB_FILE
+    local fsck_exitcode
+
+    test -e "$fstab" || return 0
+
+    export FSTAB_FILE="$fstab"
+    $_FSCK -s -n -A -T
+    fsck_exitcode=$?
+    test "$fsck_exitcode" -eq 0 -o \
+         "$fsck_exitcode" -eq 1 || return $fsck_exitcode
 }
 
 ## Usage: waitForSync <vserver> <context> <vshelper-fifo-varname>
@@ -1215,22 +1316,27 @@ function _namespaceCleanup
     local root=$($_VSERVER_INFO "$1" VDIR 1)
     local -a list
     local -a skip
-    local tmp
+    local i
+    local j
 
     getFileArray skip "$vdir"/namespace-cleanup-skip \
 	"$__CONFDIR"/.defaults/namespace-cleanup-skip || :
 
     # these are things that have to be accessible post-cleanup
-    for tmp in "$root" "$__SBINDIR" "$__PKGLIBDIR" "$vdir" \
+    for i in "$root" "$__SBINDIR" "$__PKGLIBDIR" "$vdir" \
 	"$__PKGSTATEDIR" "$__LOCKDIR" /usr/local /tmp "${skip[@]}"; do
-	while test -n "$tmp"; do
-	    list=( "${list[@]}" "$tmp" )
-	    tmp="${tmp%/*}"
+	local real=`getPhysicalDir "$i"`
+	test "$i" != "$real" || real=
+	for j in "$i" "$real"; do
+	    while test -n "$j"; do
+		list=( "${list[@]}" "$j" )
+		j="${j%/*}"
+	    done
 	done
     done
 
     local -a list_umount
-    while read dev path opts; do
+    while read -r dev path opts; do
 	test -n "$path" || continue
 	for i in "$root" /dev /proc; do
 	    test "${path#$i}" != "$path" && continue 2
@@ -1247,13 +1353,15 @@ function _namespaceCleanup
     done
 }
 
-function loadDeviceMap
+function handleDeviceMap
 {
-    local xid="$1"
-    local dir="$2"
+    local op="$1"
+    local xid="$2"
+    local dir="$3"
     local flags device target
 
     test -d "$dir" || return 0
+    test -n "$xid" || return 0
 
     for i in "$dir"/*; do
 	test -d "$i" || continue
@@ -1269,6 +1377,6 @@ function loadDeviceMap
 	vdevmap_opts=(  "${vdevmap_opts[@]}" ${flags:+--flags "$flags"} \
 			${device:+--device "$device"} ${target:+--target "$target"} )
 
-	$_VDEVMAP --xid "$xid" "${vdevmap_opts[@]}" || return $?
+	$_VDEVMAP --xid "$xid" "$op" "${vdevmap_opts[@]}" || return $?
     done
 }
