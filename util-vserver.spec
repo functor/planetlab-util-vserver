@@ -23,7 +23,7 @@
 Summary:	Linux virtual server utilities
 Name:		util-vserver
 Version:	%ver
-Release:	%release_func 0%subver
+Release:	%release_func 1%subver
 License:	GPL
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
