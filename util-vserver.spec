@@ -13,13 +13,13 @@
 
 %global _localstatedir	%_var
 
-%global fullver		0.30.215
+%global fullver 0.30.215
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
 # for module-tools
 %global module_version_varname fullver
-%global taglevel 1
+%global taglevel 2
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -358,6 +358,11 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Apr 03 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.215-1 util-vserver-0.30.215-2
+- no semantic change
+- only changes in the specfile to make the module compliant with module-tag 
+- which is actually used for setting this very tag
+
 * Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
 - updated URLs
 - get rid of e2fsprogs requirement
