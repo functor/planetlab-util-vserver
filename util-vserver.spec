@@ -13,17 +13,20 @@
 
 %global _localstatedir	%_var
 
-%global ver		%( echo 0.30.215 | sed 's/-.*//' )
-%global subver		%( s=`echo 0.30.215 | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 %global fullver		0.30.215
+%global ver		%( echo %fullver | sed 's/-.*//' )
+%global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
+# for module-tools
+%global module_version_varname fullver
+%global taglevel 1
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
 Version:	%ver
-Release:	%release_func 1%subver
+Release:	%taglevel
 License:	GPL
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
