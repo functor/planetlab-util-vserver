@@ -19,7 +19,7 @@
 
 # for module-tools
 %global module_version_varname fullver
-%global taglevel 2
+%global taglevel 3
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -358,6 +358,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Fri Apr 11 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - util-vserver-0.30.215-3
+- FC4 fix.
+
 * Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
 - updated URLs
 - get rid of e2fsprogs requirement
