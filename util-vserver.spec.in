@@ -194,8 +194,10 @@ MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
 
+%if "%{?distroname}" != "fc4"
 %check || :
 %__make check
+%endif
 
 
 %clean
