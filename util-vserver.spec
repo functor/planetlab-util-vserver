@@ -19,7 +19,7 @@
 
 # for module-tools
 %global module_version_varname fullver
-%global taglevel 3
+%global taglevel 4
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -360,6 +360,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Apr 24 2008 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.215-4
+- tweak build for fc4
+
 * Fri Apr 11 2008 Daniel Hokka Zakrisson <daniel@hozac.com> - util-vserver-0.30.215-3
 - FC4 fix.
 
