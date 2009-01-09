@@ -213,6 +213,8 @@
 
 #define VC_VXC_KTHREAD			0x01000000ull
 
+#define VC_VXC_PROC_WRITE		0x80000000ull
+
 
 // the scheduler flags
 #define VC_VXSM_FILL_RATE		0x0001
