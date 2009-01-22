@@ -19,7 +19,7 @@
 
 # for module-tools
 %global module_version_varname fullver
-%global taglevel 5
+%global taglevel 6
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -360,6 +360,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Jan 22 2009 Daniel Hokka Zakrisson <daniel@hozac.com> - util-vserver-0.30.215-6
+- Add VXC_PROC_WRITE context capability.
+
 * Thu Jan 08 2009 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.215-5
 - Suport for building on fedora 10
 
