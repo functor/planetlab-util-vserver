@@ -1,0 +1,129 @@
+# $Id: vserver.stop 2819 2008-10-31 15:41:04Z dhozac $  --*- sh -*--
+
+# Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+lock "$__LOCKDIR"/vserver."$($_VSERVER_INFO "$VSERVER_DIR" CANONIFY)".startup
+
+if ! isVserverRunning "$VSERVER_DIR" S_CONTEXT; then
+    warning $"vserver '$VSERVER_NAME' is not running" >&2
+    test -n "$OPTION_DEBUG" || exec 2>/dev/null >/dev/null
+    umountVserver     "$VSERVER_DIR" || :
+    disableInterfaces "$VSERVER_DIR" || :
+    unlock
+    exit 0
+fi
+
+function cleanup
+{
+    set +e
+    unlock
+    
+    test ! -p "$sync_fifo" || {
+	$_RM -f "$sync_fifo"
+	$_RMDIR $($_DIRNAME "$sync_fifo")
+    }
+
+    test ! -d "$vwait_statdir" ||
+	$_RM -rf "$vwait_statdir"
+}
+
+vwait_statdir=
+vwait_pid=
+sync_fifo=
+trap "cleanup" EXIT
+
+OPTION_FORCE_SYNC=1
+
+while test "$#" -gt 0; do
+    case "$1" in
+	(--rescue-init)	shift; _IS_FAKEINIT=1;;
+	(--)		shift; break;;
+	(-*)		panic $"vserver ... stop: unknown option '$1'";;
+    esac
+done
+
+set -e
+generateOptions   "$VSERVER_DIR"
+set +e
+
+vshelper.doDestroy "$VSERVER_DIR" "$S_CONTEXT"
+initSync           "$VSERVER_DIR" "$S_CONTEXT" sync_fifo
+prepareStop        "$VSERVER_DIR"
+
+cd "$VSERVER_DIR"/vdir/
+execScriptlets     "$VSERVER_DIR" "$VSERVER_NAME" pre-stop
+cd "$VSERVER_DIR"/vdir/
+
+test -z "$OPTION_DEFAULTTTY" || setDefaultTTY "$VSERVER_DIR"
+
+$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag !SC_HELPER
+
+fail=
+initWait	   "$VSERVER_DIR" "$S_CONTEXT" vwait_statdir
+if test -n "$_IS_FAKEINIT" && \
+   $_VSERVER_INFO - FEATURE vkill; then
+    if ! vshelper.isStopSync; then
+	$_VKILL -s INT --xid "$S_CONTEXT" -- 1 || fail=1
+    fi
+elif $_VSERVER_INFO - FEATURE migrate; then
+    "${IONICE_CMD[@]}" \
+    "${NICE_CMD[@]}" \
+    "${CHBIND_CMD[@]}" \
+    "$_VSPACE" --enter "$S_CONTEXT" "${OPTS_VSPACE[@]}" -- \
+    "$_VTAG" --migrate "${OPTS_VTAG_ENTER[@]}" --silent -- \
+    $_VCONTEXT $SILENT_OPT --migrate $OPT_VCONTEXT_CHROOT --xid "$S_CONTEXT" -- \
+    "${INITCMD_STOP[@]}" || fail=1
+else
+    "${IONICE_CMD[@]}" \
+    "${NICE_CMD[@]}" \
+    "${CHBIND_CMD[@]}" \
+    "$_EXEC_ULIMIT"  "$VSERVER_DIR/ulimits" \
+    $_CHCONTEXT_COMPAT    "${CHCONTEXT_OPTS[@]}" \
+    "$_CAPCHROOT"    "${CAPCHROOT_OPTS[@]}" "." \
+    "${INITCMD_STOP[@]}" || fail=1
+fi
+
+# Remove persistent so those contexts can be stopped
+$_VATTRIBUTE --set --xid "$S_CONTEXT" --flag !persistent 2>/dev/null || :
+if $_VSERVER_INFO -q "$N_CONTEXT" XIDTYPE static &&
+   $_VSERVER_INFO - FEATURE vnet; then
+    $_NATTRIBUTE --set --nid "$N_CONTEXT" --flag !persistent 2>/dev/null || :
+fi
+
+vshelper.doStopSync
+
+waitForSync "$VSERVER_DIR" "$sync_fifo" "$vwait_statdir"
+
+vshelper.doDestroy "$VSERVER_DIR" "$S_CONTEXT"
+sendKillSequence   "$S_CONTEXT" "${INITKILL_SEQ[@]}"
+
+## Small hack... isVserverRunning removes stale runfiles as a sideeffect
+! isVserverRunning  "$VSERVER_DIR" || \
+    echo $"Vserver '$VSERVER_DIR' still running unexpectedly; please investigate it manually..." >&2
+
+execScriptlets    "$VSERVER_DIR" "$VSERVER_NAME" post-stop
+
+handleDeviceMap --unset "$S_CONTEXT" "$VSERVER_DIR/apps/vdevmap"
+
+umountVserver     "$VSERVER_DIR" || :
+disableInterfaces "$VSERVER_DIR"
+
+saveDiskLimits    "$VSERVER_DIR"
+
+execScriptlets    "$VSERVER_DIR" "$VSERVER_NAME" postpost-stop
+removeCPUSET      "$VSERVER_DIR"
+destroyCgroup     "$VSERVER_DIR"

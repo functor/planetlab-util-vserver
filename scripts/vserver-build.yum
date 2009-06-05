@@ -1,0 +1,90 @@
+# $Id: vserver-build.yum 2780 2008-08-31 20:09:05Z dhozac $	--*- sh -*--
+
+# Copyright (C) 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+tmp=$(getopt -o +d: --long debug -n "$0" -- "$@") || exit 1
+eval set -- "$tmp"
+
+. "$_LIB_VSERVER_BUILD_FUNCTIONS_RPM"
+. "$_LIB_VSERVER_BUILD_FUNCTIONS_YUM"
+. "$_LIB_VSERVER_BUILD_FUNCTIONS_PKGMGMT"
+
+while true; do
+    case "$1" in
+	(-d)		DISTRIBUTION=$2; shift;;
+	(--debug)	set -x;;
+	(--)		shift; break ;;
+	(*)		echo "vserver-build.yum: internal error: unrecognized option '$1'" >&2
+			exit 1
+			;;
+    esac
+    shift
+done
+
+getDistribution
+
+base.init
+pkgmgmt.initVariables
+rpm.initVariables
+yum.initVariables
+
+rpm.sanityCheck
+
+
+base.initFilesystem    "$OPTION_FORCE"
+pkgmgmt.initFilesystem "$OPTION_FORCE"
+rpm.initFilesystem
+yum.initFilesystem
+
+setup_writeOption "$VSERVER_NAME"
+setup_writeInitialFstab
+
+test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS"
+
+if $_VSERVER_INFO - FEATURE persistent; then
+    $_VSPACE --new --mount --fs -- \
+	$_VCONTEXT --create ${SETUP_CONTEXT:+--xid "$SETUP_CONTEXT"} --silent -- \
+	$_VUNAME --set --xid self -t context="rpm-fake $SETUP_CONFDIR" -- \
+	$_VSPACE --set --mount --fs -- \
+	$_SAVE_CTXINFO "$SETUP_CONFDIR" \
+	$_VATTRIBUTE --set --xid self --secure --flag persistent -- \
+	$_VCONTEXT --xid self --migrate-self --endsetup -- \
+	/bin/true
+    RPM_FAKE_CTX=`$_CAT $SETUP_CONFDIR/run`
+    export RPM_FAKE_CTX
+    base._addGeneratedFile "`$_READLINK $SETUP_CONFDIR/run`"
+    base.pushCleanup $_VATTRIBUTE --xid "$RPM_FAKE_CTX" --flag '!persistent'
+fi
+
+rpm.initDB           "$SETUP_CONFDIR"
+rpm.importGPGPubKeys "$SETUP_CONFDIR" \
+    "$__CONFDIR/.distributions/$DISTRIBUTION/pubkeys" \
+    "$__CONFDIR/.distributions/.common/pubkeys" \
+    "$__DISTRIBDIR/$DISTRIBUTION/pubkeys"
+yum.installBasePackages "$SETUP_CONFDIR" "$PKGINSTALLDIR"
+
+test -z "$1" || $_VYUM "$SETUP_CONFDIR" -- -y install "$@"
+
+$_VYUM "$SETUP_CONFDIR" -- clean all
+
+if $_VSERVER_INFO - FEATURE persistent; then
+    base.popCleanup
+    $_VATTRIBUTE --xid "$RPM_FAKE_CTX" --flag '!persistent'
+fi
+
+test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS"
+
+base.setSuccess

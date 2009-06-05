@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>compatibility of util-vserver alpha branch</title>
+    <link rel="stylesheet" type="text/css" href="compatibility.css" />
+  </head>
+  <body>
+    <h1>compatibility of util-vserver alpha branch</h1>
+    <div class="program">
+      <div class="name">LIBDIR/capchroot</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/distrib-info (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">replaced by vpkg</div></div>
+      <div class="funccompat">Functional compatibility: no</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/fakerunlevel</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/filetime</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/ifspec</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/install-* (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">Replaced by more general build-methods which are building vservers from apt-repositories.</div></div>
+      <div class="funccompat">Functional compatibility: no</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/listdevip</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/parserpmdump</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/readlink</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/rootshell</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/sample.sh (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">incompatible with recent configuration style.</div></div>
+      <div class="funccompat">Functional compatibility: no</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/save_s_context (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">incompatible with recent configuration style; partially replaced by save_ctxinfo.</div></div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/setattr</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">Has been moved into SBINDIR. Lots of new option were added to support new functionality.</div></div>
+      <div class="funccompat">Functional compatibility: no<div class="text">It is possible to recurse directories and it supports
+      all vserver related attributes (admin, hide, watch, barrier,
+      iunlink).</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/showattr</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">Has been moved into SBINDIR. Lots of new option were added to support new functionality.</div></div>
+      <div class="funccompat">Functional compatibility: no<div class="text">It is possible to recurse directories and it supports all
+      vserver related attributes (admin, hide, watch, barrier,
+      iunlink). The output has been changed: the flags are now in the
+      first column and they are displayed in a symbolic manner.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/showperm</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vbuild (broken)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: no<div class="text">will be removed/rewritten soon.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vcheck (broken)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: no<div class="text">will be removed/rewritten soon.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vprofile (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">incompatible with recent configuration style.</div></div>
+      <div class="funccompat">Functional compatibility: no</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vreboot</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vserverkillall (removed)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">vkill contains the needed functionality
+      already.</div></div>
+      <div class="funccompat">Functional compatibility: no</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vservers.grabinfo.sh</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vunify (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: no<div class="text">CLI has been changed to reflect new functionality. Now, it
+      accepts either a single vserver, or (directory,excludelist)
+      pairs as arguments. The old "refserver vserver1 vserver2 ..." 
+      syntax is gone.</div></div>
+      <div class="funccompat">Functional compatibility: limited<div class="text">vunify allows to unify generic paths, or vservers with
+      preconfigured reference vservers. The filelist is not taken from
+      packagemanagement anymore, but every file which has a counterpart
+      in the reference-path(s)/vserver(s) and is not in an excludelist
+      will be unified. A part of the excludelist will be generated
+      dynamically with information from the packagemanagement about
+      configfiles.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/chbind</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/chcontext</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Return code in '--disconnect' case is now more correctly.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/rebootmgr</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/reducecap</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vdu</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vfiles (broken)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: no<div class="text">will be removed/rewritten soon.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vkill (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: limited<div class="text">It uses native kernel interface now and is secure (in
+      opposite to the old perl implementation).</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vps (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: limited<div class="text">It has been rewritten into C and output might have been changed slightly.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vpstree</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vrpm (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: limited<div class="text">It has been rewritten into a secure, native C
+      implementation. Unpacking of files happens in host-ctx, but
+      scriptlets are executed in vserver context. The rpm database
+      will/can be hold outside of the vserver and there will never be
+      access on it from the inside (neither direct, nor by
+      scriptlets). This is implemented through an LD_PRELOAD wrapper
+      which provides own, secure NSS functions too.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vserver (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: limited<div class="text">It accepts all the old arguments, but adds lots of new
+      ones. This program is intended as the basic vserver management
+      tool; e.g. to unify a vserver you can execute "vserver XX unify",
+      to install a package "vserver XX install PKG" and so on.</div></div>
+      <div class="funccompat">Functional compatibility: limited<div class="text">This tool is rewritten to completely and is now resistant
+      against symlink attacks. It uses the new configuration scheme
+      and the iproute2 tools instead of ifconfig for network
+      setup. Old-style vserver can be still started through this tool,
+      but modifications/building of them is not possible
+      anymore.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vserver-copy (broken)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: no<div class="text">will be removed/rewritten soon.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vserver-stat (rewritten)</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">It has been rewritten to use the new libvserver API. The
+      output has been changed slightly.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vtop</div>
+      <div class="clicompat">Command line interface compatibility: yes</div>
+      <div class="funccompat">Functional compatibility: yes</div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/exec-cd (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">changes into a directory in a secure manner and executes a
+      program there.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/rpm-fake-resolver (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">NSS resolver; used by vrpm and executed in
+      vserver-ctx.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/rpm-fake.so (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">LD_PRELOAD wrapper; used by vrpm.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vapt-get-worker (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Helper script for vapt-get.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vpkg (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Generic interface for package management; it allows
+      to install, remove or query packages in a distribution
+      independent manner. It can be seen as the successor of
+      distrib-info.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vrpm-preload (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Helper script for vrpm.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vrpm-worker (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Helper script for vrpm.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">LIBDIR/vserver-build (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Builds a vserver from scratch and allows to select the
+      used method. It will be called by the "vserver XY build"
+      command.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vapt-get (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">Wrapper for apt-get; currently only the apt-rpm port
+      is supported. Metadata will/can be stored outside of the
+      vserver. This program call vrpm.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/chxid (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">This program assigns the associated context of an inode. It
+      replaces parts of the vserver-quota tools.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/lsxid (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">This program shows the associated context of an inode. It
+      replaces parts of the vserver-quota tools.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/new-namespace (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">This program starts a program within a new namespace which is
+      created with CLONE_NEWNS. It is used e.g. by vrpm to
+      map the rpm-database into the vserver in a secure manner.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vlimit (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">This is an interface to the rlimit syscalls which allow to
+      limit resource-usage of contexts.</div></div>
+    </div>
+    <div class="program">
+      <div class="name">SBINDIR/vrsetup (new)</div>
+      <div class="funccompat">Functional compatibility: yes<div class="text">This program allows to setup vroot devices. It replaces
+      vrsetup from the vr-tools</div></div>
+    </div>
+  </body>
+</html>

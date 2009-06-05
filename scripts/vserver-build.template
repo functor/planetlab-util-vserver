@@ -1,0 +1,91 @@
+# $Id: vserver-build.template 2558 2007-07-10 20:34:48Z dhozac $	--*- sh -*--
+
+# Copyright (C) 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+tmp=$(getopt -o '+d:t:' --long debug,pkgmgmt,template:,nodevsanity -n "vserver-build.template" -- "$@") || exit 1
+eval set -- "$tmp"
+
+. "$_LIB_VSERVER_BUILD_FUNCTIONS_PKGMGMT"
+
+DISTRIBUTION=:
+use_pkgmgmt=
+no_dev_sanity=
+declare -a TEMPLATE=()
+while true; do
+    case "$1" in
+	-d)		DISTRIBUTION=$2; shift;;
+	--debug)	set -x;;
+	--pkgmgmt)	use_pkgmgmt=1;;
+	--nodevsanity)  no_dev_sanity=1;;
+	-t|--template)
+			case "$2" in
+			     /*)	f="$2";;
+			     *)		f=`pwd`/"$2";;
+			esac
+			TEMPLATE=( "${TEMPLATE[@]}" "$f" )
+			shift
+			;;
+	--)		shift; break ;;
+	*)		echo "vserver-build.template: internal error: unrecognized option '$1'" >&2
+			exit 1
+			;;
+    esac
+    shift
+done
+
+getDistribution '' 1
+
+for d in "$__CONFDIR/.distributions/$DISTRIBUTION" \
+	"$__DISTRIBDIR/$DISTRIBUTION"; do
+    if test -r "$d/template"; then
+	TEMPLATE=( "$d/template" "${TEMPLATE[@]}" )
+    fi
+done
+
+base.init
+test -z "$use_pkgmgmt" || pkgmgmt.initVariables
+
+base.initFilesystem "$OPTION_FORCE"
+test -z "$use_pkgmgmt" || pkgmgmt.initFilesystem "$OPTION_FORCE"
+
+
+setup_writeOption "$VSERVER_NAME"
+setup_writeInitialFstab
+
+test -z "$BUILD_INITPRE"  || "$BUILD_INITPRE" "$SETUP_CONFDIR"  "$UTIL_VSERVER_VARS"
+
+pushd "$SETUP_CONFDIR/vdir" &> /dev/null
+for t in "${TEMPLATE[@]}"; do
+    findFile DESC "$__CONFDIR/.defaults/apps/h2ext/desc" "$__PKGLIBDEFAULTDIR/h2ext.desc"
+    pipe=$($_H2EXT -d "$DESC" -q "$t")
+
+    if echo "$pipe" | grep -q "unknown format"; then
+	echo "vserver-build.template: $t: Unknown format" >&2
+	exit 1
+    fi
+
+    eval `echo $_CAT "\$t" '|' $pipe`
+done
+
+test -z "$no_dev_sanity" && {
+    rm -rf dev/*
+    populateDev
+}
+popd &> /dev/null
+
+test -z "$BUILD_INITPOST" || "$BUILD_INITPOST" "$SETUP_CONFDIR" "$UTIL_VSERVER_VARS"
+
+base.setSuccess

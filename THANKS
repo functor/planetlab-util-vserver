@@ -1,0 +1,24 @@
+I want to thank
+
+Jacques Gelinas <jack@solucorp.qc.ca>,
+    who wrote and maintains the 'vserver' package on which util-vserver
+    is based on
+
+Sam Vilain,
+    for providing man-pages and patches used in the Debian package
+
+Olivier Poitrey
+    for his work on the XML/XSD based documentation format
+
+Herbert Poetzl,
+    for providing the alternative syscall.h implementation
+
+Daniel Hokka Zakrisson
+    for his patches which add support for non-legacy network functionality
+    and much better dlimit support
+
+Benedikt Böhm
+    for the much improved Gentoo support
+
+
+all the other people, who contributed to the original 'vserver' package

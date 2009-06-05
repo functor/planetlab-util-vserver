@@ -1,0 +1,104 @@
+#! /bin/bash
+
+# Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+## HACK: this script is full of races...
+
+vdir=$1/vdir
+. "$2"
+. "$_LIB_VSERVER_BUILD_FUNCTIONS"
+
+function relink
+{
+    test ! -e "$2" -o -L "$2" || mv -f "$2"{,.orig}
+    ln -sf "$1" "$2"
+}
+
+## Usage: subst <file> <regexp>
+function subst
+{
+    tmp=$(mktemp /tmp/initpost-subst.XXXXXX)
+
+    case "$1" in
+	(/*|./*)	cat "$1";;
+	(*)		$_CHROOT_SH cat "$1";;
+    esac              | sed -e "$2"          >$tmp
+    cmp -s $tmp "$1" || $_CHROOT_SH truncate "$1" <$tmp
+
+    rm -f $tmp
+}
+
+vserver=$1
+
+## Do some magic to set the vserver into a defined state
+$_VSERVER "$vserver" stop  &>/dev/null || :
+startSleepingGuest "$vserver" 15
+
+pushd "$vdir"/etc/init.d &>/dev/null ||
+    pushd "$vdir"/etc/rc.d/init.d &>/dev/null || exit 1
+
+    for i in *; do
+	test -e "$i" || continue
+	case "$i" in
+	    functions|halt|killall|single) ;;
+	    syslog|rsyslog)
+		$_VSERVER "$1" chkconfig "$i" on
+		;;
+	    *)
+		$_VSERVER "$1" chkconfig "$i" off
+		;;
+	esac
+    done
+
+popd >/dev/null
+
+pushd "$vdir"/sbin &>/dev/null
+    relink /bin/true new-kernel-pkg
+popd >/dev/null
+
+pushd "$vdir"/usr/bin &>/dev/null
+    relink /bin/true rhgb-client
+popd >/dev/null
+
+pushd "$vdir" &>/dev/null
+    echo 'NETWORKING=yes' | $_CHROOT_SH append /etc/sysconfig/network
+popd >/dev/null
+
+pushd "$vdir" &>/dev/null
+    cat <<EOF | $_CHROOT_SH truncate /etc/init.d/halt
+#! /bin/bash
+
+exec /sbin/killall5 -15
+EOF
+    $_CHROOT_SH chmod 0755 /etc/init.d/halt
+    
+    : | $_CHROOT_SH truncate /etc/sysctl.conf
+    echo "none    /       none    defaults" | $_CHROOT_SH truncate /etc/fstab
+    cat "$__DISTRIBDIR"/redhat/rc.sysinit   | $_CHROOT_SH truncate /etc/rc.d/rc.sysinit.vserver
+    $_CHROOT_SH chmod 0755 /etc/rc.d/rc.sysinit.vserver
+    subst etc/inittab 's!^\([^#].*:respawn:.* tty\)!#\1!;
+		       s!si::sysinit:/etc/rc.d/rc.sysinit!si::sysinit:/etc/rc.d/rc.sysinit.vserver!'
+
+    if $_CHROOT_SH testfile /sbin/initctl; then
+	cat "$__DISTRIBDIR"/redhat/initctl | $_CHROOT_SH truncate /sbin/initctl.vserver
+	$_CHROOT_SH chmod 0755 /sbin/initctl.vserver
+	subst etc/rc.d/rc 's!^\(.*\)/proc/cmdline\(.*\)$!\1/proc/cmdline 2>/dev/null \2!;s!/sbin/initctl!/sbin/initctl.vserver!'
+	subst etc/event.d/rcS 's!/etc/rc.d/rc.sysinit!/etc/rc.d/rc.sysinit.vserver!'
+	$_CHROOT_SH rm /etc/event.d/tty{1,2,3,4,5,6}
+    fi
+popd >/dev/null
+
+stopSleepingGuest "$vserver" &> /dev/null || :

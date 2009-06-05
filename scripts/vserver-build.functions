@@ -1,0 +1,298 @@
+# $Id: vserver-build.functions 2765 2008-08-22 21:41:47Z dhozac $	--*- sh -*--
+
+# Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#  
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+# Expected environment:
+#     $VSERVER_NAME ... name of vserver
+
+ROOTDIR=
+ROOTDIR_REL=
+CACHEDIR=
+CACHEDIR_REL=
+VSERVERDIRNAME=
+
+VDIR=
+
+_DEV_FILE=
+_EXEC_DIR=
+
+BUILD_INITPRE=
+BUILD_INITPOST=
+
+__BASE_GENERATED_FILES=()
+__BASE_SUCCESS=
+
+function makeDevEntry
+{
+    local dst=$1/$2
+    case "$3" in
+	(c|b)	mknod -m$6 "$dst"  $3 $4 $5;;
+	(d)	mkdir -p -m$4 "$dst";;
+	(f)	touch "$dst"
+		chmod $4 "$dst"
+		;;
+	(l)	ln -s "$4" "$dst"
+		;;
+	(*)	echo "Unknown dev-entry mode '$3'" >&2
+		false
+		;;
+    esac
+}
+
+function populateDev
+{
+    local spec
+
+    mkdir -p -m755 "$VDIR"/dev
+    mkdir -m755 "$VDIR"/dev/pts
+
+    while read spec; do
+	makeDevEntry "$VDIR"/dev $spec
+    done <$_DEV_FILE
+}
+
+function populateDirectory
+{
+    local dst=$1
+    local i
+    
+    shift
+    for i; do
+	local file=
+	
+	for file in "$i"/*; do
+	    isRegularFile "$file" || continue
+	    
+	    cp -a "$file" "$dst/"
+	done
+    done
+}
+
+function _setRootDir
+{
+    test -z "$ROOTDIR" || return 0
+    
+    for item in "\"$__CONFDIR/.defaults/vdirbase\" 1" "$__DEFAULT_VSERVERDIR"; do
+	eval set -- "$item"
+	ROOTDIR=$1
+	ROOTDIR_REL=$2
+	test ! -d "$ROOTDIR" || break
+    done
+
+    test -d "$ROOTDIR" || {
+	echo "Root-directory '$ROOTDIR' does not exist or is invalid" >&2
+	exit 1
+    }
+}
+
+function _setCacheDir
+{
+    test -z "$CACHEDIR" || return 0
+    
+    for item in "\"$__CONFDIR/.defaults/cachebase\" 1" "$__PKGCACHEDIR"; do
+	eval set -- "$item"
+	CACHEDIR=$1
+	CACHEDIR_REL=$2
+	test ! -d "$CACHEDIR" || break
+    done
+
+    test -d "$CACHEDIR" || {
+	echo "Cache-directory '$CACHEDIR' does not exist or is invalid" >&2
+	exit 1
+    }
+}
+
+function _setVserverDirName
+{
+    test -z "$VSERVERDIRNAME" || return 0
+    VSERVERDIRNAME="$VSERVER_NAME"
+}
+
+function _setVdir
+{
+    VDIR="$ROOTDIR/$VSERVERDIRNAME"
+}
+
+function say
+{
+    test -z "$OPTION_SILENT" || return 0
+    echo "$@"
+}
+
+function _renameVserverCfg
+{
+    local suffix=.~$(date +'%s')~
+    local i
+    
+    for i in "$VDIR" "$SETUP_CONFDIR"; do
+	test ! -e "$i" || isDirectoryEmpty "$i" || {
+	    mv "$i" "$i$suffix"
+	    say "Renamed '$i' to '$i$suffix'"
+	}
+    done
+}
+
+
+## Usage: getDistribution [<default>] [<ignore-config>]
+function getDistribution
+{
+    local ignore_config=$2
+    
+    if test -z "$DISTRIBUTION"; then
+	if test -e /etc/fedora-release; then
+	    set -- $(cat /etc/fedora-release)
+	    DISTRIBUTION=fdr$4
+	elif test -e /etc/redhat-release; then
+	    set -- $(cat /etc/redhat-release)
+	    DISTRIBUTION=rh$5
+	elif test -e /etc/debian_version; then
+	    set -- $(cat /etc/debian_version)
+	    DISTRIBUTION=deb$1
+	elif test -e /etc/SuSE-release; then
+	    set -- $(cat /etc/SuSE-release)
+	    DISTRIBUTION=suse$3
+	elif test -e /etc/gentoo-release; then
+	    set -- $(cat /etc/gentoo-release)
+	    DISTRIBUTION=gentoo$5
+	elif test -e /etc/slackware-version; then
+	    set -- $(cat /etc/slackware-version)
+	    DISTRIBUTION=slackware$2
+	elif test -n "$1"; then
+	    DISTRIBUTION=$1
+	else
+	    colpanic $"\
+ERROR: Can not determine distribution; please specify it manually with
+  the '-d' option."
+	fi
+    fi
+
+    test -n "$ignore_config" -o \
+         -d "$__CONFDIR/.distributions/$DISTRIBUTION" -o \
+         -d "$__DISTRIBDIR/$DISTRIBUTION" ||
+	    colpanic $"\
+ERROR: Can not find configuration for the distribution '$DISTRIBUTION';
+  please read http://linux-vserver.org/HowToRegisterNewDistributions
+  for information how to add support for your own distribution."
+
+    export DISTRIBUTION
+}
+
+function base._addGeneratedFile
+{
+    __BASE_GENERATED_FILES=( "${__BASE_GENERATED_FILES[@]}" "$@" )
+}
+
+## Usage: initFilesystem [force]
+function base.initFilesystem
+{
+    test -z "$1" || _renameVserverCfg
+    { isDirectoryEmpty "$VDIR" && test  ! -e "$SETUP_CONFDIR"; } || colpanic $"\
+vserver-topdirectory '$VDIR' and/or configuration at '$SETUP_CONFDIR'
+exist already; please try to use '--force', or remove them manually."
+
+    mkdir -p -m755 "$VDIR"
+    $_SETATTR --~barrier "$VDIR"
+    $_SETATTR --barrier "$VDIR"/.. || colwarn $"\
+WARNING: could not set the barrier attribute on '$VDIR/..',
+         please set it manually."
+    base._addGeneratedFile "$VDIR"
+    
+    mkdir -p -m755 "$SETUP_CONFDIR"/apps "$VDIR"/etc
+    base._addGeneratedFile "$SETUP_CONFDIR"
+    
+    ln -s "$VDIR"                     "$SETUP_CONFDIR/vdir"
+    ln -s "$CACHEDIR/$VSERVERDIRNAME" "$SETUP_CONFDIR/cache"
+
+    populateDev
+
+    mkdir -p "$VDIR"/proc
+    findAndCopy "$VDIR"/etc/hosts         "$__CONFDIR"/.defaults/files/hosts "$__CONFDIR/.distributions/$DISTRIBUTION"/files/hosts \
+	                                  "$__DISTRIBDIR/$DISTRIBUTION"/files/hosts "$__DISTRIBDIR"/defaults/files/hosts ""
+
+    for i in nsswitch.conf krb5.conf krb.conf krb.realms ldap.conf localtime resolv.conf; do
+	findAndCopy "$VDIR"/etc/$i  "$__CONFDIR/.defaults/files/$i" "$__CONFDIR/.distributions/$DISTRIBUTION/files/$i" ""
+    done
+}
+
+function base._initVariables
+{
+    _setRootDir
+    _setCacheDir
+    _setVserverDirName
+    _setVdir
+
+    findFile _DEV_FILE      "$__CONFDIR/.distributions/$DISTRIBUTION/devs"      "$__DISTRIBDIR/$DISTRIBUTION/devs"     "$__DISTRIBDIR/defaults/devs"
+    findDir  _EXECDIR       "$__CONFDIR/.distributions/$DISTRIBUTION/execdir"   "$__DISTRIBDIR/$DISTRIBUTION/execdir"  /
+    findFile BUILD_INITPRE  "$__CONFDIR/.distributions/$DISTRIBUTION/initpre"   "$__DISTRIBDIR/$DISTRIBUTION/initpre"  ""
+    findFile BUILD_INITPOST "$__CONFDIR/.distributions/$DISTRIBUTION/initpost"  "$__DISTRIBDIR/$DISTRIBUTION/initpost" ""
+}
+
+declare -a __BASE_CLEANUP
+function base.pushCleanup
+{
+    __BASE_CLEANUP=( "${__BASE_CLEANUP[@]}" "$*" )
+}
+
+function base.popCleanup
+{
+    unset __BASE_CLEANUP[$((${#__BASE_CLEANUP[@]} - 1))]
+}
+
+function base.__cleanup
+{
+    for cmd in "${__BASE_CLEANUP[@]}"; do
+	$cmd
+    done
+    
+    test -z "$__BASE_SUCCESS" || return 0
+    test -z "$OPTION_KEEP"    || return 0
+    rm -rf "${__BASE_GENERATED_FILES[@]}"
+}
+
+function base.init
+{
+    test -z "$SETUP_CONTEXT" || ! $_VSERVER_INFO -q "$SETUP_CONTEXT" RUNNING || \
+	panic $"\
+Context '$SETUP_CONTEXT' is already in use. Please select another one."
+
+    trap "base.__cleanup" EXIT
+    base._initVariables
+}
+
+function base.setSuccess
+{
+    __BASE_SUCCESS=1
+}
+
+function startSleepingGuest
+{
+    local guest="$1"
+    local timeout="${2:-15}"
+    $_VSERVER "$guest" start --rescue --rescue-init bash -c "
+	exec  > /dev/null
+	exec 2> /dev/null
+	trap 'kill -s 9 -- -1; exit 0' INT
+	sleep $timeout
+	kill -s 15 -- -1
+	sleep 1
+	kill -s 9 -- -1"
+}
+
+function stopSleepingGuest
+{
+    local guest="$1"
+    $_VSERVER "$guest" stop --rescue-init
+}

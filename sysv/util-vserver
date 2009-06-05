@@ -1,0 +1,134 @@
+#!/bin/bash
+#
+# util-vserver  sets the path to vshelper and kills all guest processes
+#
+# chkconfig: 2345 10 90
+# description: Sets the path to vshelper and kills all guest processes
+
+: ${UTIL_VSERVER_VARS:=/usr/lib/util-vserver/util-vserver-vars}
+test -e "$UTIL_VSERVER_VARS" || {
+    echo $"Can not find util-vserver installation (the file '$UTIL_VSERVER_VARS' would be expected); aborting..." >&2
+    exit 1
+}
+. "$UTIL_VSERVER_VARS"
+
+LOCKFILE=util-vserver
+. "$_LIB_VSERVER_INIT_FUNCTIONS"
+. "$_LIB_FUNCTIONS"
+. "$__PKGLIBDIR/vserver.functions"
+
+
+function set_helper()
+{
+    local f="/proc/sys/kernel/vshelper"
+    if test -e "$f"; then
+	echo "$_VSHELPER" > "$f"
+	return 0
+    else
+	return 2
+    fi
+}
+
+function kill_contexts()
+{
+    local xid
+    for xid in `ls -1 /proc/virtual 2>/dev/null`; do
+	test "$xid" = "info" -o "$xid" = "status" && continue
+	$_VATTRIBUTE --xid $xid --set --flag ~persistent
+	$_VKILL --xid $xid -s 15
+	sleep 3
+	$_VKILL --xid $xid -s 9
+    done
+    local alive=0
+    for xid in `ls -1 /proc/virtual 2>/dev/null`; do
+	test "$xid" = "info" -o "$xid" = "status" && continue
+	let alive+=1
+    done
+    test $alive = 0
+}
+
+function create_dirs()
+{
+    $_MKDIR -p "$__RUNDIR" && $_MKDIR -p "$__VSHELPERSTATEDIR" && $_MKDIR -p `$_READLINK "$__PKGSTATEREVDIR"`
+}
+
+function mount_cgroup()
+{
+    _generateCgroupOptions
+    test -n "$CGROUP_MNT" || return 0
+    $_MKDIR -p "$CGROUP_MNT"
+    $_MOUNT -t cgroup -o "$CGROUP_SUBSYS" vserver "$CGROUP_MNT"
+}
+
+function umount_cgroup()
+{
+    _generateCgroupOptions
+    test -n "$CGROUP_MNT" || return 0
+    $_UMOUNT "$CGROUP_MNT"
+}
+
+function start()
+{
+    _beginResult $"Creating required directories"
+    create_dirs
+    _endResult $?
+    _beginResult $"Setting path to vshelper"
+    set_helper
+    _endResult $?
+    local retval=$?
+    _beginResult $"Loading default device map"
+    handleDeviceMap --set 0 "$__CONFDIR/.defaults/apps/vdevmap"
+    _endResult $?
+    if hasCgroup; then
+	_beginResult $"Mounting cgroup-hierarchy"
+	mount_cgroup
+	_endResult $?
+    fi
+    test "$retval" -ne 0 || touch "$lockfile"
+    return $retval
+}
+
+function stop()
+{
+    # Stop all running, but non-default guests"
+    _beginResult $"Stopping all running guests"
+    $_START_VSERVERS -j 1 --all --stop
+    _endResult $?
+    _beginResult $"Killing all running contexts"
+    kill_contexts
+    _endResult $?
+    local retval=$?
+    if hasCgroup; then
+	_beginResult $"Unmounting cgroup-hierarchy"
+	umount_cgroup
+	_endResult $?
+    fi
+    $_RM -f "$lockfile"
+    return $retval
+}
+
+function restart()
+{
+    stop
+    start
+}
+
+case "$1" in
+    start|stop|restart)	$1;;
+    reload)		;;
+    condrestart)
+	test -f $lockfile && restart || :
+	;;
+    status)
+	test -f $lockfile && {
+	    echo $"Path to vshelper has been set"
+	    exit 0
+	}
+	echo $"Path to vshelper has not been set"
+	exit 1
+	;;
+    *)
+        echo "Usage: $0 {start|stop|reload|restart|condrestart|status}"
+	exit 2
+	;;
+esac
