@@ -1,4 +1,4 @@
-## $Id: Makefile.am 2790 2008-09-29 00:59:40Z dhozac $
+## $Id: Makefile.am 2837 2009-06-09 13:36:47Z dhozac $
 
 ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 ##  

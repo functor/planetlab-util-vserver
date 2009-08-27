@@ -1,4 +1,4 @@
-## $Id: Makefile-files 2809 2008-10-30 02:33:25Z dhozac $
+## $Id: Makefile-files 2847 2009-08-23 12:45:54Z ensc $
 
 ## Copyright (C) 2008 Daniel Hokka Zakrisson
 ## 
@@ -33,3 +33,5 @@ $(top_builddir)/python/_libvserver-constants.c: lib/vserver.h \
 	$(CTAGS) -x $(top_srcdir)/lib/vserver.h | \
 		$(AWK) -f $(top_srcdir)/python/ctags-constants.awk \
 		> $(top_builddir)/python/_libvserver-constants.c
+
+CLEANFILES +=		python/_libvserver-constants.c

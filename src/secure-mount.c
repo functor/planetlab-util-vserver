@@ -1,4 +1,4 @@
-// $Id: secure-mount.c 2833 2009-04-10 20:24:04Z dhozac $    --*- c++ -*--
+// $Id: secure-mount.c 2840 2009-06-23 18:16:53Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  

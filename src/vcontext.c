@@ -1,4 +1,4 @@
-// $Id: vcontext.c 2819 2008-10-31 15:41:04Z dhozac $    --*- c -*--
+// $Id: vcontext.c 2843 2009-07-20 21:24:03Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
