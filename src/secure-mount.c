@@ -1,4 +1,4 @@
-// $Id: secure-mount.c 2840 2009-06-23 18:16:53Z dhozac $    --*- c++ -*--
+// $Id: secure-mount.c 2833 2009-04-10 20:24:04Z dhozac $    --*- c++ -*--
 
 // Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -112,19 +112,7 @@ CMDLINE_OPTIONS[] = {
 };
 
 #ifndef MS_REC
-#define MS_REC		0x4000
-#endif
-#ifndef MS_UNBINDABLE
-#define MS_UNBINDABLE	(1<<17)
-#endif
-#ifndef MS_PRIVATE
-#define MS_PRIVATE	(1<<18)
-#endif
-#ifndef MS_SLAVE
-#define MS_SLAVE	(1<<19)
-#endif
-#ifndef MS_SHARED
-#define MS_SHARED	(1<<20)
+#  define MS_REC	0x4000
 #endif
 
 static struct FstabOption {

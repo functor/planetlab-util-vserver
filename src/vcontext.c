@@ -1,4 +1,4 @@
-// $Id: vcontext.c 2843 2009-07-20 21:24:03Z dhozac $    --*- c -*--
+// $Id: vcontext.c 2819 2008-10-31 15:41:04Z dhozac $    --*- c -*--
 
 // Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 //  
@@ -69,11 +69,6 @@
 #define CMD_PERSFLAG		0x400f
 #define CMD_VLOGIN		0x4010
 #define CMD_PIVOT_ROOT		0x4011
-
-
-#ifndef MNT_DETACH
-#define MNT_DETACH		0x0002
-#endif
 
 
 struct option const

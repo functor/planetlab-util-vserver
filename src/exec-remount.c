@@ -1,4 +1,4 @@
-// $Id: exec-remount.c 2840 2009-06-23 18:16:53Z dhozac $    --*- c -*--
+// $Id: exec-remount.c 2776 2008-08-25 22:57:09Z dhozac $    --*- c -*--
 
 // Copyright (C) 2008 Daniel Hokka Zakrisson
 //  
@@ -39,10 +39,6 @@
 #define CMD_HELP		0x1000
 #define CMD_VERSION		0x1001
 #define CMD_MTAB		0x2001
-
-#ifndef MNT_DETACH
-#define MNT_DETACH		0x0002
-#endif
 
 static struct option const
 CMDLINE_OPTIONS[] = {

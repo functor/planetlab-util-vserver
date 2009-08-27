@@ -1,4 +1,4 @@
-dnl $Id: configure.ac 2839 2009-06-23 17:56:47Z dhozac $
+dnl $Id: configure.ac 2824 2008-11-06 02:27:17Z dhozac $
 
 dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 dnl  
@@ -24,11 +24,11 @@ dnl distribution terms that you use for the rest of that program.
 dnl  
 
 AC_PREREQ(2.57)
-AC_INIT(util-vserver, 0.30.215, vserver@list.linux-vserver.org)
+AC_INIT(util-vserver, 0.30.216-pre2833, vserver@list.linux-vserver.org)
 AC_CONFIG_SRCDIR([src/capchroot.c])
 AC_CONFIG_HEADER([config.h])
 
-AM_INIT_AUTOMAKE([1.9 gnits dist-bzip2 subdir-objects])
+AM_INIT_AUTOMAKE([1.9 gnu dist-bzip2 subdir-objects])
 AM_MAINTAINER_MODE
 
 AC_CANONICAL_BUILD
@@ -57,7 +57,7 @@ ENSC_PATHPROG(NOHUP,     nohup)
 ENSC_PATHPROG(RMMOD,     rmmod)
 ENSC_PATHPROG(VCONFIG,   vconfig,, [See http://www.candelatech.com/~greear/vlan.html; usually this tool is shipped in the 'vconfig' or 'vlan' package of your distribution])
 ENSC_PATHPROG(WGET,      wget)
-ENSC_PATHPROG(IONICE,    ionice,  [],  [This is usually shipped in the 'util-linux(-ng)' or 'schedutils' package])
+ENSC_PATHPROG(IONICE,    ionice,,  [This is usually shipped in the 'util-linux(-ng)' or 'schedutils' package])
 ENSC_PATHPROG(FILE,      file,    [file])
 ENSC_PATHPROG(GZIP,      gzip,    [gzip])
 ENSC_PATHPROG(BZIP2,     bzip2,   [bzip2])
@@ -453,7 +453,7 @@ dnl ########################
 dnl Check for Python
 
 ensc_have_python=yes
-AM_PATH_PYTHON([2.4],, [:])
+AM_PATH_PYTHON(,, [:])
 if test "x$PYTHON" = x:; then
 	ensc_have_python=no
 fi

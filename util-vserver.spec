@@ -17,7 +17,7 @@
 
 %global _localstatedir	%_var
 
-%global fullver		@VERSION@
+%global fullver		0.30.216-pre2833
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
@@ -25,7 +25,7 @@
 %{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
-Name:		@PACKAGE@
+Name:		util-vserver
 Version:	%ver
 Release:	%release_func 0%subver
 License:	GPL
