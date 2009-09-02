@@ -17,7 +17,7 @@
 
 %global _localstatedir	%_var
 
-%global fullver		0.30.216-pre2833
+%global fullver		0.30.216-pre2844
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
@@ -40,7 +40,7 @@ Requires:	%name-lib  = %version-%release
 Requires:	diffutils mktemp sed
 Provides:	vserver = %version-%release
 Obsoletes:	vserver < %version
-BuildRequires:	mount vconfig gawk iproute iptables
+BuildRequires:	mount vconfig gawk /sbin/ip iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel e2fsprogs
 %{!?_without_beecrypt:BuildRequires: beecrypt-devel}
@@ -245,7 +245,7 @@ test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 %chkconfig --add vservers-default
 %chkconfig --add vprocunhide
 %chkconfig --add util-vserver
-
+%chkconfig util-vserver on
 
 
 %preun sysv
