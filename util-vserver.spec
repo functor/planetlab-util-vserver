@@ -193,7 +193,7 @@ Linux-VServer API from Python.
 
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}-%{release}
 
 sed -i -e 's!^\(# chkconfig: \)[0-9]\+ !\1- !' sysv/*
 
