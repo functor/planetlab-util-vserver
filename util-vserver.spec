@@ -36,7 +36,7 @@ Release:	%release
 License:	GPLv2
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version-%release.tar.bz2
+Source0:	http://people.linux-vserver.org/~dhozac/t/uv-testing/%name-%version-%release.tar.bz2
 #Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2.asc
 
 BuildRoot:	%_tmppath/%name-%version-%release-root
