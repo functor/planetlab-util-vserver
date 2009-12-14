@@ -1,7 +1,3 @@
-#
-# $Id$
-# $URL$
-#
 ## This package understands the following switches:
 ## --without dietlibc        ...   disable usage of dietlibc
 ## --with    xalan           ...   require/use the xalan xslt processor
@@ -27,16 +23,16 @@
 
 %{!?python_sitearch:%global python_sitearch %(%__python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
-%global release pre2864
+%{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.216
-Release:	%release
+Version:	0.30.215+svn2847
+Release:	%release_func 143596525
 License:	GPLv2
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar-%release.bz2
+Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2
 #Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2.asc
 
 BuildRoot:	%_tmppath/%name-%version-%release-root
