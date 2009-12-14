@@ -32,7 +32,7 @@
 Summary:	Linux virtual server utilities
 Name:		util-vserver
 Version:	0.30.216
-Release:	%release_func -pre2864
+Release:	%release_func pre2864
 License:	GPLv2
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
