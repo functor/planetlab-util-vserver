@@ -36,6 +36,7 @@ Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
 Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
 #Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2.asc
+Patch1:		f12.patch
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -193,7 +194,7 @@ Linux-VServer API from Python.
 
 %prep
 %setup -q -n %name-%fullver
-
+%patch1 -p0
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
