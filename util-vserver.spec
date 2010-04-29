@@ -50,7 +50,7 @@ BuildRequires:	e2fsprogs-devel e2fsprogs
 %{!?_without_beecrypt:BuildRequires: beecrypt-devel}
 %{?_without_beecrypt:BuildRequires: nss-devel}
 BuildRequires:	e2fsprogs
-#%%{!?_without_doc:BuildRequires:	doxygen tetex-latex}
+%{!?_without_doc:BuildRequires:	doxygen tetex-latex}
 %{!?_without_python:BuildRequires: python python-devel ctags}
 Requires(post):		%name-core
 Requires(pre):		%pkglibdir
@@ -195,6 +195,7 @@ Linux-VServer API from Python.
 %prep
 %setup -q -n %name-%fullver
 %patch1 -p0
+autoreconf -fi
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
@@ -204,7 +205,7 @@ Linux-VServer API from Python.
            %{?_without_python:--without-python}
 
 %__make %{?_smp_mflags} all
-#%%{!?_without_doc:%__make %{?_smp_mflags} doc}
+%{!?_without_doc:%__make %{?_smp_mflags} doc}
 
 
 %install
@@ -382,8 +383,8 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 %files devel -f %name-devel.list
 %defattr(-,root,root,-)
-#%%{!?_without_doc:%doc lib/apidoc/latex/refman.pdf}
-#%%{!?_without_doc:%doc lib/apidoc/html}
+%{!?_without_doc:%doc lib/apidoc/latex/refman.pdf}
+%{!?_without_doc:%doc lib/apidoc/html}
 
 
 %files python
