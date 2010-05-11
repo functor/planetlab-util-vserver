@@ -22,7 +22,7 @@
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
 # for module-tools
-%global module_version_varname fullver
+%global module_version_varname ver
 %global taglevel 0
 
 %{!?release_func:%global release_func() %1%{?dist}}
