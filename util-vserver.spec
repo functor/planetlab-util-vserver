@@ -18,13 +18,13 @@
 %global _localstatedir	%_var
 
 %global fullver		0.30.216-pre2883
-%global modulever	0.30.216
+%global modulever 0.30.216
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 0
+%global taglevel 1
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -394,6 +394,8 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Tue May 11 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-1
+
 * Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
 - updated URLs
 - get rid of e2fsprogs requirement
