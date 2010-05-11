@@ -18,11 +18,12 @@
 %global _localstatedir	%_var
 
 %global fullver		0.30.216-pre2883
+%global modulever	0.30.216
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
 
 # for module-tools
-%global module_version_varname ver
+%global module_version_varname modulever
 %global taglevel 0
 
 %{!?release_func:%global release_func() %1%{?dist}}
