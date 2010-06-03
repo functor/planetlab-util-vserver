@@ -1,0 +1,160 @@
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/01 util-vserver-0.30.216-pre2883/distrib/f13/pkgs/01
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/01	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/pkgs/01	2010-06-03 15:05:51.167549620 -0400
+@@ -0,0 +1 @@
++glibc
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/02 util-vserver-0.30.216-pre2883/distrib/f13/pkgs/02
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/02	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/pkgs/02	2010-06-03 15:05:51.167549620 -0400
+@@ -0,0 +1,3 @@
++--reinstall
++
++filesystem
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/03 util-vserver-0.30.216-pre2883/distrib/f13/pkgs/03
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/pkgs/03	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/pkgs/03	2010-06-03 15:05:51.168549668 -0400
+@@ -0,0 +1,2 @@
++coreutils
++initscripts
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/rpmlist.d/00.lst util-vserver-0.30.216-pre2883/distrib/f13/rpmlist.d/00.lst
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/rpmlist.d/00.lst	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/rpmlist.d/00.lst	2010-06-03 15:05:51.168549668 -0400
+@@ -0,0 +1,11 @@
++glibc-[0-9]*.rpm
++basesystem-*.rpm
++bash-[0-9]*.rpm
++filesystem-*.rpm
++glibc-common-*.rpm
++libgcc-[0-9]*.rpm
++ncurses-base-[0-9]*.rpm
++ncurses-libs-*.rpm
++nss-softokn-freebl-*.rpm
++setup-*.rpm
++tzdata-*.rpm
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/yum/yum.conf util-vserver-0.30.216-pre2883/distrib/f13/yum/yum.conf
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/yum/yum.conf	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/yum/yum.conf	2010-06-03 15:05:51.168549668 -0400
+@@ -0,0 +1,11 @@
++[main]
++cachedir=@YUMCACHEDIR@
++persistdir=@YUMLIBDIR@
++reposdir=@YUMETCDIR@/yum.repos.d
++debuglevel=1
++logfile=@YUMLOGDIR@/log
++lockfile=@YUMLOCKDIR@/yum.pid
++pkgpolicy=newest
++distroverpkg=fedora-release
++installonlypkgs=
++exactarch=0
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora.repo util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora.repo
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora.repo	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora.repo	2010-06-03 15:06:46.702080850 -0400
+@@ -0,0 +1,26 @@
++[fedora]
++name=Fedora 13 - $basearch
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Everything/$basearch/os/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-13&arch=$basearch
++enabled=1
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
++
++[fedora-debuginfo]
++name=Fedora 13 - $basearch - Debug
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Everything/$basearch/debug/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-debug-13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
++
++[fedora-source]
++name=Fedora 13 - Source
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Everything/source/SRPMS/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=fedora-source-13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora-updates.repo util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora-updates.repo
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora-updates.repo	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora-updates.repo	2010-06-03 15:06:46.702080850 -0400
+@@ -0,0 +1,26 @@
++[updates]
++name=Fedora 13 - $basearch - Updates
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/13/$basearch/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f13&arch=$basearch
++enabled=1
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
++
++[updates-debuginfo]
++name=Fedora 13 - $basearch - Updates - Debug
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/13/$basearch/debug/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-debug-f13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
++
++[updates-source]
++name=Fedora 13 - Updates Source
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/13/SRPMS/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-source-f13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-$basearch
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora-updates-testing.repo util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora-updates-testing.repo
+--- util-vserver-0.30.216-pre2883.orig/distrib/f13/yum.repos.d/fedora-updates-testing.repo	1969-12-31 19:00:00.000000000 -0500
++++ util-vserver-0.30.216-pre2883/distrib/f13/yum.repos.d/fedora-updates-testing.repo	2010-06-03 15:06:46.702080850 -0400
+@@ -0,0 +1,26 @@
++[updates-testing]
++name=Fedora 13 - $basearch - Test Updates
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/13/$basearch/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-testing-f13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-test-$basearch
++
++[updates-testing-debuginfo]
++name=Fedora 13 - $basearch - Test Updates Debug
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/13/$basearch/debug/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-testing-debug-f13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-test-$basearch
++
++[updates-testing-source]
++name=Fedora 13 - Test Updates Source
++failovermethod=priority
++#baseurl=http://download.fedoraproject.org/pub/fedora/linux/updates/testing/13/SRPMS/
++mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-testing-source-f13&arch=$basearch
++enabled=0
++gpgcheck=1
++gpgkey=http://download.fedoraproject.org/pub/fedora/linux/releases/13/Fedora/$basearch/os/RPM-GPG-KEY-fedora-test-$basearch
+diff -Nur util-vserver-0.30.216-pre2883.orig/distrib/Makefile.am util-vserver-0.30.216-pre2883/distrib/Makefile.am
+--- util-vserver-0.30.216-pre2883.orig/distrib/Makefile.am	2010-06-03 15:05:51.168549668 -0400
++++ util-vserver-0.30.216-pre2883/distrib/Makefile.am	2010-06-03 15:07:36.816658272 -0400
+@@ -81,6 +81,9 @@
+ 			   f12/pkgs/01 f12/pkgs/02 f12/pkgs/03 f12/yum/yum.conf \
+ 			   $(wildcard $(srcdir)/f12/yum.repos.d/*.repo) \
+ 			   $(wildcard $(srcdir)/f12/rpmlist.d/*.lst) $(wildcard $(srcdir)/f12/rpmlist.d/*.opt) \
++			   f13/pkgs/01 f13/pkgs/02 f13/pkgs/03 f13/yum/yum.conf \
++			   $(wildcard $(srcdir)/f13/yum.repos.d/*.repo) \
++			   $(wildcard $(srcdir)/f13/rpmlist.d/*.lst) $(wildcard $(srcdir)/f13/rpmlist.d/*.opt) \
+ 			   centos4/pkgs/01 centos4/pkgs/02 centos4/pkgs/03 \
+ 			   centos4/yum/yum.conf $(wildcard $(srcdir)/centos4/yum.repos.d/*.repo) \
+ 			   centos5/pkgs/01 centos5/pkgs/02 centos5/pkgs/03 \
+@@ -108,7 +111,7 @@
+ 			   $(nobase_confdistrib_DATA) \
+ 			   $(defaults_DATA)
+ 
+-redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 f7 f8 f9 f10 f11 f12 centos4 centos5
++redhat_style		=  rh9 fc1 fc2 fc3 fc4 fc5 fc6 f7 f8 f9 f10 f11 f12 f13 centos4 centos5
+ sid_style		=  etch lenny squeeze sid
+ 
+ install-exec-hook:	install-notify-xtra
