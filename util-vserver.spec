@@ -255,7 +255,6 @@ test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 %chkconfig --add vprocunhide
 %chkconfig --add util-vserver
 %chkconfig util-vserver on
-service util-vserver restart
 
 %preun sysv
 test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
