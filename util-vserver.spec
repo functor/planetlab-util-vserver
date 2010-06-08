@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 2
+%global taglevel 3
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -396,6 +396,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Tue Jun 08 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-3
+- Do not restart util-vserver service on upgrades
+
 * Tue Jun 01 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-2
 - remove tmpfs mounted /tmp from fstab template
 
