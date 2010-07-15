@@ -199,7 +199,7 @@ Linux-VServer API from Python.
 %setup -q -n %name-%fullver
 %patch1 -p0
 %patch2 -p1
-%patch2 -p0
+%patch3 -p0
 autoreconf -fi
 
 %build
