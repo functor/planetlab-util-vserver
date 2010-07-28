@@ -39,7 +39,7 @@ Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.
 Source1:	fstab
 Patch1:		f12.patch
 Patch2:		f13.patch
-Patch3:         rev2883to2896.patch
+Patch3:         rev2883to2902.patch
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
