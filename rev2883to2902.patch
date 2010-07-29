@@ -2,29 +2,9 @@ Index: python/Makefile-files
 ===================================================================
 --- python/Makefile-files	(revision 2883)
 +++ python/Makefile-files	(revision 2902)
-@@ -1,22 +1,23 @@
- ## $Id$
- 
- ## Copyright (C) 2008 Daniel Hokka Zakrisson
--## 
-+##
- ## This program is free software; you can redistribute it and/or
- ## modify it under the terms of the GNU General Public License
- ## as published by the Free Software Foundation; either version 2
- ## of the License, or (at your option) any later version.
--## 
-+##
- ## This program is distributed in the hope that it will be useful,
- ## but WITHOUT ANY WARRANTY; without even the implied warranty of
- ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ## GNU General Public License for more details.
--## 
-+##
- ## You should have received a copy of the GNU General Public License
- ## along with this program; if not, write to the Free Software
+@@ -17,6 +17,7 @@
  ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
--## 
-+##
+ ## 
  
 +AM_INSTALLCHECK_STD_OPTIONS_EXEMPT += python/libvserver.py
  pyexec_LTLIBRARIES		+= python/_libvserver.la
@@ -127,7 +107,7 @@ Index: debian/control
 
 Property changes on: debian/control
 ___________________________________________________________________
-Name: svn:keywords
+Added: svn:keywords
    + Id
 
 Index: debian/compat
@@ -152,7 +132,7 @@ Index: debian/util-vserver-build.postinst
 
 Property changes on: debian/util-vserver-build.postinst
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/copyright
@@ -226,7 +206,7 @@ Index: debian/util-vserver.postinst
 
 Property changes on: debian/util-vserver.postinst
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/rules
@@ -268,9 +248,9 @@ Index: debian/rules
 
 Property changes on: debian/rules
 ___________________________________________________________________
-Name: svn:keywords
+Added: svn:keywords
    + Id
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/util-vserver.postrm
@@ -286,7 +266,7 @@ Index: debian/util-vserver.postrm
 
 Property changes on: debian/util-vserver.postrm
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/util-vserver-legacy.postinst
@@ -306,7 +286,7 @@ Index: debian/util-vserver-legacy.postinst
 
 Property changes on: debian/util-vserver-legacy.postinst
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/util-vserver-sysv.postinst
@@ -324,7 +304,7 @@ Index: debian/util-vserver-sysv.postinst
 
 Property changes on: debian/util-vserver-sysv.postinst
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/changelog.in
@@ -350,7 +330,7 @@ Index: debian/util-vserver-sysv.postrm
 
 Property changes on: debian/util-vserver-sysv.postrm
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/Makefile-files
@@ -394,7 +374,7 @@ Index: debian/Makefile-files
 
 Property changes on: debian/Makefile-files
 ___________________________________________________________________
-Name: svn:keywords
+Added: svn:keywords
    + Id
 
 Index: debian/util-vserver-legacy.prerm
@@ -415,7 +395,7 @@ Index: debian/util-vserver-legacy.prerm
 
 Property changes on: debian/util-vserver-legacy.prerm
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: debian/util-vserver-sysv.prerm
@@ -434,33 +414,13 @@ Index: debian/util-vserver-sysv.prerm
 
 Property changes on: debian/util-vserver-sysv.prerm
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: src/testsuite/hashcalc-plain.c
 ===================================================================
 --- src/testsuite/hashcalc-plain.c	(revision 2883)
 +++ src/testsuite/hashcalc-plain.c	(revision 2902)
-@@ -1,16 +1,16 @@
- // $Id$    --*- c -*--
- 
- // Copyright (C) 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--//  
-+//
- // This program is free software; you can redistribute it and/or modify
- // it under the terms of the GNU General Public License as published by
- // the Free Software Foundation; version 2 of the License.
--//  
-+//
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
--//  
-+//
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -24,6 +24,7 @@
  #include <stdbool.h>
  #include <unistd.h>
@@ -469,71 +429,10 @@ Index: src/testsuite/hashcalc-plain.c
  #include <sys/mman.h>
  
  #define ENSC_TESTSUITE
-@@ -36,19 +37,19 @@
- {
-   static char const		HEX_DIGIT[] = "0123456789abcdef";
-   size_t			d_size   = ensc_crypto_hashctx_get_digestsize(h_ctx);
--    
-+
-   unsigned char			digest[d_size];
-   size_t			out = 0;
- 
-   if (ensc_crypto_hashctx_get_digest(h_ctx, digest, NULL, d_size)==-1)
-     return false;
--  
-+
-   for (size_t in=0; in<d_size; ++in) {
-     res[out++]  = HEX_DIGIT[digest[in] >>    4];
-     res[out++]  = HEX_DIGIT[digest[in] &  0x0f];
-   }
-   res[out++] = '\0';
--  
-+
-   return true;
- }
- 
-@@ -81,13 +82,13 @@
-     assert(ensc_crypto_hashctx_update(&hash_context, buf, buf_size)!=-1);
-     munmap((void *)(buf), buf_size);
-   }
--    
-+
-   assert(convertDigest(digest, &hash_context));
--  
-+
-   Vwrite(1, digest, strlen(digest));
-   Vwrite(1, "\n", 1);
--  
-+
-   ensc_crypto_hashctx_free(&hash_context);
--  
-+
-   return 0;
- }
 Index: src/testsuite/Makefile-files
 ===================================================================
 --- src/testsuite/Makefile-files	(revision 2883)
 +++ src/testsuite/Makefile-files	(revision 2902)
-@@ -1,16 +1,16 @@
- ## $Id$		--*- makefile -*--
- 
- ## Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--##  
-+##
- ## This program is free software; you can redistribute it and/or modify
- ## it under the terms of the GNU General Public License as published by
- ## the Free Software Foundation; version 2 of the License.
--##  
-+##
- ## This program is distributed in the hope that it will be useful,
- ## but WITHOUT ANY WARRANTY; without even the implied warranty of
- ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ## GNU General Public License for more details.
--##  
-+##
- ## You should have received a copy of the GNU General Public License
- ## along with this program; if not, write to the Free Software
- ## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -57,19 +57,22 @@
  					src/testsuite/hashcalc-plain.sh \
  					src/testsuite/vwait-test.sh
@@ -575,26 +474,6 @@ Index: src/vcontext.c
 ===================================================================
 --- src/vcontext.c	(revision 2883)
 +++ src/vcontext.c	(revision 2902)
-@@ -1,16 +1,16 @@
- // $Id$    --*- c -*--
- 
- // Copyright (C) 2004-2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--//  
-+//
- // This program is free software; you can redistribute it and/or modify
- // it under the terms of the GNU General Public License as published by
- // the Free Software Foundation; version 2 of the License.
--//  
-+//
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
--//  
-+//
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -21,6 +21,7 @@
  #endif
  
@@ -603,89 +482,6 @@ Index: src/vcontext.c
  #include "lib/internal.h"
  #include "lib_internal/jail.h"
  #include "lib_internal/sys_personality.h"
-@@ -99,9 +100,9 @@
-   { "personality-flags", required_argument, 0, CMD_PERSFLAG },
-   { "vlogin",       no_argument,        0, CMD_VLOGIN },
-   { "pivot-root",   no_argument,        0, CMD_PIVOT_ROOT },
--#if 1  
-+#if 1
-   { "fakeinit",     no_argument,       	0, CMD_INITPID },	// compatibility
--#endif  
-+#endif
-   { 0,0,0,0 },
- };
- 
-@@ -205,7 +206,7 @@
- {
-   int			fd;
-   struct sockaddr_un	addr;
--  
-+
-   if (filename==0) return -1;
- 
-   ENSC_INIT_UNIX_SOCK(addr, filename);
-@@ -237,7 +238,7 @@
- doExternalSync(int fd, char const *msg)
- {
-   char		c;
--  
-+
-   if (fd==-1) return;
- 
-   if (msg) EsendAll(fd, msg, strlen(msg));
-@@ -256,13 +257,13 @@
- {
-   int			p[2][2];
-   pid_t			pid = initSync(p, args->do_disconnect);
--  
-+
-   if (pid==0) {
-     xid_t			xid;
-     int				ext_sync_fd = connectExternalSync(args->sync_sock);
- 
--    doSyncStage0(p, args->do_disconnect);  
--    
-+    doSyncStage0(p, args->do_disconnect);
-+
-     if (args->do_create) {
-       xid = vc_ctx_create(args->xid, NULL);
-       if (xid==VC_NOCTX) {
-@@ -378,7 +379,7 @@
-   }
- 
-   assert(args->do_disconnect);
--    
-+
-   waitOnSync(pid, p, args->xid!=VC_DYNAMIC_XID && args->do_migrate);
-   return EXIT_SUCCESS;
- }
-@@ -430,11 +431,11 @@
-     .personality_flags = 0,
-     .sync_msg          = "ok",
-   };
--  
-+
-   while (1) {
-     int		c = getopt_long(argc, argv, "+", CMDLINE_OPTIONS, 0);
-     if (c==-1) break;
--    
-+
-     switch (c) {
-       case CMD_HELP		:  showHelp(1, argv[0], 0);
-       case CMD_VERSION		:  showVersion();
-@@ -474,10 +475,10 @@
-   }
- 
-   signal(SIGCHLD, SIG_DFL);
--  
-+
-   if (args.do_migrateself)
-     args.xid = Evc_get_task_xid(0);
--  
-+
-   if (!args.do_create && !args.do_migrate)
-     WRITE_MSG(2, "Neither '--create' nor '--migrate' specified; try '--help' for more information\n");
-   else if (args.do_create  &&  args.do_migrate)
 Index: src/vserver-stat.c
 ===================================================================
 --- src/vserver-stat.c	(revision 2883)
@@ -805,123 +601,10 @@ Index: scripts/vserver.functions
      local mask
      getFileValue mask "$d"/mask || \
        OPTS_VSPACE=( "${OPTS_VSPACE[@]}" --mask "$mask" )
-Index: configure.ac
-===================================================================
---- configure.ac	(revision 2883)
-+++ configure.ac	(revision 2902)
-@@ -1,27 +1,27 @@
- dnl $Id$
- 
- dnl Copyright (C) 2003,2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--dnl  
-+dnl
- dnl This program is free software; you can redistribute it and/or modify
- dnl it under the terms of the GNU General Public License as published by
- dnl the Free Software Foundation; either version 2, or (at your option)
- dnl any later version.
--dnl  
-+dnl
- dnl This program is distributed in the hope that it will be useful,
- dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
- dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- dnl GNU General Public License for more details.
--dnl  
-+dnl
- dnl You should have received a copy of the GNU General Public License
- dnl along with this program; if not, write to the Free Software
- dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
--dnl  
--dnl  
-+dnl
-+dnl
- dnl As a special exception to the GNU General Public License, if you
- dnl distribute this file as part of a program that contains a configuration
- dnl script generated by Autoconf, you may include it under the same
- dnl distribution terms that you use for the rest of that program.
--dnl  
-+dnl
- 
- AC_PREREQ(2.57)
- AC_INIT(util-vserver, 0.30.215, vserver@list.linux-vserver.org)
-@@ -78,7 +78,7 @@
- 
- if test x"$prefix" = x/; then
- 	prefix=
--fi	
-+fi
- 
- ENSC_CHECK_CC_FLAG([-std=c99 -Wall -pedantic -W])
- ENSC_CHECK_CXX_FLAG([-ansi   -Wall -pedantic -W -fmessage-length=0])
-@@ -206,8 +206,8 @@
-               [AC_HELP_STRING([--disable-internal-headers],
-                               [use vserver specific headers from the kernel instead of the shipped versions (default: no)])],
-               [case "$enableval" in
--	          (yes|no) ;;
--	          (*)      AC_MSG_ERROR(['$i' is not a supported value for '--disable-internal-headers']);;
-+		  (yes|no) ;;
-+		  (*)      AC_MSG_ERROR(['$i' is not a supported value for '--disable-internal-headers']);;
- 	       esac],
-               [enable_internal_headers=yes])
- 
-@@ -258,14 +258,14 @@
- 				enable_api_oldproc=${enable_api_oldproc:-1}
- 				enable_api_olduts=${enable_api_olduts:-1}
- 				;;
--		(v11)    	AC_DEFINE(VC_ENABLE_API_V11,      1)
-+		(v11)	 	AC_DEFINE(VC_ENABLE_API_V11,      1)
- 				enable_api_oldproc=${enable_api_oldproc:-1}
- 				enable_api_olduts=${enable_api_olduts:-1}
- 				;;
- 		(fscompat)	AC_DEFINE(VC_ENABLE_API_FSCOMPAT, 1);;
- 		(v13obs)    	AC_DEFINE(VC_ENABLE_API_V13OBS,   1)
- 				AC_DEFINE(VC_ENABLE_API_V13,      1);;
--		(v13)    	AC_DEFINE(VC_ENABLE_API_V13,      1);;
-+		(v13)	 	AC_DEFINE(VC_ENABLE_API_V13,      1);;
- 		(net)		AC_DEFINE(VC_ENABLE_API_NET,      1);;
- 		(v21)		AC_DEFINE(VC_ENABLE_API_V21,      1);;
- 		(v22)		AC_DEFINE(VC_ENABLE_API_V22,      1);;
-@@ -340,7 +340,7 @@
- 		AC_CHECK_HEADER([beecrypt/beecrypt.h], [ : ],
- 				[ ensc_have_beecrypt=no ])
- 	fi
--			
-+
- 	if test x"$ensc_have_beecrypt" = xyes; then
- 		AC_CHECK_LIB(beecrypt, hashFunctionContextInit, [ : ],
- 			     [ ensc_have_beecrypt=no ])
-@@ -532,7 +532,7 @@
-                crypto api: $ensc_crypto_api
-           python bindings: $ensc_have_python
-    use library versioning: $ensc_have_versioning
--   
-+
- Paths:
-                    prefix: $prefix
-         sysconf-Directory: $sysconfdir
 Index: lib/syscall_setiattr-fscompat.hc
 ===================================================================
 --- lib/syscall_setiattr-fscompat.hc	(revision 2883)
 +++ lib/syscall_setiattr-fscompat.hc	(revision 2902)
-@@ -1,16 +1,16 @@
- // $Id$    --*- c -*--
- 
- // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--//  
-+//
- // This program is free software; you can redistribute it and/or modify
- // it under the terms of the GNU General Public License as published by
- // the Free Software Foundation; version 2 of the License.
--//  
-+//
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
--//  
-+//
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -26,6 +26,7 @@
  #include "ioctl-getxflg.hc"
  
@@ -930,48 +613,10 @@ Index: lib/syscall_setiattr-fscompat.hc
  
  static inline ALWAYSINLINE int
  vc_set_iattr_fscompat(char const *filename,
-@@ -38,7 +39,7 @@
- 
-   fd = open(filename, O_RDONLY|O_NONBLOCK);
-   if (fd==-1) return -1;
--    
-+
-   stat_rc = fstat(fd, &st);
-   if (stat_rc==-1) goto err;
- 
-@@ -60,7 +61,7 @@
-       if (vc_X_set_ext2flags(fd, 0, VC_IMMUTABLE_LINK_FL)==-1 ||
- 	  fchmod(fd, 0500))
- 	goto err;
--    }      
-+    }
-   }
- 
-   if ( (mask&VC_IATTR_XID) &&
 Index: lib/syscall_getiattr-fscompat.hc
 ===================================================================
 --- lib/syscall_getiattr-fscompat.hc	(revision 2883)
 +++ lib/syscall_getiattr-fscompat.hc	(revision 2902)
-@@ -1,16 +1,16 @@
- // $Id$    --*- c -*--
- 
- // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--//  
-+//
- // This program is free software; you can redistribute it and/or modify
- // it under the terms of the GNU General Public License as published by
- // the Free Software Foundation; version 2 of the License.
--//  
-+//
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
--//  
-+//
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -25,6 +25,9 @@
  #include "ioctl-getxflg.hc"
  
@@ -982,22 +627,6 @@ Index: lib/syscall_getiattr-fscompat.hc
  static inline ALWAYSINLINE int
  vc_get_iattr_fscompat(char const *filename,
  		      xid_t    * /*@null@*/ xid,
-@@ -65,7 +68,7 @@
- 
-   if ( (old_mask&VC_IATTR_BARRIER) && S_ISDIR(st.st_mode)) {
-     long		ext2_flags;
--    
-+
-     *mask  |= VC_IATTR_BARRIER;
-     if ((st.st_mode&0777)==0 &&
- 	vc_X_get_ext2flags(fd, &ext2_flags)!=-1 &&
-@@ -91,5 +94,5 @@
-     close(fd);
-     errno = old_errno;
-     return -1;
--  } 
-+  }
- }
 Index: contrib/make-manifest
 ===================================================================
 --- contrib/make-manifest	(revision 2883)
@@ -1091,7 +720,7 @@ Index: contrib/make-deb-manifest
 
 Property changes on: contrib/make-deb-manifest
 ___________________________________________________________________
-Name: svn:executable
+Added: svn:executable
    + *
 
 Index: contrib/Makefile-files
@@ -1111,26 +740,6 @@ Index: lib_internal/matchlist-initrefserverlist.c
 ===================================================================
 --- lib_internal/matchlist-initrefserverlist.c	(revision 2883)
 +++ lib_internal/matchlist-initrefserverlist.c	(revision 2902)
-@@ -1,16 +1,16 @@
- // $Id$    --*- c -*--
- 
- // Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--//  
-+//
- // This program is free software; you can redistribute it and/or modify
- // it under the terms of the GNU General Public License as published by
- // the Free Software Foundation; version 2 of the License.
--//  
-+//
- // This program is distributed in the hope that it will be useful,
- // but WITHOUT ANY WARRANTY; without even the implied warranty of
- // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- // GNU General Public License for more details.
--//  
-+//
- // You should have received a copy of the GNU General Public License
- // along with this program; if not, write to the Free Software
- // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -26,6 +26,7 @@
  #include <dirent.h>
  #include <string.h>
@@ -1139,33 +748,6 @@ Index: lib_internal/matchlist-initrefserverlist.c
  
  #define ENSC_WRAPPERS_FCNTL	1
  #define ENSC_WRAPPERS_UNISTD	1
-@@ -45,7 +46,7 @@
-   int			cur_dir = Eopen(".", O_RDONLY, 0);
-   struct dirent		**entries;
-   int			count,i;
--  
-+
-   Echdir(dir);
-   count = scandir(".", &entries, selectRefserver, alphasort);
-   if (count==-1) {
-@@ -61,7 +62,7 @@
-   *lst = Emalloc(sizeof(struct MatchList) * count);
-   *cnt = count;
-   for (i=0; i<count; ++i) {
--    char const 			*tmp   = entries[i]->d_name;
-+    char const			*tmp   = entries[i]->d_name;
-     size_t			l      = strlen(tmp);
-     char			vname[sizeof("./") + l];
-     struct MatchVserverInfo	vserver = {
-@@ -71,7 +72,7 @@
- 
-     memcpy(vname,   "./", 2);
-     memcpy(vname+2, tmp,  l+1);
--    
-+
-     if (!MatchVserverInfo_init(&vserver)) {
-       WRITE_MSG(2, "failed to initialize unification of reference vserver\n");
-       exit(1);
 Index: util-vserver.spec.in
 ===================================================================
 --- util-vserver.spec.in	(revision 2883)
@@ -1209,26 +791,6 @@ Index: ensc_vector/testsuite/Makefile-files
 ===================================================================
 --- ensc_vector/testsuite/Makefile-files	(revision 2883)
 +++ ensc_vector/testsuite/Makefile-files	(revision 2902)
-@@ -1,16 +1,16 @@
- ## $Id$		--*- makefile -*--
- 
- ## Copyright (C) 2004 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
--##  
-+##
- ## This program is free software; you can redistribute it and/or modify
- ## it under the terms of the GNU General Public License as published by
- ## the Free Software Foundation; version 2 of the License.
--##  
-+##
- ## This program is distributed in the hope that it will be useful,
- ## but WITHOUT ANY WARRANTY; without even the implied warranty of
- ## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- ## GNU General Public License for more details.
--##  
-+##
- ## You should have received a copy of the GNU General Public License
- ## along with this program; if not, write to the Free Software
- ## Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 @@ -21,6 +21,9 @@
  TESTS +=			ensc_vector/testsuite/test1 \
  				ensc_vector/testsuite/test2
