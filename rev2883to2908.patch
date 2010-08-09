@@ -1,7 +1,7 @@
 Index: python/Makefile-files
 ===================================================================
 --- python/Makefile-files	(revision 2883)
-+++ python/Makefile-files	(revision 2902)
++++ python/Makefile-files	(revision 2908)
 @@ -17,6 +17,7 @@
  ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ## 
@@ -13,7 +13,7 @@ Index: python/Makefile-files
 Index: debian/control
 ===================================================================
 --- debian/control	(revision 0)
-+++ debian/control	(revision 2902)
++++ debian/control	(revision 2908)
 @@ -0,0 +1,89 @@
 +Source: util-vserver
 +Section: net
@@ -25,7 +25,7 @@ Index: debian/control
 +
 +Package: util-vserver
 +Architecture: any
-+Depends: ${shlibs:Depends}, ${misc:Depends}, util-vserver-core, util-vserver-lib, util-vserver-sysv, diffutils
++Depends: ${shlibs:Depends}, ${misc:Depends}, util-vserver-core, libvserver0, util-vserver-sysv, diffutils
 +Description: utilities for managing Linux-VServer guests
 + util-vserver provides the components and a framework to setup virtual
 + servers.  A virtual server runs inside a Linux server. It is nevertheless
@@ -87,7 +87,7 @@ Index: debian/control
 +Package: libvserver0-dev
 +Section: libdevel
 +Architecture: any
-+Depends: ${shlibs:Depends}, ${misc:Depends}, util-vserver-lib, pkg-config
++Depends: ${shlibs:Depends}, ${misc:Depends}, libvserver0, pkg-config
 +Description: headers and libraries needed to develop vserver based applications
 + util-vserver provides the components and a framework to setup virtual
 + servers.  A virtual server runs inside a Linux server. It is nevertheless
@@ -97,7 +97,7 @@ Index: debian/control
 +
 +Package: util-vserver-python
 +Architecture: any
-+Depends: ${shlibs:Depends}, ${misc:Depends}, util-vserver-lib, ${python:Depends}, ${python:Versions}
++Depends: ${shlibs:Depends}, ${misc:Depends}, libvserver0, ${python:Depends}, ${python:Versions}
 +Description: python-bindings for util-vserver
 + util-vserver provides the components and a framework to setup virtual
 + servers.  A virtual server runs inside a Linux server. It is nevertheless
@@ -107,19 +107,19 @@ Index: debian/control
 
 Property changes on: debian/control
 ___________________________________________________________________
-Added: svn:keywords
+Name: svn:keywords
    + Id
 
 Index: debian/compat
 ===================================================================
 --- debian/compat	(revision 0)
-+++ debian/compat	(revision 2902)
++++ debian/compat	(revision 2908)
 @@ -0,0 +1 @@
 +7
 Index: debian/util-vserver-build.postinst
 ===================================================================
 --- debian/util-vserver-build.postinst	(revision 0)
-+++ debian/util-vserver-build.postinst	(revision 2902)
++++ debian/util-vserver-build.postinst	(revision 2908)
 @@ -0,0 +1,8 @@
 +#!/bin/sh
 +
@@ -132,13 +132,13 @@ Index: debian/util-vserver-build.postinst
 
 Property changes on: debian/util-vserver-build.postinst
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/copyright
 ===================================================================
 --- debian/copyright	(revision 0)
-+++ debian/copyright	(revision 2902)
++++ debian/copyright	(revision 2908)
 @@ -0,0 +1,41 @@
 +This work was packaged for Debian by:
 +
@@ -184,14 +184,14 @@ Index: debian/copyright
 Index: debian/docs
 ===================================================================
 --- debian/docs	(revision 0)
-+++ debian/docs	(revision 2902)
++++ debian/docs	(revision 2908)
 @@ -0,0 +1,2 @@
 +NEWS
 +README
 Index: debian/util-vserver.postinst
 ===================================================================
 --- debian/util-vserver.postinst	(revision 0)
-+++ debian/util-vserver.postinst	(revision 2902)
++++ debian/util-vserver.postinst	(revision 2908)
 @@ -0,0 +1,10 @@
 +#!/bin/sh
 +
@@ -206,13 +206,13 @@ Index: debian/util-vserver.postinst
 
 Property changes on: debian/util-vserver.postinst
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/rules
 ===================================================================
 --- debian/rules	(revision 0)
-+++ debian/rules	(revision 2902)
++++ debian/rules	(revision 2908)
 @@ -0,0 +1,31 @@
 +#!/usr/bin/make -f
 +# -*- makefile -*-
@@ -248,15 +248,15 @@ Index: debian/rules
 
 Property changes on: debian/rules
 ___________________________________________________________________
-Added: svn:keywords
+Name: svn:keywords
    + Id
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/util-vserver.postrm
 ===================================================================
 --- debian/util-vserver.postrm	(revision 0)
-+++ debian/util-vserver.postrm	(revision 2902)
++++ debian/util-vserver.postrm	(revision 2908)
 @@ -0,0 +1,5 @@
 +#!/bin/sh
 +
@@ -266,13 +266,13 @@ Index: debian/util-vserver.postrm
 
 Property changes on: debian/util-vserver.postrm
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/util-vserver-legacy.postinst
 ===================================================================
 --- debian/util-vserver-legacy.postinst	(revision 0)
-+++ debian/util-vserver-legacy.postinst	(revision 2902)
++++ debian/util-vserver-legacy.postinst	(revision 2908)
 @@ -0,0 +1,9 @@
 +#!/bin/sh
 +
@@ -286,13 +286,13 @@ Index: debian/util-vserver-legacy.postinst
 
 Property changes on: debian/util-vserver-legacy.postinst
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/util-vserver-sysv.postinst
 ===================================================================
 --- debian/util-vserver-sysv.postinst	(revision 0)
-+++ debian/util-vserver-sysv.postinst	(revision 2902)
++++ debian/util-vserver-sysv.postinst	(revision 2908)
 @@ -0,0 +1,7 @@
 +#!/bin/sh
 +
@@ -304,13 +304,13 @@ Index: debian/util-vserver-sysv.postinst
 
 Property changes on: debian/util-vserver-sysv.postinst
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/changelog.in
 ===================================================================
 --- debian/changelog.in	(revision 0)
-+++ debian/changelog.in	(revision 2902)
++++ debian/changelog.in	(revision 2908)
 @@ -0,0 +1,5 @@
 +util-vserver (@PACKAGE_VERSION@-1) unstable; urgency=low
 +
@@ -320,7 +320,7 @@ Index: debian/changelog.in
 Index: debian/util-vserver-sysv.postrm
 ===================================================================
 --- debian/util-vserver-sysv.postrm	(revision 0)
-+++ debian/util-vserver-sysv.postrm	(revision 2902)
++++ debian/util-vserver-sysv.postrm	(revision 2908)
 @@ -0,0 +1,5 @@
 +#!/bin/sh
 +
@@ -330,13 +330,13 @@ Index: debian/util-vserver-sysv.postrm
 
 Property changes on: debian/util-vserver-sysv.postrm
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/Makefile-files
 ===================================================================
 --- debian/Makefile-files	(revision 0)
-+++ debian/Makefile-files	(revision 2902)
++++ debian/Makefile-files	(revision 2908)
 @@ -0,0 +1,33 @@
 +## $Id$  -*- makefile -*-
 +
@@ -374,13 +374,13 @@ Index: debian/Makefile-files
 
 Property changes on: debian/Makefile-files
 ___________________________________________________________________
-Added: svn:keywords
+Name: svn:keywords
    + Id
 
 Index: debian/util-vserver-legacy.prerm
 ===================================================================
 --- debian/util-vserver-legacy.prerm	(revision 0)
-+++ debian/util-vserver-legacy.prerm	(revision 2902)
++++ debian/util-vserver-legacy.prerm	(revision 2908)
 @@ -0,0 +1,10 @@
 +#!/bin/sh
 +
@@ -395,13 +395,13 @@ Index: debian/util-vserver-legacy.prerm
 
 Property changes on: debian/util-vserver-legacy.prerm
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: debian/util-vserver-sysv.prerm
 ===================================================================
 --- debian/util-vserver-sysv.prerm	(revision 0)
-+++ debian/util-vserver-sysv.prerm	(revision 2902)
++++ debian/util-vserver-sysv.prerm	(revision 2908)
 @@ -0,0 +1,8 @@
 +#!/bin/sh
 +
@@ -414,13 +414,13 @@ Index: debian/util-vserver-sysv.prerm
 
 Property changes on: debian/util-vserver-sysv.prerm
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: src/testsuite/hashcalc-plain.c
 ===================================================================
 --- src/testsuite/hashcalc-plain.c	(revision 2883)
-+++ src/testsuite/hashcalc-plain.c	(revision 2902)
++++ src/testsuite/hashcalc-plain.c	(revision 2908)
 @@ -24,6 +24,7 @@
  #include <stdbool.h>
  #include <unistd.h>
@@ -432,7 +432,7 @@ Index: src/testsuite/hashcalc-plain.c
 Index: src/testsuite/Makefile-files
 ===================================================================
 --- src/testsuite/Makefile-files	(revision 2883)
-+++ src/testsuite/Makefile-files	(revision 2902)
++++ src/testsuite/Makefile-files	(revision 2908)
 @@ -57,19 +57,22 @@
  					src/testsuite/hashcalc-plain.sh \
  					src/testsuite/vwait-test.sh
@@ -473,7 +473,7 @@ Index: src/testsuite/Makefile-files
 Index: src/vcontext.c
 ===================================================================
 --- src/vcontext.c	(revision 2883)
-+++ src/vcontext.c	(revision 2902)
++++ src/vcontext.c	(revision 2908)
 @@ -21,6 +21,7 @@
  #endif
  
@@ -485,8 +485,16 @@ Index: src/vcontext.c
 Index: src/vserver-stat.c
 ===================================================================
 --- src/vserver-stat.c	(revision 2883)
-+++ src/vserver-stat.c	(revision 2902)
-@@ -116,7 +116,7 @@
++++ src/vserver-stat.c	(revision 2908)
+@@ -24,6 +24,7 @@
+ #include "vserver.h"
+ #include "util.h"
+ #include "internal.h"
++#include "pathconfig.h"
+ 
+ #include <ensc_vector/vector.h>
+ 
+@@ -116,7 +117,7 @@
    WRITE_STR(1, cmd);
    WRITE_MSG(1,
  	    "\n"
@@ -495,10 +503,202 @@ Index: src/vserver-stat.c
  	    "	CTX#		Context number\n"
  	    "			#0 = root context\n"
  	    "			#1 = monitoring context\n"
+@@ -279,6 +280,152 @@
+   }
+ }
+ 
++static void
++registerXidCgroups(struct Vector *vec, struct process_info *process)
++{
++  xid_t				xid = (xid_t) process->s_context;
++  struct XidData		*res;
++
++  switch (vc_getXIDType(xid)) {
++    case vcTYPE_STATIC:
++    case vcTYPE_DYNAMIC:
++      break;
++    default:
++      return;
++  }
++
++  res = Vector_search(vec, &xid, cmpData);
++  if (res == 0) {
++    struct vc_rlimit_stat	limit;
++    struct vc_virt_stat		vstat;
++    struct vc_sched_info	sched;
++    int				cpu;
++    char			vhi_name[65],
++				filename[128],
++				cgroup[65],
++				buf[30];
++    int				fd;
++    ssize_t			cgroup_len;
++    unsigned long long		rss;
++    char			*endptr;
++    size_t			len;
++
++    if (vc_virt_stat(xid, &vstat) == -1) {
++      perror("vc_virt_stat()");
++      return;
++    }
++    if (vc_rlimit_stat(xid, RLIMIT_NPROC, &limit) == -1) {
++      perror("vc_rlimit_stat(RLIMIT_NRPOC)");
++      return;
++    }
++    if (vc_get_vhi_name(xid, vcVHI_CONTEXT, vhi_name, sizeof(vhi_name)) == -1) {
++      perror("vc_get_vhi_name(CONTEXT)");
++      return;
++    }
++
++    if ((fd = open(DEFAULTCONFDIR "/cgroup/mnt", O_RDONLY)) == -1) {
++      strcpy(cgroup, "/dev/cgroup/");
++      cgroup_len = sizeof("/dev/cgroup");
++    }
++    else {
++      cgroup_len = read(fd, cgroup, sizeof(cgroup));
++      if (cgroup_len == -1) {
++        perror("read(cgroup/mnt)");
++        return;
++      }
++      close(fd);
++      cgroup[cgroup_len] = '/';
++      cgroup_len += 1;
++      cgroup[cgroup_len] = 0;
++    }
++
++    len = strlen(vhi_name);
++    if ((len + sizeof("/cgroup/name")) >= sizeof(filename)) {
++      WRITE_MSG(2, "too long context name: ");
++      WRITE_STR(2, vhi_name);
++      WRITE_MSG(2, "\n");
++      return;
++    }
++    strcpy(filename, vhi_name);
++    strcpy(filename + len, "/cgroup/name");
++
++    if ((fd = open(filename, O_RDONLY)) == -1) {
++      char *dir = strrchr(vhi_name, '/');
++      if (dir == NULL) {
++        WRITE_MSG(2, "invalid context name: ");
++        WRITE_STR(2, dir);
++        WRITE_MSG(2, "\n");
++        return;
++      }
++      len = strlen(dir);
++      if ((len + cgroup_len) >= sizeof(cgroup)) {
++        WRITE_MSG(2, "cgroup name too long: ");
++        WRITE_STR(2, dir);
++        WRITE_MSG(2, "\n");
++        return;
++      }
++      strcpy(cgroup + cgroup_len, dir);
++      cgroup_len += len;
++    }
++    else {
++      ssize_t ret;
++      ret = read(fd, cgroup + cgroup_len, sizeof(cgroup) - cgroup_len);
++      if (ret == -1) {
++        perror("read(cgroup/name)");
++        return;
++      }
++      cgroup_len += ret;
++      close(fd);
++    }
++
++    if ((cgroup_len + sizeof("/memory.usage_in_bytes")) > sizeof(filename)) {
++      WRITE_MSG(2, "cgroup name too long: ");
++      WRITE_STR(2, cgroup);
++      WRITE_MSG(2, "\n");
++      return;
++    }
++    strcpy(filename, cgroup);
++    strcpy(filename + cgroup_len, "/memory.usage_in_bytes");
++
++    if ((fd = open(filename, O_RDONLY)) == -1) {
++      perror("open(memory.usage_in_bytes)");
++      return;
++    }
++    if (read(fd, buf, sizeof(buf)) == -1) {
++      perror("read(memory.usage_in_bytes)");
++      return;
++    }
++    close(fd);
++    if ((rss = strtoull(buf, &endptr, 0)) == ULLONG_MAX ||
++        (*endptr != '\n' && *endptr != '\0')) {
++      perror("strtoull(memory.usage_in_bytes)");
++      return;
++    }
++
++    res			= Vector_insert(vec, &xid, cmpData);
++    res->xid		= xid;
++
++    res->process_count	= limit.value;
++    res->VmRSS_total	= rss / 4096;
++    res->start_time_oldest= getUptime() - vstat.uptime/1000000;
++
++    res->utime_total	= 0;
++    res->stime_total	= 0;
++    // XXX: arbitrary CPU limit.
++    for (cpu = 0; cpu < 1024; cpu++) {
++      sched.cpu_id = cpu;
++      sched.bucket_id = 0;
++      if (vc_sched_info(xid, &sched) == -1)
++        break;
++
++      res->utime_total	+= sched.user_msec;
++      res->stime_total	+= sched.sys_msec;
++    }
++  }
++  
++  res->VmSize_total	+= process->VmSize;
++}
++
+ static inline uint64_t
+ toMsec(uint64_t v)
+ {
+@@ -615,7 +762,7 @@
+   
+   Vector_init(&xid_data, sizeof(struct XidData));
+ 
+-  if (vc_isSupported(vcFEATURE_VSTAT)) {
++  if (vc_isSupported(vcFEATURE_VSTAT) && !vc_isSupported(vcFEATURE_MEMCG)) {
+     unsigned long xid;
+     Echdir(PROC_VIRT_DIR_NAME);
+     proc_dir = Eopendir(".");
+@@ -628,6 +775,8 @@
+     closedir(proc_dir);
+   }
+   else {
++    void (*handler)(struct Vector *vec, struct process_info *process);
++
+     my_pid = getpid();
+ 
+     if (!switchToWatchXid(&errptr)) {
+@@ -641,6 +790,11 @@
+ 	      "         procfs-security. Please read the FAQ for more details\n"
+ 	      "         http://linux-vserver.org/Proc-Security\n");
+ 
++    if (vc_isSupported(vcFEATURE_MEMCG))
++      handler = registerXidCgroups;
++    else
++      handler = registerXid;
++
+     Echdir(PROC_DIR_NAME);
+     proc_dir = Eopendir(".");
+     while ((dir_entry = readdir(proc_dir)) != NULL)
+@@ -652,7 +806,7 @@
+       if (atoi(dir_entry->d_name) != my_pid) {
+ 	struct process_info *	info = get_process_info(dir_entry->d_name);
+ 	if (info)
+-	  registerXid(&xid_data, info);
++	  handler(&xid_data, info);
+       }
+     }
+     closedir(proc_dir);
 Index: scripts/vserver.suexec
 ===================================================================
 --- scripts/vserver.suexec	(revision 2883)
-+++ scripts/vserver.suexec	(revision 2902)
++++ scripts/vserver.suexec	(revision 2908)
 @@ -40,7 +40,7 @@
  	"${CHBIND_CMD[@]}" \
  	$_EXEC_ULIMIT "$VSERVER_DIR/ulimits" \
@@ -511,7 +711,7 @@ Index: scripts/vserver.suexec
 Index: scripts/vserver.stop
 ===================================================================
 --- scripts/vserver.stop	(revision 2883)
-+++ scripts/vserver.stop	(revision 2902)
++++ scripts/vserver.stop	(revision 2908)
 @@ -83,7 +83,7 @@
      "${IONICE_CMD[@]}" \
      "${NICE_CMD[@]}" \
@@ -524,7 +724,7 @@ Index: scripts/vserver.stop
 Index: scripts/vserver.start
 ===================================================================
 --- scripts/vserver.start	(revision 2883)
-+++ scripts/vserver.start	(revision 2902)
++++ scripts/vserver.start	(revision 2908)
 @@ -136,6 +136,7 @@
  if $_VSERVER_INFO - FEATURE migrate; then
      ${IONICE_CMD[@]} \
@@ -545,7 +745,7 @@ Index: scripts/vserver.start
 Index: scripts/vserver.functions
 ===================================================================
 --- scripts/vserver.functions	(revision 2883)
-+++ scripts/vserver.functions	(revision 2902)
++++ scripts/vserver.functions	(revision 2908)
 @@ -49,6 +49,8 @@
  declare -a OPTS_VTAG_ENTER=()
  declare -a OPTS_VMEMCTRL=()
@@ -559,7 +759,7 @@ Index: scripts/vserver.functions
  
      test -n "$_HAVE_INTERFACE_OPTIONS" || _generateInterfaceOptions "$vdir"
  
-+    if test -e "$vdir"/noncontext -o
++    if test -e "$vdir"/noncontext -o \
 +	    \( -e "$vdir"/spaces/net -a ! -e "$vdir"/ncontext \); then
 +	_HAVE_CHBIND_OPTIONS=1
 +	return 0
@@ -601,10 +801,36 @@ Index: scripts/vserver.functions
      local mask
      getFileValue mask "$d"/mask || \
        OPTS_VSPACE=( "${OPTS_VSPACE[@]}" --mask "$mask" )
+@@ -1461,8 +1475,12 @@
+ {
+     hasCgroup || return 1
+     test -d "$CGROUP_MNT" || return 1
++    memcg=""
++    if $_VSERVER_INFO - FEATURE memcg; then
++	memcg=1
++    fi
+     test -d "$1/cgroup" -o \
+-	\( -d "$__CONFDIR/.defaults/cgroup" -a \
++	\( \( -d "$__CONFDIR/.defaults/cgroup" -o -n "$memcg" \) -a \
+ 	   ! -e "$1/nocgroup" \)
+ }
+ 
+Index: configure.ac
+===================================================================
+--- configure.ac	(revision 2883)
++++ configure.ac	(revision 2908)
+@@ -27,6 +27,7 @@
+ AC_INIT(util-vserver, 0.30.215, vserver@list.linux-vserver.org)
+ AC_CONFIG_SRCDIR([src/capchroot.c])
+ AC_CONFIG_HEADER([config.h])
++AC_CONFIG_MACRO_DIR([m4])
+ 
+ AM_INIT_AUTOMAKE([1.9 gnits dist-bzip2 subdir-objects])
+ AM_MAINTAINER_MODE
 Index: lib/syscall_setiattr-fscompat.hc
 ===================================================================
 --- lib/syscall_setiattr-fscompat.hc	(revision 2883)
-+++ lib/syscall_setiattr-fscompat.hc	(revision 2902)
++++ lib/syscall_setiattr-fscompat.hc	(revision 2908)
 @@ -26,6 +26,7 @@
  #include "ioctl-getxflg.hc"
  
@@ -613,10 +839,56 @@ Index: lib/syscall_setiattr-fscompat.hc
  
  static inline ALWAYSINLINE int
  vc_set_iattr_fscompat(char const *filename,
+Index: lib/vserver.h
+===================================================================
+--- lib/vserver.h	(revision 2883)
++++ lib/vserver.h	(revision 2908)
+@@ -281,8 +281,18 @@
+ 
+ // the VCI bit values
+ #define VC_VCI_NO_DYNAMIC		(1 << 0)
++#define VC_VCI_PROC_SECURE		(1 << 4)
++#define VC_VCI_HARDCPU			(1 << 5)
++#define VC_VCI_IDLELIMIT		(1 << 6)
++#define VC_VCI_IDLETIME			(1 << 7)
++#define VC_VCI_COWBL			(1 << 8)
++#define VC_VCI_FULLCOWBL		(1 << 9)
+ #define VC_VCI_SPACES			(1 << 10)
+ #define VC_VCI_NETV2			(1 << 11)
++#define VC_VCI_MEMCG			(1 << 12)
++#define VC_VCI_DEBUG			(1 << 16)
++#define VC_VCI_HISTORY			(1 << 20)
++#define VC_VCI_TAGGED			(1 << 24)
+ #define VC_VCI_PPTAG			(1 << 28)
+ 
+ 
+@@ -980,7 +990,7 @@
+                  vcFEATURE_VSHELPER0, vcFEATURE_VSHELPER, vcFEATURE_VWAIT,
+ 		 vcFEATURE_VNET,   vcFEATURE_VSTAT,   vcFEATURE_PPTAG,
+ 		 vcFEATURE_PIDSPACE, vcFEATURE_SPACES, vcFEATURE_PERSISTENT,
+-		 vcFEATURE_PIVOT_ROOT,
++		 vcFEATURE_PIVOT_ROOT, vcFEATURE_MEMCG,
+ 		 }
+     vcFeatureSet;
+ 
+Index: lib/issupported.c
+===================================================================
+--- lib/issupported.c	(revision 2883)
++++ lib/issupported.c	(revision 2908)
+@@ -50,7 +50,8 @@
+     case vcFEATURE_PPTAG	:  return conf & VC_VCI_PPTAG;
+     case vcFEATURE_SPACES	:  return conf & VC_VCI_SPACES;
+     case vcFEATURE_PIVOT_ROOT	:  return ver >= 0x00020304;
+-    case vcFEATURE_PIDSPACE	:  return ver >= 0x00020305;
++    case vcFEATURE_PIDSPACE	:  return false;
++    case vcFEATURE_MEMCG	:  return ver >= 0x00020306 && conf & VC_VCI_MEMCG;
+     default			:  assert(false); 
+   }
+ 
 Index: lib/syscall_getiattr-fscompat.hc
 ===================================================================
 --- lib/syscall_getiattr-fscompat.hc	(revision 2883)
-+++ lib/syscall_getiattr-fscompat.hc	(revision 2902)
++++ lib/syscall_getiattr-fscompat.hc	(revision 2908)
 @@ -25,6 +25,9 @@
  #include "ioctl-getxflg.hc"
  
@@ -627,10 +899,35 @@ Index: lib/syscall_getiattr-fscompat.hc
  static inline ALWAYSINLINE int
  vc_get_iattr_fscompat(char const *filename,
  		      xid_t    * /*@null@*/ xid,
+Index: lib/issupportedstring.c
+===================================================================
+--- lib/issupportedstring.c	(revision 2883)
++++ lib/issupportedstring.c	(revision 2908)
+@@ -35,7 +35,7 @@
+   DECL(MIGRATE), DECL(NAMESPACE), DECL(SCHED),    DECL(VINFO),
+   DECL(VHI),     DECL(VSHELPER0), DECL(VSHELPER), DECL(VWAIT),
+   DECL(VNET),    DECL(VSTAT),     DECL(PPTAG),    DECL(PIDSPACE),
+-  DECL(SPACES),  DECL(PERSISTENT),DECL(PIVOT_ROOT),
++  DECL(SPACES),  DECL(PERSISTENT),DECL(PIVOT_ROOT),DECL(MEMCG),
+ };
+ 
+ bool
+Index: pathconfig.h.pathsubst
+===================================================================
+--- pathconfig.h.pathsubst	(revision 2883)
++++ pathconfig.h.pathsubst	(revision 2908)
+@@ -25,6 +25,7 @@
+ #define SYSCONFDIR		"@SYSCONFDIR@"
+ #define LOCKDIR			"/var/lock"
+ #define PKGLIBDEFAULTDIR	PKGLIBDIR "/defaults"
++#define DEFAULTCONFDIR		"@CONFDIR@/.defaults"
+ 
+ #define DEFAULT_VSERVERDIR	"@VSERVERDIR@"
+ #define DEFAULT_VSERVERPKGDIR	"@VSERVERPKGDIR@"
 Index: contrib/make-manifest
 ===================================================================
 --- contrib/make-manifest	(revision 2883)
-+++ contrib/make-manifest	(revision 2902)
++++ contrib/make-manifest	(revision 2908)
 @@ -21,7 +21,7 @@
  dest=$2
  data=$3
@@ -643,7 +940,7 @@ Index: contrib/make-manifest
 Index: contrib/manifest.dat.pathsubst
 ===================================================================
 --- contrib/manifest.dat.pathsubst	(revision 2883)
-+++ contrib/manifest.dat.pathsubst	(revision 2902)
++++ contrib/manifest.dat.pathsubst	(revision 2908)
 @@ -159,3 +159,4 @@
  legacy @CONFIG@ @INITRDDIR@/vservers-legacy
  legacy @CONFIG_NOREPLACE@ @SYSCONFDIR@/vservers.conf
@@ -652,7 +949,7 @@ Index: contrib/manifest.dat.pathsubst
 Index: contrib/make-deb-manifest
 ===================================================================
 --- contrib/make-deb-manifest	(revision 0)
-+++ contrib/make-deb-manifest	(revision 2902)
++++ contrib/make-deb-manifest	(revision 2908)
 @@ -0,0 +1,63 @@
 +#!/bin/bash
 +
@@ -720,13 +1017,13 @@ Index: contrib/make-deb-manifest
 
 Property changes on: contrib/make-deb-manifest
 ___________________________________________________________________
-Added: svn:executable
+Name: svn:executable
    + *
 
 Index: contrib/Makefile-files
 ===================================================================
 --- contrib/Makefile-files	(revision 2883)
-+++ contrib/Makefile-files	(revision 2902)
++++ contrib/Makefile-files	(revision 2908)
 @@ -37,6 +37,7 @@
  					contrib/yum-3.2.0-chroot.patch \
  					contrib/yum-3.2.1-chroot.patch \
@@ -739,7 +1036,7 @@ Index: contrib/Makefile-files
 Index: lib_internal/matchlist-initrefserverlist.c
 ===================================================================
 --- lib_internal/matchlist-initrefserverlist.c	(revision 2883)
-+++ lib_internal/matchlist-initrefserverlist.c	(revision 2902)
++++ lib_internal/matchlist-initrefserverlist.c	(revision 2908)
 @@ -26,6 +26,7 @@
  #include <dirent.h>
  #include <string.h>
@@ -751,7 +1048,7 @@ Index: lib_internal/matchlist-initrefserverlist.c
 Index: util-vserver.spec.in
 ===================================================================
 --- util-vserver.spec.in	(revision 2883)
-+++ util-vserver.spec.in	(revision 2902)
++++ util-vserver.spec.in	(revision 2908)
 @@ -395,9 +395,10 @@
  %{!?_without_doc:%doc lib/apidoc/html}
  
@@ -768,7 +1065,7 @@ Index: util-vserver.spec.in
 Index: Makefile.am
 ===================================================================
 --- Makefile.am	(revision 2883)
-+++ Makefile.am	(revision 2902)
++++ Makefile.am	(revision 2908)
 @@ -143,6 +143,9 @@
  			s!@'ENSC_HAVE_C99_COMPILER_FALSE'@!\@ENSC_HAVE_C99_COMPILER_FALSE@ !g; \
  			s!@'ENSC_HAVE_CXX_COMPILER_TRUE'@!\@ENSC_HAVE_CXX_COMPILER_TRUE@ !g; \
@@ -790,7 +1087,7 @@ Index: Makefile.am
 Index: ensc_vector/testsuite/Makefile-files
 ===================================================================
 --- ensc_vector/testsuite/Makefile-files	(revision 2883)
-+++ ensc_vector/testsuite/Makefile-files	(revision 2902)
++++ ensc_vector/testsuite/Makefile-files	(revision 2908)
 @@ -21,6 +21,9 @@
  TESTS +=			ensc_vector/testsuite/test1 \
  				ensc_vector/testsuite/test2
