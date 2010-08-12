@@ -17,7 +17,7 @@
 
 %global _localstatedir	%_var
 
-%global fullver		0.30.216-pre2883
+%global fullver		0.30.216-pre2912
 %global modulever 0.30.216
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
@@ -39,7 +39,6 @@ Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.
 Source1:	fstab
 Patch1:		f12.patch
 Patch2:		f13.patch
-Patch3:         rev2883to2908.patch
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -199,7 +198,6 @@ Linux-VServer API from Python.
 %setup -q -n %name-%fullver
 %patch1 -p0
 %patch2 -p1
-%patch3 -p0
 autoreconf -fi
 
 %build
@@ -342,8 +340,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 %files -f %name-base.list
 %defattr(-,root,root,-)
-%doc AUTHORS COPYING ChangeLog NEWS README THANKS
-%doc doc/*.html doc/*.css
+%doc AUTHORS COPYING NEWS README THANKS
+#%doc AUTHORS COPYING ChangeLog NEWS README THANKS
+#%doc doc/*.html doc/*.css
 /sbin/vshelper
 %dir %confdir
 %dir %confdefaultdir
