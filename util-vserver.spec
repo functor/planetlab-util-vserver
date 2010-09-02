@@ -17,7 +17,7 @@
 
 %global _localstatedir	%_var
 
-%global fullver		0.30.216-pre2912
+%global fullver		0.30.216-pre2913
 %global modulever 0.30.216
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
