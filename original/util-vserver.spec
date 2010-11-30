@@ -1,18 +1,15 @@
-## This package understands the following switches:
-## --without dietlibc        ...   disable usage of dietlibc
-## --with    xalan           ...   require/use the xalan xslt processor
+# $Id: util-vserver.spec.in 2921 2010-10-29 18:38:40Z dhozac $
 
-## Fedora Extras specific customization below...
-
-%ifarch ppc64
-## fails because '__sigsetjmp' and '__longjmp' are undefined
-%bcond_with		dietlibc
-%else
-%bcond_without		dietlibc
+%if "%{?_without_python:1}" != "1"
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 %endif
 
-%bcond_with		xalan
-##
+## This package understands the following switches:
+## --without dietlibc        ...   disable usage of dietlibc
+## --with xalan              ...   require/use the xalan xslt processor
+## --without doc             ...   disable doc generation
+## --with legacy             ...   enable the legacy APIs
+## --without python          ...   disable the Python bindings
 
 %global confdir		%_sysconfdir/vservers
 %global confdefaultdir	%confdir/.defaults
@@ -21,20 +18,34 @@
 
 %global _localstatedir	%_var
 
-%{!?python_sitearch:%global python_sitearch %(%__python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
+%global fullver		0.30.216-pre2925
+%global ver		%( echo %fullver | sed 's/-.*//' )
+%global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+
+
+# Mandriva does funky stuff that break us.
+%if %{?mandriva_release:1}%{!?mandriva_release:0}
+%global mandriva			1
+%global _disable_libtoolize		1
+%global _disable_ld_as_needed		1
+%global _disable_ld_no_undefined	1
+%global before_configure	\
+	%setup_compile_flags	\
+	CONFIGURE_TOP="${CONFIGURE_TOP:-.}"
+%endif
+
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
-Version:	0.30.215+svn2847
-Release:	%release_func 143596525
-License:	GPLv2
+Version:	%ver
+Release:	%release_func 0%subver
+License:	GPL
 Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
-Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2
-#Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%version.tar.bz2.asc
-
+Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
+#Source1:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2.asc
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -42,16 +53,19 @@ Requires:	%name-lib  = %version-%release
 Requires:	diffutils mktemp sed
 Provides:	vserver = %version-%release
 Obsoletes:	vserver < %version
-BuildRequires:	mount vconfig gawk iproute iptables
+BuildRequires:	mount vconfig gawk /sbin/ip iptables
 BuildRequires:	gcc-c++ wget which diffutils
-BuildRequires:	e2fsprogs-devel nss-devel
-BuildRequires:	doxygen tetex-latex graphviz ghostscript
-BuildRequires:	libxslt rsync dump
+BuildRequires:	e2fsprogs-devel e2fsprogs
+%{!?_without_beecrypt:BuildRequires: beecrypt-devel}
+%{?_without_beecrypt:BuildRequires: nss-devel}
+BuildRequires:	e2fsprogs
+%{!?_without_doc:BuildRequires:	doxygen tetex-latex}
+%{!?_without_python:BuildRequires: python python-devel ctags}
 Requires(post):		%name-core
 Requires(pre):		%pkglibdir
 Requires(postun):	%pkglibdir
-%{?with_dietlibc:BuildRequires:	dietlibc}
-%{?with_xalan:BuildRequires:	xalan-j}
+%{!?_without_dietlibc:BuildRequires:	dietlibc >= 0:0.25}
+%{?_with_xalan:BuildRequires:	xalan-j}
 
 %package lib
 Summary:		Dynamic libraries for util-vserver
@@ -101,7 +115,6 @@ Requires:		%name-lib = %version-%release
 %package python
 Summary:		Python bindings to develop vserver-based applications
 Group:			Development/Libraries
-BuildRequires:		python-devel ctags
 Requires:		%name-lib = %version-%release
 
 
@@ -189,27 +202,25 @@ Linux-VServer API from Python.
 
 
 %prep
-%setup -q
-
-sed -i -e 's!^\(# chkconfig: \)[0-9]\+ !\1- !' sysv/*
+%setup -q -n %name-%fullver
 
 
 %build
 %configure --with-initrddir=%_initrddir --enable-release \
-	   --with-crypto-api=nss \
-	   --with-python \
-	   %{!?with_dietlibc:--disable}%{?with_dietlibc:--enable}-dietlibc
+           %{?_without_dietlibc:--disable-dietlibc} \
+           %{?_with_legacy:--enable-apis=NOLEGACY} \
+           --with-initscripts=sysv \
+           %{?_without_python:--without-python}
 
 %__make %{?_smp_mflags} all
-%__make %{?_smp_mflags} doc
+%{!?_without_doc:%__make %{?_smp_mflags} doc}
 
 
 %install
 rm -rf $RPM_BUILD_ROOT
 %__make DESTDIR="$RPM_BUILD_ROOT" install install-distribution
 
-rm -f $RPM_BUILD_ROOT%_libdir/*.la \
-      $RPM_BUILD_ROOT%python_sitearch/*.*a
+rm -f $RPM_BUILD_ROOT/%_libdir/*.la
 
 MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
@@ -218,7 +229,6 @@ contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
 %check
 %__make check
-LC_NUMERIC=de_DE.UTF-8 ./lib_internal/testsuite/crypto-speed || :
 
 
 %clean
@@ -250,6 +260,7 @@ test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 %chkconfig --add util-vserver
 
 
+
 %preun sysv
 test "$1" != 0 || %_initrddir/vprocunhide stop &>/dev/null || :
 
@@ -278,6 +289,11 @@ function copy()
 copy fedora /usr/share/doc/fedora-release-*/RPM-GPG-*
 copy fedora /etc/pki/rpm-gpg/RPM-GPG-*
 copy centos /usr/share/doc/centos-*/RPM-GPG-KEY-*
+
+
+%pre build
+x="%_libdir/util-vserver/distributions/etch"
+test -d "$x" && mv "$x" "$x.rpmsave" || :
 
 
 %post build
@@ -331,7 +347,6 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 %defattr(-,root,root,-)
 %doc AUTHORS COPYING ChangeLog NEWS README THANKS
 %doc doc/*.html doc/*.css
-/sbin/vshelper
 %dir %confdir
 %dir %confdefaultdir
 %dir %confdefaultdir/apps
@@ -375,102 +390,24 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 %files devel -f %name-devel.list
 %defattr(-,root,root,-)
-%doc lib/apidoc/latex/refman.pdf
-%doc lib/apidoc/html
+%{!?_without_doc:%doc lib/apidoc/latex/refman.pdf}
+%{!?_without_doc:%doc lib/apidoc/html}
 
 
-%files python
+%if 0%{!?_without_python:1}
+%files python -f %name-python.list
 %defattr(-,root,root,-)
-%python_sitearch/*.so
+%endif
 
 
 %changelog
-* Sun Aug 23 2009 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.215+svn2847-0
-- updated to svn 2847 snapshot
-- added -python subpackage
-
-* Sun Jul 26 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.30.215-8
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
-
-* Wed Feb 25 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.30.215-7
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
-
-* Sat Oct 18 2008 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.215-6
-- rebuilt with recent dietlibc
-
-* Sat Oct 18 2008 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.215-5
-- fixed build with recent rpm
-
-* Mon Sep  8 2008 Tom "spot" Callaway <tcallawa@redhat.com> - 0.30.215-4
-- fix license tag
-
-* Sat Apr 19 2008 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.215-3
-- reenabled %%check
-
-* Mon Apr 14 2008 Alex Lancaster <alexlan[AT]fedoraproject org> - 0.30.215-2
-- Temporarily disable check to get it to at least build and fix broken
-  dep in rawhide/F-9.
-
-* Sat Apr 12 2008 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.215-1
-- updated to 0.30.215
-- use nss-devel instead of beecrypt-devel as BR
-- run crypto-suite benchmark in %%check
-- fixed initscript runlevels (#441311)
-
-* Mon Feb 18 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 0.30.214-3
-- Autorebuild for GCC 4.3
-
-* Wed Sep 19 2007 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.214-2
-- fixed upgrade path from 0.30.213 to 0.30.214; rpm fails to handle when
-  a directory becomes a symlink. Hence, remove the 'etch' directory in
-  %%pre
-
-* Mon Sep  3 2007 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.214-1
-- updated to 0.30.214
-
-* Sat Aug  4 2007 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.213-2
-- added patch to make 'vyum' work with a patched yum-3.2
-
-* Thu May 31 2007 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.213-1
-- updated to 0.30.213
-- disabled dietlibc build for PPC64
-- enabled support for 'util-vserver' initscript
-
-* Fri Apr 20 2007 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.212-4
-- BR some tools tested by ./configure
-
-* Fri Jan 19 2007 David Woodhouse <dwmw2@infradead.org> - 0.30.212-3
-- Build with 64KiB page size
-
-* Fri Jan 19 2007 David Woodhouse <dwmw2@infradead.org> - 0.30.212-2
-- rebuilt with PPC support
-
-* Sun Dec 10 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.212-1
-- updated to 0.30.212
+* Mon Jun 25 2007 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.214-0
 - updated URLs
-- requires 'rsync' for -build to support new 'rsync' build method
+- get rid of e2fsprogs requirement
 
-* Thu Oct 12 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.211-2
-- added graphiz + ghostscript BR
-
-* Thu Oct 12 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.211-1
-- updated to 0.30.211
-
-* Thu Oct 05 2006 Christian Iseli <Christian.Iseli@licr.org> 0.30.210-5
-- rebuilt for unwind info generation, broken in gcc-4.1.1-21
-
-* Mon Sep 18 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-4
-- rebuilt
-
-* Sun Jul  9 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-3
-- rebuilt with dietlibc-0.30
-
-* Mon Feb 20 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-2
-- rebuilt for FC5
-
-* Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-1
-- version 0.30.210
-- removed patches which were from upstream
+* Fri Dec 29 2006 Daniel Hokka Zakrisson <daniel@hozac.com> - 0.30.213-0
+- add --with legacy and --without doc switches
+- add util-vserver initscript
 
 * Sun Jan 22 2006 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.210-0
 - do not require 'xalan' anymore by default
@@ -483,20 +420,7 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
   trigger script
 - create '/vservers/.hash' and add initial configuration for it
 
-* Thu Nov  3 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.209-4
-- exclude PPC from build; see
-  https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=172389
-- added patch to make 'vyum' work with yum-2.4
-
-* Tue Nov  1 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.209-3
-- added lot of debug stuff to find out the reason for the 'make check'
-  failure on PPC (cflags & personlity get killed there)
-
-* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0.30.209-2
-- made sure that ensc_fmt/* it compiled with dietlibc. Else, it will
-  fail with the stack-protector in FC5's gcc
-
-* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.209-1
+* Sun Oct 30 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.209-0
 - version 0.30.209
 - copy centos keys
 
@@ -512,7 +436,7 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 - added patches to make yum work in chroot environments
 - version 0.30.206
 
-* Thu Mar 24 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.205-1
+* Thu Mar 24 2005 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de> - 0:0.30.205-0
 - added some %%descriptions
 - copy GPG keys from the system into the confdir
 - buildrequire dietlibc-0.25
