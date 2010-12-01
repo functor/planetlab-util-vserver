@@ -5,8 +5,8 @@ WEBFETCH		:= wget
 SHA1SUM			:= sha1sum
 
 ALL			+= util-vserver
-util-vserver-URL       := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2924.tar.bz2
-util-vserver-SHA1SUM   := 7dd700ce0a6b52afb23eda2d0378ff8ac7cbfead
+util-vserver-URL       := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2926.tar.bz2
+util-vserver-SHA1SUM   := 3ec3098d0b2b8473d9dced1738976fdd576fba6d
 util-vserver		:= $(notdir $(util-vserver-URL))
 
 all: $(ALL)
