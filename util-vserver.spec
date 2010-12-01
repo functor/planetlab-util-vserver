@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 8
+%global taglevel 9
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -393,6 +393,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Wed Dec 01 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-9
+- Sync with upstream revision 2926
+
 * Tue Nov 16 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-8
 - Sync with upstream revision 2924
 
