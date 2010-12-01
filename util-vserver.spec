@@ -33,7 +33,7 @@
 %endif
 
 
-%global release pre2925
+%global release pre2926
 #%{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
