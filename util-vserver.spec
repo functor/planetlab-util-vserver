@@ -344,7 +344,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 %files -f %name-base.list
 %defattr(-,root,root,-)
-%doc AUTHORS COPYING ChangeLog NEWS README THANKS
+# ChangeLog not in the svn tree, make is helpless to recreate...
+#%doc AUTHORS COPYING ChangeLog NEWS README THANKS
+%doc AUTHORS COPYING NEWS README THANKS
 %doc doc/*.html doc/*.css
 %dir %confdir
 %dir %confdefaultdir
