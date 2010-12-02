@@ -19,6 +19,7 @@
 %global fullver		0.30.216-pre2926
 %global ver		%( echo %fullver | sed 's/-.*//' )
 %global subver		%( s=`echo %fullver | grep -- - | sed 's/.*-/./'`; echo ${s:-.1} )
+%global release		%( echo %subver | sed -e 's,\.,,' )
 
 
 # Mandriva does funky stuff that break us.
@@ -32,9 +33,6 @@
 	CONFIGURE_TOP="${CONFIGURE_TOP:-.}"
 %endif
 
-
-%global release pre2926
-#%{!?release_func:%global release_func() %1%{?dist}}
 
 Summary:	Linux virtual server utilities
 Name:		util-vserver
@@ -206,6 +204,7 @@ Linux-VServer API from Python.
 
 
 %build
+make -f Makefile.svn
 %configure --with-initrddir=%_initrddir --enable-release \
            %{?_without_dietlibc:--disable-dietlibc} \
            %{?_with_legacy:--enable-apis=NOLEGACY} \
