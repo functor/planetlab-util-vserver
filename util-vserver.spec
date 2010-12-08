@@ -250,6 +250,7 @@ test "$1" != 0 || rm -rf %_localstatedir/cache/vservers/* 2>/dev/null || :
 %chkconfig --add vservers-default
 %chkconfig --add vprocunhide
 %chkconfig --add util-vserver
+%chkconfig vprocunhide on
 %chkconfig util-vserver on
 
 %preun sysv
