@@ -37,6 +37,7 @@ Group:		System Environment/Base
 URL:		http://savannah.nongnu.org/projects/util-vserver/
 Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
 Source1:	fstab
+Source2:	vprocunhide-files
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -217,7 +218,8 @@ MANIFEST_CONFIG='%config' \
 MANIFEST_CONFIG_NOREPLACE='%config(noreplace)' \
 contrib/make-manifest %name $RPM_BUILD_ROOT contrib/manifest.dat
 
-install -c -m 755 %{SOURCE1} %{buildroot}/%pkglibdir/defaults/fstab
+install -c -m 644 %{SOURCE1} %{buildroot}/%pkglibdir/defaults/fstab
+install -c -m 644 %{SOURCE2} %{buildroot}/%pkglibdir/defaults/vprocunhide-files
 
 %check
 %__make check
