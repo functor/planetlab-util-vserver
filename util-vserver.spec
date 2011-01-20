@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 10
+%global taglevel 11
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -396,6 +396,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-11
+- add a custom vprocunhide-files file which contains /proc/partitions
+
 * Wed Dec 08 2010 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-10
 - Enable vprocunhide service
 
