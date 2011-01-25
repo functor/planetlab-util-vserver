@@ -32,4 +32,5 @@
 /proc/uptime
 -/proc/cmdline
 /proc/version
+/proc/vmstat
 /proc/partitions
