@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 11
+%global taglevel 12
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -396,6 +396,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Mon Jan 31 2011 Andy Bavier <acb@cs.princeton.edu> - util-vserver-0.30.216-12
+- add files needed by CoMon to vprocunhide-files list
+
 * Thu Jan 20 2011 S.Çağlar Onur <caglar@cs.princeton.edu> - util-vserver-0.30.216-11
 - add a custom vprocunhide-files file which contains /proc/partitions
 
