@@ -12,6 +12,7 @@
 /proc/cpuinfo
 /proc/crypto
 /proc/devices
+/proc/diskstats
 /proc/execdomains
 /proc/filesystems
 /proc/interrupts
