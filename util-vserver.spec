@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 14
+%global taglevel 15
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -402,6 +402,10 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Mar 10 2011 S.Çağlar Onur <caglar@verivue.com> - util-vserver-0.30.216-15
+- * Sync with upstream
+- * Add SL6 as a supported distro
+
 * Fri Feb 18 2011 Sapan Bhatia <sapanb@cs.princeton.edu> - util-vserver-0.30.216-14
 - Retagging to make sure the tagging operation worked.
 
