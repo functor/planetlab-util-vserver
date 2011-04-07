@@ -12,7 +12,7 @@ Index: distrib/sl6/yum.repos.d/sl.repo
 +#mirrorlist=http://ftp.scientificlinux.org/linux/scientific/mirrorlist/sl-base-6.txt
 +enabled=1
 +gpgcheck=1
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 +[sl-testing]
 +name=Scientific Linux 6 Testing - $basearch
@@ -22,7 +22,7 @@ Index: distrib/sl6/yum.repos.d/sl.repo
 +		ftp://ftp.scientificlinux.org/linux/scientific/6rolling/testing/$basearch/
 +enabled=0
 +gpgcheck=0
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 +[sl-source]
 +name=Scientific Linux 6 Alpha - Source
@@ -32,7 +32,7 @@ Index: distrib/sl6/yum.repos.d/sl.repo
 +		ftp://ftp.scientificlinux.org/linux/scientific/6/SRPMS/
 +enabled=0
 +gpgcheck=1
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 +[sl-testing-source]
 +name=Scientific Linux 6 Testing - Source
@@ -42,7 +42,7 @@ Index: distrib/sl6/yum.repos.d/sl.repo
 +		ftp://ftp.scientificlinux.org/linux/scientific/6rolling/testing/SRPMS/
 +enabled=0
 +gpgcheck=0
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 Index: distrib/sl6/yum.repos.d/sl-updates.repo
 ===================================================================
@@ -58,7 +58,7 @@ Index: distrib/sl6/yum.repos.d/sl-updates.repo
 +#mirrorlist=http://ftp.scientificlinux.org/linux/scientific/mirrorlist/sl-security-6.txt
 +enabled=1
 +gpgcheck=1
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 +[sl-fastbugs]
 +name=Scientific Linux 6 - $basearch - fastbug updates
@@ -69,7 +69,7 @@ Index: distrib/sl6/yum.repos.d/sl-updates.repo
 +#mirrorlist=http://ftp.scientificlinux.org/linux/scientific/mirrorlist/sl-fastbugs-6.txt
 +enabled=0
 +gpgcheck=1
-+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sl file:///etc/pki/rpm-gpg/RPM-GPG-KEY-dawson
++gpgkey=http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-sl http://www.scientificlinux.org/documentation/gpg/RPM-GPG-KEY-dawson
 +
 Index: distrib/sl6/pkgs/01
 ===================================================================
