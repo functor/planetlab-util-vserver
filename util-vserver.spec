@@ -24,7 +24,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 15
+%global taglevel 16
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -402,6 +402,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Tue Jun 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-16
+- fixes for scientific linux
+
 * Thu Mar 10 2011 S.Çağlar Onur <caglar@verivue.com> - util-vserver-0.30.216-15
 - * Sync with upstream
 - * Add SL6 as a supported distro
