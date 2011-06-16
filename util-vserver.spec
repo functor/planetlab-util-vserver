@@ -1,4 +1,3 @@
-# $Id: util-vserver.spec.in 2807 2008-10-30 01:59:52Z dhozac $
 
 %if "%{?_without_python:1}" != "1"
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
@@ -34,7 +33,7 @@ Version:	%ver
 Release:	%taglevel
 License:	GPL
 Group:		System Environment/Base
-URL:		http://savannah.nongnu.org/projects/util-vserver/
+URL:		http://linux-vserver.org/
 Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
 Source1:	fstab
 Source2:	vprocunhide-files
@@ -48,7 +47,7 @@ Requires:	%name-lib  = %version-%release
 Requires:	diffutils mktemp sed
 Provides:	vserver = %version-%release
 Obsoletes:	vserver < %version
-BuildRequires:	mount vconfig gawk /sbin/ip iptables
+BuildRequires:	util-linux vconfig gawk /sbin/ip iptables
 BuildRequires:	gcc-c++ wget which diffutils
 BuildRequires:	e2fsprogs-devel e2fsprogs
 %{!?_without_beecrypt:BuildRequires: beecrypt-devel}
