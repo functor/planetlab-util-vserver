@@ -6,7 +6,7 @@ ALL			+= util-vserver
 util-vserver-URL1      := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2939.tar.bz2
 util-vserver-URL2      := http://mirror.onelab.eu/third-party/util-vserver-0.30.216-pre2939.tar.bz2
 util-vserver-SHA1SUM   := 2fc905190fed57a4a31b6191c6d085cd699e65b6
-util-vserver		:= $(notdir $(util-vserver-URL))
+util-vserver		:= $(notdir $(util-vserver-URL1))
 
 all: $(ALL)
 .PHONY: all
