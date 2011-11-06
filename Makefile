@@ -1,11 +1,10 @@
-# $Id$
-# $URL$
 #
 WEBFETCH		:= wget
 SHA1SUM			:= sha1sum
 
 ALL			+= util-vserver
-util-vserver-URL       := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2939.tar.bz2
+util-vserver-URL1      := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2939.tar.bz2
+util-vserver-URL2      := http://mirror.onelab.eu/third-party/util-vserver-0.30.216-pre2939.tar.bz2
 util-vserver-SHA1SUM   := 2fc905190fed57a4a31b6191c6d085cd699e65b6
 util-vserver		:= $(notdir $(util-vserver-URL))
 
@@ -17,7 +16,9 @@ define download_target
 $(1): $($(1))
 .PHONY: $($(1))
 $($(1)): 
-	@if [ ! -e "$($(1))" ] ; then echo "$(WEBFETCH) $($(1)-URL)" ; $(WEBFETCH) $($(1)-URL) ; fi
+	@if [ ! -e "$($(1))" ] ; then \
+	{ echo Using primary; echo "$(WEBFETCH) $($(1)-URL1)" ; $(WEBFETCH) $($(1)-URL1) ; } || \
+	{ echo Using primary; echo "$(WEBFETCH) $($(1)-URL2)" ; $(WEBFETCH) $($(1)-URL2) ; } ; fi
 	@if [ ! -e "$($(1))" ] ; then echo "Could not download source file: $($(1)) does not exist" ; exit 1 ; fi
 	@if test "$$$$($(SHA1SUM) $($(1)) | awk '{print $$$$1}')" != "$($(1)-SHA1SUM)" ; then \
 	    echo "sha1sum of the downloaded $($(1)) does not match the one from 'Makefile'" ; \
