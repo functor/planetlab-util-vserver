@@ -23,7 +23,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 17
+%global taglevel 18
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -401,6 +401,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Mon Nov 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-18
+- 2 places for pulling sources from in case of network outage
+
 * Thu Jul 07 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-17
 - only tweaked specfile for fedora15 - requires util-linux instead of mount
 
