@@ -3,10 +3,10 @@ WEBFETCH		:= wget
 SHA1SUM			:= sha1sum
 
 ALL			+= util-vserver
-util-vserver-URL1      := http://build.planet-lab.org/third-party/util-vserver-0.30.216-pre2939.tar.bz2
-util-vserver-URL2      := http://mirror.onelab.eu/third-party/util-vserver-0.30.216-pre2939.tar.bz2
-util-vserver-SHA1SUM   := 2fc905190fed57a4a31b6191c6d085cd699e65b6
-util-vserver		:= $(notdir $(util-vserver-URL1))
+util-vserver		:= util-vserver-0.30.216-pre3004.tar.bz2
+util-vserver-SHA1SUM	:= 9d2565dde57ff583dda35357a2542b87a5817d61
+util-vserver-URL1	:= http://build.planet-lab.org/third-party/$(util-vserver)
+util-vserver-URL2	:= http://mirror.onelab.eu/third-party/$(util-vserver)
 
 all: $(ALL)
 .PHONY: all
