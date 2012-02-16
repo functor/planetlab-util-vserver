@@ -37,9 +37,9 @@ URL:		http://linux-vserver.org/
 Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
 Source1:	fstab
 Source2:	vprocunhide-files
-Patch1: nomtab.patch
-Patch2: upstart.patch
-Patch3: sl.patch
+#Patch1: nomtab.patch
+#Patch2: upstart.patch
+#Patch3: sl.patch
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
