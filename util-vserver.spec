@@ -37,9 +37,6 @@ URL:		http://linux-vserver.org/
 Source0:	http://ftp.linux-vserver.org/pub/utils/util-vserver/%name-%fullver.tar.bz2
 Source1:	fstab
 Source2:	vprocunhide-files
-#Patch1: nomtab.patch
-#Patch2: upstart.patch
-#Patch3: sl.patch
 BuildRoot:	%_tmppath/%name-%version-%release-root
 Requires:	init(%name)
 Requires:	%name-core = %version-%release
@@ -197,9 +194,6 @@ Linux-VServer API from Python.
 
 %prep
 %setup -q -n %name-%fullver
-%patch1 -p1
-%patch2 -p1
-%patch3 -p0
 autoreconf -fi
 
 %build
