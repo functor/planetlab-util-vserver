@@ -23,7 +23,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 19
+%global taglevel 20
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -395,6 +395,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Fri Feb 24 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-20
+- bump to 0.30.216-pre3004
+
 * Mon Nov 28 2011 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-19
 - typo in dual mirror building
 
