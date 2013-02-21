@@ -23,7 +23,7 @@
 
 # for module-tools
 %global module_version_varname modulever
-%global taglevel 20
+%global taglevel 21
 
 %{!?release_func:%global release_func() %1%{?dist}}
 
@@ -395,6 +395,9 @@ test "$1" = 0  || %_initrddir/rebootmgr   condrestart >/dev/null || :
 
 
 %changelog
+* Thu Feb 21 2013 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-21
+- upgrade to 0.30.216-pre3038
+
 * Fri Feb 24 2012 Thierry Parmentelat <thierry.parmentelat@sophia.inria.fr> - util-vserver-0.30.216-20
 - bump to 0.30.216-pre3004
 
