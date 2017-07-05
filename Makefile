@@ -4,8 +4,8 @@ SHA1SUM			:= sha1sum
 
 ALL			+= util-vserver
 util-vserver		:= util-vserver-0.30.216-pre3038.tar.bz2
-util-vserver-SHA1SUM	:= 9a0d784ea27422a480df9a3a65710fd27b1c0881
-util-vserver-URL1	:= http://build.planet-lab.org/third-party/$(util-vserver)
+util-vserver-SHA1SUM	:= 9a0d784ea27422a480df9a3a65710fd27b1c0881A
+util-vserver-URL1	:= https://raw.githubusercontent.com/functor/planetlab-third-party/master/$(util-vserver)
 util-vserver-URL2	:= http://mirror.onelab.eu/third-party/$(util-vserver)
 
 all: $(ALL)
